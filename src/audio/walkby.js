@@ -1,6 +1,7 @@
 /**
- * One conversation at a time. Short interjections (oi / watch out) may overlap.
- * Distance fade still applies; only the nearest speaker starts a new talk.
+ * One conversation at a time. A line is not "started" until audio actually
+ * begins — never estimate duration up front (that queued a minute of silent
+ * plays that all fired when decodes finished).
  */
 
 const NEAR = {
@@ -54,11 +55,6 @@ function isInterjection(line) {
   return INTERJECT_RE.test((line.text || "").trim());
 }
 
-function lineMs(line) {
-  if (isInterjection(line)) return 900;
-  return Math.max(1600, (line.text?.length || 20) * 70);
-}
-
 export function createWalkbyDirector(voice, cast) {
   const last = new Map();
   const lastInterject = new Map();
@@ -66,6 +62,7 @@ export function createWalkbyDirector(voice, cast) {
   let talkingHandle = null;
   let lastId = "";
   let interjectUntil = 0;
+  let inflight = false;
   const pool = new Map();
   const interjects = [];
 
@@ -104,13 +101,25 @@ export function createWalkbyDirector(voice, cast) {
     return rows;
   };
 
+  const startLine = (line, gain, onStart) => {
+    if (inflight || voice.busy) return;
+    inflight = true;
+    const handle = voice.play(line.id, { gain });
+    handle.ready.then((ok) => {
+      inflight = false;
+      if (!ok) return;
+      onStart(handle);
+    });
+  };
+
   return {
     isTalking(now) {
-      return now < talkingUntil;
+      return inflight || now < talkingUntil;
     },
     tick(now, playerPos) {
       if (!voice.manifest) return;
       if (!pool.size) index();
+      if (inflight) return;
 
       const near = ranked(playerPos);
       if (talkingHandle && now < talkingUntil && near[0]) {
@@ -128,15 +137,15 @@ export function createWalkbyDirector(voice, cast) {
 
       const busy = now < talkingUntil;
 
-      // Interjection only while someone else is mid-sentence
       if (busy) {
         if (now < interjectUntil) return;
         if (now - (lastInterject.get(closest.npc.mesh) || 0) < 6000) return;
         if (!interjects.length) return;
         const line = pick(interjects);
-        lastInterject.set(closest.npc.mesh, now);
-        interjectUntil = now + lineMs(line);
-        voice.play(line.id, { gain: Math.min(1, closest.g * 1.2) });
+        startLine(line, Math.min(1, closest.g * 1.2), (handle) => {
+          lastInterject.set(closest.npc.mesh, performance.now());
+          interjectUntil = performance.now() + (handle.duration || 900);
+        });
         return;
       }
 
@@ -147,11 +156,14 @@ export function createWalkbyDirector(voice, cast) {
       if (!lines.length) return;
       let line = pick(lines);
       if (lines.length > 1 && line.id === lastId) line = pick(lines);
-      last.set(closest.npc.mesh, now);
-      lastId = line.id;
-      const dur = lineMs(line);
-      talkingUntil = now + dur + 250;
-      talkingHandle = voice.play(line.id, { gain: closest.g * 1.05 });
+
+      startLine(line, closest.g * 1.05, (handle) => {
+        const t = performance.now();
+        last.set(closest.npc.mesh, t);
+        lastId = line.id;
+        talkingHandle = handle;
+        talkingUntil = t + (handle.duration || 2000) + 200;
+      });
     },
   };
 }

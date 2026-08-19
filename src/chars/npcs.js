@@ -339,6 +339,8 @@ function place(mesh, x, y, z, yaw = 0) {
  * @param {THREE.Scene} scene
  * @returns {{ mesh: THREE.Group, kind: string, ageBand: string }[]}
  */
+export { ken, babe };
+
 export function spawnBeachCast(scene) {
   const railZ = WORLD.boardwalkZ + 3.6;
   const deckY = 0.18;

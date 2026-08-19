@@ -104,7 +104,7 @@ let audioOn = true;
 window.addEventListener("keydown", (e) => {
   if (e.code === "KeyM" && playing) {
     audioOn = !audioOn;
-    if (voice.gain) voice.gain.gain.value = audioOn ? 1 : 0;
+    if (voice.gain) voice.gain.gain.value = audioOn ? 0.5 : 0;
     if (sfx.master) sfx.master.gain.value = audioOn ? 0.85 : 0;
   }
 });
@@ -129,7 +129,20 @@ async function beginPlay() {
     carpenter?.setState("boardwalk");
     carpenter?.start();
     oceanBed?.start();
-    if (audioOn) await voice.play("dj_open_01").catch(() => {});
+    if (audioOn) {
+      await voice.preload([
+        "dj_open_01",
+        "gold_coast_lad_01",
+        "walkby_flirt_01",
+        "walkby_heckle_01",
+        "ken_gossip_steaks_beach",
+        "babe_gossip_botox_map",
+        "interject_oi_01",
+        "gull_01",
+        "goth_01",
+      ]);
+      await voice.play("dj_open_01").ready;
+    }
   } catch (e) {
     console.warn("audio", e);
   }
@@ -140,7 +153,7 @@ const poster = new PosterOverlay({
   onStart: async () => {
     try {
       await voice.unlock();
-      if (audioOn) await voice.play("factory_recall_01").catch(() => {});
+      if (audioOn) await voice.play("factory_recall_01").ready;
     } catch {
       /* ignore */
     }

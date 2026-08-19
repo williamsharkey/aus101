@@ -40,7 +40,7 @@ function synthStep(ctx, dest, onWood, rate) {
   filt.frequency.value = onWood ? 380 : 640;
   filt.Q.value = onWood ? 0.65 : 1.05;
   const g = ctx.createGain();
-  g.gain.value = onWood ? 0.32 : 0.26;
+  g.gain.value = onWood ? 0.128 : 0.104;
   src.connect(filt);
   filt.connect(g);
   g.connect(dest);
@@ -127,7 +127,7 @@ export function createFootstepPlayer(sfxOrCtx) {
     const dest = destOf(sfxOrCtx, ctx);
 
     const urls = onWood ? WOOD : SAND;
-    const gain = onWood ? 0.42 : 0.62;
+    const gain = onWood ? 0.168 : 0.248;
     if (bank) {
       bank.play(urls, { gain, rate }).catch(() => {
         if (loadDone && ctx && dest) synthStep(ctx, dest, onWood, rate);
@@ -142,7 +142,7 @@ export function createFootstepPlayer(sfxOrCtx) {
       if (!onWood) lastSand = i;
       const buf = pack[i];
       if (buf) {
-        playBuf(ctx, dest, buf, onWood ? 0.42 : 0.62, rate);
+        playBuf(ctx, dest, buf, onWood ? 0.168 : 0.248, rate);
         return;
       }
     }

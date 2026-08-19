@@ -1,6 +1,6 @@
 /**
- * Lightweight VO loader against assets/voice/manifest.json.
- * Placeholders (say) and future TikTok bakes share the same path.
+ * VO bank. Never queues a pile of decodes — one start at a time.
+ * Late decodes are dropped so lines cannot all fire a minute later.
  */
 
 export class VoiceBank {
@@ -8,9 +8,11 @@ export class VoiceBank {
     this.manifest = null;
     this.byId = new Map();
     this.ctx = null;
-    this.lru = new Map(); // id -> AudioBuffer
+    this.lru = new Map();
     this.maxLru = 16;
     this.gain = null;
+    this.busy = false;
+    this.gen = 0;
   }
 
   async loadManifest() {
@@ -28,6 +30,7 @@ export class VoiceBank {
       const AC = window.AudioContext || window.webkitAudioContext;
       this.ctx = new AC();
       this.gain = this.ctx.createGain();
+      this.gain.gain.value = 0.5;
       this.gain.connect(this.ctx.destination);
     }
     if (this.ctx.state === "suspended") await this.ctx.resume();
@@ -54,10 +57,27 @@ export class VoiceBank {
     return buf;
   }
 
+  async preload(ids) {
+    await this.unlock();
+    for (const id of ids) {
+      try {
+        await this.decode(id);
+      } catch {
+        /* skip missing */
+      }
+    }
+  }
+
+  /**
+   * Start one line. If another decode/start is in flight, this is refused (no queue).
+   * @returns handle with { ready: Promise<boolean>, duration, setGain, fadeOut, stop }
+   */
   play(id, { when = 0, gain = 1 } = {}) {
     const handle = {
       src: null,
       g: null,
+      duration: 0,
+      started: false,
       setGain(v) {
         if (this.g && this.g.context) this.g.gain.setTargetAtTime(v, this.g.context.currentTime, 0.04);
       },
@@ -65,7 +85,7 @@ export class VoiceBank {
         if (!this.g) return;
         const t = this.g.context.currentTime;
         this.g.gain.cancelScheduledValues(t);
-        this.g.gain.setValueAtTime(this.g.gain.value, t);
+        this.g.gain.setValueAtTime(Math.max(this.g.gain.value, 0.0001), t);
         this.g.gain.linearRampToValueAtTime(0.0001, t + s);
         try {
           this.src?.stop(t + s + 0.02);
@@ -81,9 +101,18 @@ export class VoiceBank {
         }
       },
     };
-    this.unlock()
+
+    if (this.busy) {
+      handle.ready = Promise.resolve(false);
+      return handle;
+    }
+
+    this.busy = true;
+    const gen = ++this.gen;
+    handle.ready = this.unlock()
       .then(() => this.decode(id))
       .then((buf) => {
+        if (gen !== this.gen) return false;
         const src = this.ctx.createBufferSource();
         src.buffer = buf;
         const g = this.ctx.createGain();
@@ -93,8 +122,18 @@ export class VoiceBank {
         src.start(this.ctx.currentTime + when);
         handle.src = src;
         handle.g = g;
+        handle.duration = buf.duration * 1000;
+        handle.started = true;
+        src.onended = () => {
+          if (handle.onended) handle.onended();
+        };
+        return true;
       })
-      .catch(() => {});
+      .catch(() => false)
+      .finally(() => {
+        this.busy = false;
+      });
+
     return handle;
   }
 }

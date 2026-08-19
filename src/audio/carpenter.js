@@ -182,5 +182,10 @@ export function createCarpenterBed(ctx, dest) {
     },
     get state() { return state; },
     get running() { return running; },
+    setMix(v, s = 0.45) {
+      const t = ctx.currentTime;
+      const row = ST[state];
+      ramp(out.gain, running ? row[3] * Math.max(0, Math.min(1, v)) : 0, s, t);
+    },
   };
 }
