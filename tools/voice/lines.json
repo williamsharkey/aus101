@@ -653,7 +653,7 @@
     },
     {
       "id": "dj_song_01",
-      "text": "that was Pulse of the Boardwalk; this is Chrome on the Spit; do not take that as medical advice",
+      "text": "that was Pulse of the Boardwalk; this is Copper on the Spit; do not take that as medical advice",
       "voice": "en_au_002",
       "category": "dj",
       "priority": "dj",
@@ -705,7 +705,7 @@
     },
     {
       "id": "rub_pleasure_02",
-      "text": "keep going chrome, right there",
+      "text": "keep going copper, right there",
       "voice": "en_female_emotional",
       "category": "rub",
       "priority": "rub",
@@ -874,7 +874,7 @@
     },
     {
       "id": "walkby_flirt_03",
-      "text": "hey chrome, you come here often or do you just wash up",
+      "text": "hey copper, you come here often or do you just wash up",
       "voice": "en_au_001",
       "category": "walkby",
       "priority": "walkby",
@@ -991,7 +991,7 @@
     },
     {
       "id": "walkby_flirt_12",
-      "text": "save me from these mortals, chrome boy",
+      "text": "save me from these mortals, copper boy",
       "voice": "en_au_001",
       "category": "walkby",
       "priority": "walkby",
@@ -1082,7 +1082,7 @@
     },
     {
       "id": "walkby_heckle_07",
-      "text": "chrome doesn't make you a local",
+      "text": "copper doesn't make you a local",
       "voice": "en_au_002",
       "category": "walkby",
       "priority": "walkby",
@@ -1134,7 +1134,7 @@
     },
     {
       "id": "gold_coast_lad_01",
-      "text": "hey chrome boy, you don't know where I can get some Flume tickets",
+      "text": "hey copper boy, you don't know where I can get some Flume tickets",
       "voice": "en_au_002",
       "category": "walkby",
       "priority": "walkby",
@@ -1232,7 +1232,7 @@
     },
     {
       "id": "gold_coast_lad_08",
-      "text": "chrome boy you want a midstrength or are you union",
+      "text": "copper boy you want a midstrength or are you union",
       "voice": "en_au_002",
       "category": "walkby",
       "priority": "walkby",
@@ -1367,7 +1367,7 @@
     },
     {
       "id": "goth_06",
-      "text": "your chrome is just another costume, same as this linen",
+      "text": "your copper is just another costume, same as this linen",
       "voice": "en_us_002",
       "category": "walkby",
       "priority": "walkby",
@@ -1446,7 +1446,7 @@
     },
     {
       "id": "child_sassy_02",
-      "text": "my mum said don't talk to chrome people but you started it",
+      "text": "my mum said don't talk to copper people but you started it",
       "voice": "en_us_001",
       "category": "walkby",
       "priority": "walkby",
@@ -1794,7 +1794,7 @@
     },
     {
       "id": "aus101_hud_11",
-      "text": "Skin is temporary. Chrome is leased.",
+      "text": "Skin is temporary. Copper is leased.",
       "voice": "en_male_narration",
       "category": "hud",
       "priority": "hud",
@@ -1850,7 +1850,7 @@
     },
     {
       "id": "incel_03",
-      "text": "another Stacey choosing the chrome Chad",
+      "text": "another Stacey choosing the copper Chad",
       "voice": "en_us_007",
       "category": "walkby",
       "priority": "walkby",
@@ -2045,7 +2045,7 @@
     },
     {
       "id": "incel_16",
-      "text": "walk-by refusal logged: this chassis is not for your little chrome ritual, try the Chad",
+      "text": "walk-by refusal logged: this chassis is not for your little copper ritual, try the Chad",
       "voice": "en_us_007",
       "category": "walkby",
       "priority": "walkby",
@@ -2060,7 +2060,7 @@
     },
     {
       "id": "overpaint_01",
-      "text": "STOP THE CHROME \u2014 this beach is a people place",
+      "text": "STOP THE COPPER \u2014 this beach is a people place",
       "voice": "en_au_002",
       "category": "fail",
       "priority": "protest",
@@ -2388,7 +2388,7 @@
     },
     {
       "id": "babe_aside_cup_size",
-      "text": "Chrome boy, would you notice if I went up a cup? Be honest. The girls already filed a complaint with gravity.",
+      "text": "Copper boy, would you notice if I went up a cup? Be honest. The girls already filed a complaint with gravity.",
       "voice": "en_au_001",
       "category": "gossip",
       "priority": "walkby",
@@ -2401,7 +2401,7 @@
     },
     {
       "id": "babe_aside_botox_scan",
-      "text": "Hey chrome, scan my forehead. If you can still see a thought I need more botox.",
+      "text": "Hey copper, scan my forehead. If you can still see a thought I need more botox.",
       "voice": "en_au_001",
       "category": "gossip",
       "priority": "walkby",
@@ -2479,7 +2479,7 @@
     },
     {
       "id": "babe_aside_chrome_taste",
-      "text": "Chrome boy, be useful. Which looks more expensive, this nose or this nose after next Thursday?",
+      "text": "Copper boy, be useful. Which looks more expensive, this nose or this nose after next Thursday?",
       "voice": "en_au_001",
       "category": "gossip",
       "priority": "walkby",
@@ -2557,7 +2557,7 @@
     },
     {
       "id": "ken_aside_spot_me",
-      "text": "Chrome, spot me. I don't have a bench. I'm gonna lift this esplanade. Count in robot.",
+      "text": "Copper, spot me. I don't have a bench. I'm gonna lift this esplanade. Count in robot.",
       "voice": "en_au_002",
       "category": "gossip",
       "priority": "walkby",
@@ -2661,7 +2661,7 @@
     },
     {
       "id": "ken_aside_protein_scan",
-      "text": "Robot. Scan me. Tell Ken my biceps grew. He won't believe a mirror. He'll believe chrome.",
+      "text": "Robot. Scan me. Tell Ken my biceps grew. He won't believe a mirror. He'll believe copper.",
       "voice": "en_au_002",
       "category": "gossip",
       "priority": "walkby",
@@ -2713,7 +2713,7 @@
     },
     {
       "id": "ken_aside_android_steak",
-      "text": "Chrome boy, you want a steak? Nod. I'll grill you one. I don't know what you eat. I assume beef.",
+      "text": "Copper boy, you want a steak? Nod. I'll grill you one. I don't know what you eat. I assume beef.",
       "voice": "en_au_002",
       "category": "gossip",
       "priority": "walkby",
@@ -2778,7 +2778,7 @@
     },
     {
       "id": "cross_babe_steak_soul",
-      "text": "He has two settings, chrome boy: grill the steak and marry the jetski. There is no third setting.",
+      "text": "He has two settings, copper boy: grill the steak and marry the jetski. There is no third setting.",
       "voice": "en_au_001",
       "category": "gossip",
       "priority": "walkby",
@@ -2843,7 +2843,7 @@
     },
     {
       "id": "cross_ken_scoop_love",
-      "text": "I would notice, babe. I notice all your scoops. That's love. Chrome, tell her that's love.",
+      "text": "I would notice, babe. I notice all your scoops. That's love. Copper, tell her that's love.",
       "voice": "en_au_002",
       "category": "gossip",
       "priority": "walkby",
@@ -2853,6 +2853,95 @@
         "crosstalk"
       ],
       "cooldownMs": 45000
+    },
+    {
+      "id": "interject_oi_01",
+      "text": "oi",
+      "voice": "en_au_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "interject",
+        "heckle"
+      ],
+      "cooldownMs": 4000
+    },
+    {
+      "id": "interject_oi_02",
+      "text": "oi oi",
+      "voice": "en_au_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "interject",
+        "lad"
+      ],
+      "cooldownMs": 4000
+    },
+    {
+      "id": "interject_watch_01",
+      "text": "watch out",
+      "voice": "en_au_001",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "interject"
+      ],
+      "cooldownMs": 4000
+    },
+    {
+      "id": "interject_watch_02",
+      "text": "look out",
+      "voice": "en_au_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "interject"
+      ],
+      "cooldownMs": 4000
+    },
+    {
+      "id": "interject_heads_01",
+      "text": "heads up",
+      "voice": "en_au_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "interject",
+        "ken"
+      ],
+      "cooldownMs": 4000
+    },
+    {
+      "id": "interject_oi_babe",
+      "text": "oi copper",
+      "voice": "en_au_001",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "interject",
+        "babe"
+      ],
+      "cooldownMs": 4000
+    },
+    {
+      "id": "interject_watch_it",
+      "text": "watch it",
+      "voice": "en_au_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "interject",
+        "heckle"
+      ],
+      "cooldownMs": 4000
     }
   ]
 }

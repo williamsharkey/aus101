@@ -195,8 +195,8 @@ function frame() {
     if (squeezing) carpenter?.setState("apply");
     else carpenter?.setState("boardwalk");
     const painted = tickApply(cast, player.pos, squeezing, raw || TICK);
-    if (painted && audioOn && Math.random() < 0.012) {
-      voice.play("rub_pleasure_01", { gain: 1.2 }).catch(() => {});
+    if (painted && audioOn && !walkby.isTalking(performance.now()) && Math.random() < 0.012) {
+      voice.play("rub_pleasure_01", { gain: 1.2 });
     }
     if (audioOn) walkby.tick(performance.now(), player.pos);
     if (level.piano && shades) {

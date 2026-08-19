@@ -1,6 +1,6 @@
 # AUS101 — I'll Be Back With SPF 50+
 
-Self-contained Three.js browser game. You are **AUS101**, a chrome T-101 with red eyes, reassigned to find beachgoers without SPF on the Gold Coast and apply sunscreen. Score completeness of coverage. Track up to 12 subjects for UV burn. Do not paint onto swimwear. Do not punch or laser — the factory will recall you.
+Self-contained Three.js browser game. You are **AUS101**, a copper T-101 with red eyes, reassigned to find beachgoers without SPF on the Gold Coast and apply sunscreen. Score completeness of coverage. Track up to 12 subjects for UV burn. Do not paint onto swimwear. Do not punch or laser — the factory will recall you.
 
 Playable build target: a committed static `dist/` (no server). First frame is a full-scale movie poster for [laserbarf.com](https://laserbarf.com) thumbnails — big **AUS101** lettering, cast lineup, no tiny instruction menu.
 

@@ -1,5 +1,6 @@
 /**
- * Walk-by VO: only the nearest 1–2 NPCs, steep distance fade.
+ * One conversation at a time. Short interjections (oi / watch out) may overlap.
+ * Distance fade still applies; only the nearest speaker starts a new talk.
  */
 
 const NEAR = {
@@ -30,9 +31,9 @@ const CD = {
 };
 
 const ADULT_TROPES = new Set(["pleasure", "flirt", "gossip", "incel", "iamverysmart", "babe", "ken"]);
-const MAX_VOICES = 2;
 const REF_M = 1.15;
 const POW = 2.8;
+const INTERJECT_RE = /^(oi+|oy|hey|watch out|watch it|look out|heads up|oi copper)[\s!.?,]*$/i;
 
 function dist2(a, b) {
   const dx = a.x - b.x;
@@ -48,19 +49,38 @@ function pick(arr) {
   return arr[(Math.random() * arr.length) | 0];
 }
 
+function isInterjection(line) {
+  if ((line.tags || []).includes("interject")) return true;
+  return INTERJECT_RE.test((line.text || "").trim());
+}
+
+function lineMs(line) {
+  if (isInterjection(line)) return 900;
+  return Math.max(1600, (line.text?.length || 20) * 70);
+}
+
 export function createWalkbyDirector(voice, cast) {
   const last = new Map();
-  const active = [];
+  const lastInterject = new Map();
+  let talkingUntil = 0;
+  let talkingHandle = null;
   let lastId = "";
+  let interjectUntil = 0;
   const pool = new Map();
+  const interjects = [];
 
   const index = () => {
     pool.clear();
+    interjects.length = 0;
     const lines = voice.manifest?.lines || [];
+    for (const L of lines) {
+      if (isInterjection(L)) interjects.push(L);
+    }
     for (const [kind, tags] of Object.entries(TAGS)) {
       pool.set(
         kind,
         lines.filter((l) => {
+          if (isInterjection(l)) return false;
           const t = l.tags || [];
           if (kind === "kid" && t.some((x) => ADULT_TROPES.has(x))) return false;
           if (kind === "gull" && t.some((x) => ADULT_TROPES.has(x))) return false;
@@ -68,15 +88,6 @@ export function createWalkbyDirector(voice, cast) {
           return tags.some((tag) => t.includes(tag) || (l.id && l.id.includes(tag)));
         })
       );
-    }
-  };
-
-  const prune = (now) => {
-    for (let i = active.length - 1; i >= 0; i--) {
-      if (now >= active[i].until) {
-        active[i].handle?.stop?.();
-        active.splice(i, 1);
-      }
     }
   };
 
@@ -94,49 +105,53 @@ export function createWalkbyDirector(voice, cast) {
   };
 
   return {
+    isTalking(now) {
+      return now < talkingUntil;
+    },
     tick(now, playerPos) {
       if (!voice.manifest) return;
       if (!pool.size) index();
-      prune(now);
 
       const near = ranked(playerPos);
-      const keep = new Set(near.slice(0, MAX_VOICES).map((r) => r.npc.mesh));
-
-      for (let i = active.length - 1; i >= 0; i--) {
-        const a = active[i];
-        const row = near.find((r) => r.npc.mesh === a.npc.mesh);
-        if (!row || !keep.has(a.npc.mesh) || row.g < 0.04) {
-          a.handle?.fadeOut?.(0.08);
-          active.splice(i, 1);
-          continue;
-        }
-        a.handle?.setGain?.(row.g * 1.05);
+      if (talkingHandle && now < talkingUntil && near[0]) {
+        talkingHandle.setGain?.(near[0].g * 1.05);
       }
-
-      if (active.length >= MAX_VOICES) return;
+      if (now >= talkingUntil) talkingHandle = null;
       if (!near.length) return;
+
+      const closest = near[0];
+      if (closest.g < 0.12) return;
 
       const childNear = cast.some(
         (c) => c.ageBand === "child" && dist2(playerPos, c.mesh.position) < 5 * 5
       );
 
-      for (const row of near.slice(0, MAX_VOICES)) {
-        if (active.length >= MAX_VOICES) break;
-        if (active.some((a) => a.npc.mesh === row.npc.mesh)) continue;
-        if (row.g < 0.12) continue;
-        const cd = CD[row.npc.kind] || 12000;
-        if (now - (last.get(row.npc.mesh) || 0) < cd) continue;
-        if (childNear && row.npc.ageBand === "adult") continue;
-        const lines = pool.get(row.npc.kind) || [];
-        if (!lines.length) continue;
-        let line = pick(lines);
-        if (lines.length > 1 && line.id === lastId) line = pick(lines);
-        last.set(row.npc.mesh, now);
-        lastId = line.id;
-        const dur = Math.max(1400, (line.text?.length || 20) * 55);
-        const handle = voice.play(line.id, { gain: row.g * 1.05 });
-        active.push({ npc: row.npc, until: now + dur, handle });
+      const busy = now < talkingUntil;
+
+      // Interjection only while someone else is mid-sentence
+      if (busy) {
+        if (now < interjectUntil) return;
+        if (now - (lastInterject.get(closest.npc.mesh) || 0) < 6000) return;
+        if (!interjects.length) return;
+        const line = pick(interjects);
+        lastInterject.set(closest.npc.mesh, now);
+        interjectUntil = now + lineMs(line);
+        voice.play(line.id, { gain: Math.min(1, closest.g * 1.2) });
+        return;
       }
+
+      const cd = CD[closest.npc.kind] || 12000;
+      if (now - (last.get(closest.npc.mesh) || 0) < cd) return;
+      if (childNear && closest.npc.ageBand === "adult") return;
+      const lines = pool.get(closest.npc.kind) || [];
+      if (!lines.length) return;
+      let line = pick(lines);
+      if (lines.length > 1 && line.id === lastId) line = pick(lines);
+      last.set(closest.npc.mesh, now);
+      lastId = line.id;
+      const dur = lineMs(line);
+      talkingUntil = now + dur + 250;
+      talkingHandle = voice.play(line.id, { gain: closest.g * 1.05 });
     },
   };
 }

@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "generatedAt": "2026-08-19T05:24:27Z",
-  "count": 217,
+  "generatedAt": "2026-08-19T06:46:29Z",
+  "count": 224,
   "placeholder": false,
   "engine": "tiktok-weilnet-proxy",
   "note": "Baked via tiktok-tts.weilnet.workers.dev \u2014 no TikTok sessionid. Unofficial; may break.",
@@ -869,7 +869,7 @@
         "tiktok_proxy"
       ],
       "cooldownMs": 0,
-      "text": "that was Pulse of the Boardwalk; this is Chrome on the Spit; do not take that as medical advice",
+      "text": "that was Pulse of the Boardwalk; this is Copper on the Spit; do not take that as medical advice",
       "placeholder": false,
       "engine": "tiktok-weilnet-proxy"
     },
@@ -937,7 +937,7 @@
         "tiktok_proxy"
       ],
       "cooldownMs": 8000,
-      "text": "keep going chrome, right there",
+      "text": "keep going copper, right there",
       "placeholder": false,
       "engine": "tiktok-weilnet-proxy"
     },
@@ -1158,7 +1158,7 @@
         "tiktok_proxy"
       ],
       "cooldownMs": 14000,
-      "text": "hey chrome, you come here often or do you just wash up",
+      "text": "hey copper, you come here often or do you just wash up",
       "placeholder": false,
       "engine": "tiktok-weilnet-proxy"
     },
@@ -1311,7 +1311,7 @@
         "tiktok_proxy"
       ],
       "cooldownMs": 14000,
-      "text": "save me from these mortals, chrome boy",
+      "text": "save me from these mortals, copper boy",
       "placeholder": false,
       "engine": "tiktok-weilnet-proxy"
     },
@@ -1430,7 +1430,7 @@
         "tiktok_proxy"
       ],
       "cooldownMs": 16000,
-      "text": "chrome doesn't make you a local",
+      "text": "copper doesn't make you a local",
       "placeholder": false,
       "engine": "tiktok-weilnet-proxy"
     },
@@ -1499,7 +1499,7 @@
         "tiktok_proxy"
       ],
       "cooldownMs": 14000,
-      "text": "hey chrome boy, you don't know where I can get some Flume tickets",
+      "text": "hey copper boy, you don't know where I can get some Flume tickets",
       "placeholder": false,
       "engine": "tiktok-weilnet-proxy"
     },
@@ -1625,7 +1625,7 @@
         "tiktok_proxy"
       ],
       "cooldownMs": 14000,
-      "text": "chrome boy you want a midstrength or are you union",
+      "text": "copper boy you want a midstrength or are you union",
       "placeholder": false,
       "engine": "tiktok-weilnet-proxy"
     },
@@ -1799,7 +1799,7 @@
         "tiktok_proxy"
       ],
       "cooldownMs": 16000,
-      "text": "your chrome is just another costume, same as this linen",
+      "text": "your copper is just another costume, same as this linen",
       "placeholder": false,
       "engine": "tiktok-weilnet-proxy"
     },
@@ -1903,7 +1903,7 @@
         "tiktok_proxy"
       ],
       "cooldownMs": 20000,
-      "text": "my mum said don't talk to chrome people but you started it",
+      "text": "my mum said don't talk to copper people but you started it",
       "placeholder": false,
       "engine": "tiktok-weilnet-proxy"
     },
@@ -2358,7 +2358,7 @@
         "tiktok_proxy"
       ],
       "cooldownMs": 12000,
-      "text": "Skin is temporary. Chrome is leased.",
+      "text": "Skin is temporary. Copper is leased.",
       "placeholder": false,
       "engine": "tiktok-weilnet-proxy"
     },
@@ -2432,7 +2432,7 @@
         "tiktok_proxy"
       ],
       "cooldownMs": 22000,
-      "text": "another Stacey choosing the chrome Chad",
+      "text": "another Stacey choosing the copper Chad",
       "placeholder": false,
       "engine": "tiktok-weilnet-proxy"
     },
@@ -2679,7 +2679,7 @@
         "tiktok_proxy"
       ],
       "cooldownMs": 22000,
-      "text": "walk-by refusal logged: this chassis is not for your little chrome ritual, try the Chad",
+      "text": "walk-by refusal logged: this chassis is not for your little copper ritual, try the Chad",
       "placeholder": false,
       "engine": "tiktok-weilnet-proxy"
     },
@@ -2695,7 +2695,7 @@
         "tiktok_proxy"
       ],
       "cooldownMs": 6000,
-      "text": "STOP THE CHROME \u2014 this beach is a people place",
+      "text": "STOP THE COPPER \u2014 this beach is a people place",
       "placeholder": false,
       "engine": "tiktok-weilnet-proxy"
     },
@@ -3128,7 +3128,7 @@
         "tiktok_proxy"
       ],
       "cooldownMs": 45000,
-      "text": "Chrome boy, would you notice if I went up a cup? Be honest. The girls already filed a complaint with gravity.",
+      "text": "Copper boy, would you notice if I went up a cup? Be honest. The girls already filed a complaint with gravity.",
       "placeholder": false,
       "engine": "tiktok-weilnet-proxy"
     },
@@ -3145,7 +3145,7 @@
         "tiktok_proxy"
       ],
       "cooldownMs": 45000,
-      "text": "Hey chrome, scan my forehead. If you can still see a thought I need more botox.",
+      "text": "Hey copper, scan my forehead. If you can still see a thought I need more botox.",
       "placeholder": false,
       "engine": "tiktok-weilnet-proxy"
     },
@@ -3247,7 +3247,7 @@
         "tiktok_proxy"
       ],
       "cooldownMs": 45000,
-      "text": "Chrome boy, be useful. Which looks more expensive, this nose or this nose after next Thursday?",
+      "text": "Copper boy, be useful. Which looks more expensive, this nose or this nose after next Thursday?",
       "placeholder": false,
       "engine": "tiktok-weilnet-proxy"
     },
@@ -3349,7 +3349,7 @@
         "tiktok_proxy"
       ],
       "cooldownMs": 45000,
-      "text": "Chrome, spot me. I don't have a bench. I'm gonna lift this esplanade. Count in robot.",
+      "text": "Copper, spot me. I don't have a bench. I'm gonna lift this esplanade. Count in robot.",
       "placeholder": false,
       "engine": "tiktok-weilnet-proxy"
     },
@@ -3485,7 +3485,7 @@
         "tiktok_proxy"
       ],
       "cooldownMs": 45000,
-      "text": "Robot. Scan me. Tell Ken my biceps grew. He won't believe a mirror. He'll believe chrome.",
+      "text": "Robot. Scan me. Tell Ken my biceps grew. He won't believe a mirror. He'll believe copper.",
       "placeholder": false,
       "engine": "tiktok-weilnet-proxy"
     },
@@ -3553,7 +3553,7 @@
         "tiktok_proxy"
       ],
       "cooldownMs": 45000,
-      "text": "Chrome boy, you want a steak? Nod. I'll grill you one. I don't know what you eat. I assume beef.",
+      "text": "Copper boy, you want a steak? Nod. I'll grill you one. I don't know what you eat. I assume beef.",
       "placeholder": false,
       "engine": "tiktok-weilnet-proxy"
     },
@@ -3638,7 +3638,7 @@
         "tiktok_proxy"
       ],
       "cooldownMs": 45000,
-      "text": "He has two settings, chrome boy: grill the steak and marry the jetski. There is no third setting.",
+      "text": "He has two settings, copper boy: grill the steak and marry the jetski. There is no third setting.",
       "placeholder": false,
       "engine": "tiktok-weilnet-proxy"
     },
@@ -3723,7 +3723,124 @@
         "tiktok_proxy"
       ],
       "cooldownMs": 45000,
-      "text": "I would notice, babe. I notice all your scoops. That's love. Chrome, tell her that's love.",
+      "text": "I would notice, babe. I notice all your scoops. That's love. Copper, tell her that's love.",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "interject_oi_01",
+      "file": "interject_oi_01.mp3",
+      "voice": "en_au_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "interject",
+        "heckle",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 4000,
+      "text": "oi",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "interject_oi_02",
+      "file": "interject_oi_02.mp3",
+      "voice": "en_au_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "interject",
+        "lad",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 4000,
+      "text": "oi oi",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "interject_watch_01",
+      "file": "interject_watch_01.mp3",
+      "voice": "en_au_001",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "interject",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 4000,
+      "text": "watch out",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "interject_watch_02",
+      "file": "interject_watch_02.mp3",
+      "voice": "en_au_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "interject",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 4000,
+      "text": "look out",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "interject_heads_01",
+      "file": "interject_heads_01.mp3",
+      "voice": "en_au_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "interject",
+        "ken",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 4000,
+      "text": "heads up",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "interject_oi_babe",
+      "file": "interject_oi_babe.mp3",
+      "voice": "en_au_001",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "interject",
+        "babe",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 4000,
+      "text": "oi copper",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "interject_watch_it",
+      "file": "interject_watch_it.mp3",
+      "voice": "en_au_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "interject",
+        "heckle",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 4000,
+      "text": "watch it",
       "placeholder": false,
       "engine": "tiktok-weilnet-proxy"
     }
