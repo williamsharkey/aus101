@@ -101,36 +101,36 @@ function makeGear() {
   g.add(lower, upper);
 
   const deckY = 1.08;
-  const synth = box(0.72, 0.075, 0.28, shell);
+  const synth = box(0.64, 0.075, 0.25, shell);
   synth.position.set(-0.06, deckY + 0.038, STAND_Z);
   g.add(synth);
-  for (const sx of [-0.44, 0.32]) {
+  for (const sx of [-0.36, 0.28]) {
     const end = box(0.045, 0.09, 0.29, cheek);
     end.position.set(sx, deckY + 0.045, STAND_Z);
     g.add(end);
   }
-  const panel = box(0.66, 0.012, 0.1, std(0x111118, { roughness: 0.34, metalness: 0.2 }));
-  panel.position.set(-0.06, deckY + 0.082, STAND_Z + 0.075);
+  const panel = box(0.6, 0.012, 0.075, std(0x111118, { roughness: 0.34, metalness: 0.2 }));
+  panel.position.set(-0.06, deckY + 0.082, STAND_Z + 0.068);
   g.add(panel);
 
   // One octave and a half, proper piano layout.
   const keys = [];
   const WHITE = [0, 2, 4, 5, 7, 9, 11];
-  const whiteGeo = new THREE.BoxGeometry(0.027, 0.014, 0.1);
-  const blackGeo = new THREE.BoxGeometry(0.015, 0.02, 0.062);
+  const whiteGeo = new THREE.BoxGeometry(0.03, 0.014, 0.125);
+  const blackGeo = new THREE.BoxGeometry(0.016, 0.02, 0.078);
   const keyY = deckY + 0.083;
-  const keyZ = STAND_Z - 0.055;
-  const x0 = -0.4;
-  for (let w = 0; w < 15; w++) {
+  const keyZ = STAND_Z - 0.05;
+  const x0 = -0.33;
+  for (let w = 0; w < 17; w++) {
     const k = new THREE.Mesh(whiteGeo, cream);
     k.castShadow = true;
-    k.position.set(x0 + w * 0.029, keyY, keyZ);
+    k.position.set(x0 + w * 0.0315, keyY, keyZ);
     g.add(k);
     keys.push(k);
     const pc = WHITE[w % 7];
-    if (pc !== 4 && pc !== 11 && w < 14) {
+    if (pc !== 4 && pc !== 11 && w < 16) {
       const b = new THREE.Mesh(blackGeo, std(0x0d0d10, { roughness: 0.35 }));
-      b.position.set(x0 + w * 0.029 + 0.0145, keyY + 0.014, keyZ + 0.02);
+      b.position.set(x0 + w * 0.0315 + 0.016, keyY + 0.014, keyZ + 0.024);
       g.add(b);
     }
   }
@@ -138,18 +138,18 @@ function makeGear() {
   const knobGeo = new THREE.CylinderGeometry(0.011, 0.013, 0.016, 8);
   for (let i = 0; i < 5; i++) {
     const knob = new THREE.Mesh(knobGeo, chrome);
-    knob.position.set(-0.3 + i * 0.055, deckY + 0.096, STAND_Z + 0.075);
+    knob.position.set(-0.26 + i * 0.05, deckY + 0.096, STAND_Z + 0.068);
     knob.rotation.y = i * 0.7;
     g.add(knob);
   }
   const sliderGeo = new THREE.BoxGeometry(0.012, 0.01, 0.05);
   for (let i = 0; i < 3; i++) {
     const sl = new THREE.Mesh(sliderGeo, cream);
-    sl.position.set(0.02 + i * 0.03, deckY + 0.093, STAND_Z + 0.075);
+    sl.position.set(0.02 + i * 0.028, deckY + 0.093, STAND_Z + 0.068);
     g.add(sl);
   }
   const wheelGeo = new THREE.CylinderGeometry(0.024, 0.024, 0.014, 10);
-  for (const sx of [-0.44, -0.4]) {
+  for (const sx of [-0.36, -0.32]) {
     const wheel = new THREE.Mesh(wheelGeo, rubber);
     wheel.rotation.z = Math.PI / 2;
     wheel.position.set(sx, deckY + 0.1, STAND_Z + 0.05);

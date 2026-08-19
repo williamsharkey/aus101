@@ -27,6 +27,7 @@ const EYE = 0xff1010;
 // Escalation
 const ALERT_HEAT = 1; // any witnessed hit
 const RECALL_HEAT = 3; // repeated harm; a lethal hit jumps straight here
+const ALERT_COOL = 22; // seconds of good behaviour that stand the spotter down
 const HEAT_LETHAL = 3;
 const HEAT_HIT = 1;
 
@@ -84,7 +85,7 @@ const MAT = {
   copper: new THREE.MeshStandardMaterial({ color: COPPER, metalness: 0.85, roughness: 0.35 }),
   gold: new THREE.MeshStandardMaterial({ color: GOLD, metalness: 0.82, roughness: 0.32 }),
   eye: new THREE.MeshBasicMaterial({ color: EYE }),
-  heli: new THREE.MeshStandardMaterial({ color: 0x1a1612, metalness: 0.45, roughness: 0.55 }),
+  heli: new THREE.MeshStandardMaterial({ color: 0x332c26, metalness: 0.3, roughness: 0.62 }),
   heliAccent: new THREE.MeshStandardMaterial({ color: COPPER, metalness: 0.7, roughness: 0.4 }),
   rotor: new THREE.MeshStandardMaterial({ color: 0x2a2420, metalness: 0.35, roughness: 0.62 }),
   beam: new THREE.MeshBasicMaterial({ color: EYE }),
@@ -257,6 +258,7 @@ export function createRecall({ scene, onGameOver, play, onLevel, rng } = {}) {
   let elapsed = 0; // since the first escalation
   let recallT = 0; // since level 2
   let seizeT = 0;
+  let sinceHarm = 0;
   let beamT = 0;
   let squadDown = false;
   const lastPos = new THREE.Vector3();
@@ -678,6 +680,7 @@ export function createRecall({ scene, onGameOver, play, onLevel, rng } = {}) {
     const p = ev.point || ev.victim?.mesh?.position || lastPos;
     incident.set(p.x || 0, p.y || 0, p.z || 0);
     heat += ev.lethal ? HEAT_LETHAL : HEAT_HIT;
+    sinceHarm = 0;
 
     if (ev.kind === "laser") fireBeam(lastPos, incident);
 
@@ -707,7 +710,15 @@ export function createRecall({ scene, onGameOver, play, onLevel, rng } = {}) {
     if (level === 0 || !(dt > 0) || ended) return;
     const h = Math.min(dt, 0.05);
     elapsed += h;
+    sinceHarm += h;
     if (level >= 2) recallT += h;
+
+    // Behave for long enough and the spotter gives up — an alert is not a
+    // sentence. Once the recall itself is out, nothing calls it off.
+    if (level === 1 && sinceHarm >= ALERT_COOL) {
+      dispose();
+      return;
+    }
 
     if (beam) {
       beamT -= h;
@@ -771,6 +782,7 @@ export function createRecall({ scene, onGameOver, play, onLevel, rng } = {}) {
     level = 0;
     heat = 0;
     seizeT = 0;
+    sinceHarm = 0;
     elapsed = 0;
     recallT = 0;
   }

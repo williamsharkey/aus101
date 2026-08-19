@@ -18,10 +18,11 @@ import * as THREE from "three";
 import {
   kit,
   brickTex,
+  cvs,
+  canvasTex,
   cloneMap,
   mat,
   hipRoof,
-  signTex,
   awningTex,
   metalRoofTex,
   makeSignPlane,
@@ -29,8 +30,17 @@ import {
 
 /** Player radius from `createPlayer`. Doors are sized against this. */
 const PLAYER_R = 0.34;
-/** Camera probe radius used by `adjustCamera`. */
-const CAM_R = 0.3;
+/**
+ * Camera probe radius used by `adjustCamera`. Kept below the player radius:
+ * `blocked()` guarantees the player centre is never within PLAYER_R of a wall
+ * box, so a camera this close to the chest is always in open air, which is what
+ * lets the pull-in have a hard minimum instead of clipping in a corner.
+ */
+const CAM_R = 0.2;
+/** Hard minimum chest→camera distance when a wall is right behind the player. */
+const CAM_MIN = 0.12;
+/** Boom length used while the player is inside a building. */
+const INDOOR_BOOM = 2.5;
 /** Wall thickness. */
 const T = 0.24;
 /** Door head height — lintel sits above this. */
@@ -291,6 +301,47 @@ function roofOver(g, B, rise, over) {
   return eave;
 }
 
+/**
+ * Painted board sized to the plane it goes on.
+ *
+ * `signTex()` in coconutsHelpers is a fixed 256x128 canvas with a fixed 36 px
+ * face, so anything longer than about nine characters is clipped and anything
+ * on a wide plane is stretched. This keeps that helper's palette and frame but
+ * matches the canvas to the board's aspect and shrinks the face to fit.
+ */
+function board(title, sub, w, h, bg = "#1a120c", fg = "#ffd99a") {
+  const cw = 512;
+  const ch = Math.max(96, Math.min(384, Math.round((cw * h) / w)));
+  const c = cvs(cw, ch);
+  const x = c.getContext("2d");
+  x.fillStyle = bg;
+  x.fillRect(0, 0, cw, ch);
+  x.strokeStyle = "#5a3d22";
+  x.lineWidth = Math.max(8, ch * 0.07);
+  x.strokeRect(x.lineWidth / 2, x.lineWidth / 2, cw - x.lineWidth, ch - x.lineWidth);
+  x.textAlign = "center";
+  x.textBaseline = "middle";
+  const inner = cw - 56;
+  const fit = (text, start, family) => {
+    let px = start;
+    x.font = `bold ${px}px ${family}`;
+    while (px > 9 && x.measureText(text).width > inner) {
+      px -= 2;
+      x.font = `bold ${px}px ${family}`;
+    }
+    return px;
+  };
+  x.fillStyle = fg;
+  fit(title, Math.round(ch * (sub ? 0.42 : 0.5)), "Georgia, serif");
+  x.fillText(title, cw / 2, sub ? ch * 0.38 : ch * 0.5);
+  if (sub) {
+    x.fillStyle = "#b89a6c";
+    fit(sub, Math.round(ch * 0.19), "ui-sans-serif, system-ui, sans-serif");
+    x.fillText(sub, cw / 2, ch * 0.72);
+  }
+  return canvasTex(c, false);
+}
+
 /** Wall-mounted sign plane, pushed just off the surface. */
 function sign(g, tex, w, h, x, y, z, ry) {
   const p = makeSignPlane(tex, w, h);
@@ -391,12 +442,12 @@ function buildSurfClub(reg) {
   // --- exterior signage ---------------------------------------------
   // All signage lives on the long blank run west of the door.
   const fz = B.z1 + T + 0.03;
-  sign(g, signTex("SURF CLUB", "MEMBERS · VISITORS · THE UNZINCED"), 4.4, 0.9, -19.75, B.floorY + 2.72, fz, 0);
+  sign(g, board("SURF CLUB", "MEMBERS · VISITORS · THE UNZINCED", 4.4, 0.9), 4.4, 0.9, -19.75, B.floorY + 2.72, fz, 0);
   sign(g, awningTex("ENTRY", "MIND THE GLARE"), 1.9, 0.5, dx, B.floorY + 2.5, fz, 0);
   sign(g, awningTex("NO HAT", "NO PLAY"), 1.3, 0.44, -21.4, B.floorY + 1.5, fz, 0);
   sign(g, awningTex("ZINC UP", "OR ZIP IT"), 1.3, 0.44, -19.75, B.floorY + 1.5, fz, 0);
-  sign(g, signTex("PATROL 0600", "UV 14 BY 0900 · SEEK SHADE"), 1.7, 0.85, -18.15, B.floorY + 1.62, fz, 0);
-  const roofSign = makeSignPlane(signTex("SPF 50+", "SINCE THE OZONE WENT"), 3.4, 0.85);
+  sign(g, board("PATROL 0600", "UV 14 BY 0900 · SEEK SHADE", 1.7, 0.85), 1.7, 0.85, -18.15, B.floorY + 1.62, fz, 0);
+  const roofSign = makeSignPlane(board("SPF 50+", "SINCE THE OZONE WENT", 3.4, 0.85), 3.4, 0.85);
   roofSign.position.set(cx, B.floorY + B.h + 0.95, B.z1 + T + 0.35);
   roofSign.rotation.x = -0.16;
   g.add(roofSign);
@@ -426,8 +477,8 @@ function buildSurfClub(reg) {
     g.add(sh);
     bottleRow(g, B.floorY + sy + 0.03, c0 + 0.35, c1 - 0.35, B.z0 + 0.18);
   }
-  sign(g, signTex("HONOUR BOARD", "MOST BURNT · 1987–2026"), 2.1, 1.05, c0 + 1.1, B.floorY + 2.5, B.z0 + 0.03, 0);
-  sign(g, signTex("SLIP · SLOP · SLATHER", "THEN SLATHER AGAIN"), 2.2, 0.7, c1 - 1.0, B.floorY + 2.45, B.z0 + 0.03, 0);
+  sign(g, board("HONOUR BOARD", "MOST BURNT · 1987–2026", 2.1, 1.05), 2.1, 1.05, c0 + 1.1, B.floorY + 2.5, B.z0 + 0.03, 0);
+  sign(g, board("SLIP · SLOP · SLATHER", "THEN SLATHER AGAIN", 2.2, 0.7), 2.2, 0.7, c1 - 1.0, B.floorY + 2.45, B.z0 + 0.03, 0);
 
   // stools at the counter
   for (let i = 0; i < 5; i++) {
@@ -467,7 +518,7 @@ function buildSurfClub(reg) {
     hook.position.set(B.x1 - 0.1, B.floorY + 1.7, 12.9 + i * 0.6);
     g.add(hook);
   }
-  sign(g, signTex("RASHIE HIRE", "$4 · HONESTY BOX"), 1.5, 0.75, B.x1 - 0.02, B.floorY + 2.35, 13.95, -Math.PI / 2);
+  sign(g, board("RASHIE HIRE", "$4 · HONESTY BOX", 1.5, 0.75), 1.5, 0.75, B.x1 - 0.02, B.floorY + 2.35, 13.95, -Math.PI / 2);
 
   // first-aid / zinc station by the door
   const cab = fx(0.5, 0.6, 0.24, M.porcelain);
@@ -533,23 +584,23 @@ function buildShadeShack(reg) {
   // --- awning + posts on the beach-facing side ----------------------
   const az = B.z0 - T - 1.0;
   const awn = fx(B.x1 - B.x0 + 1.4, 0.1, 2.2, M.trim);
-  awn.position.set(cx, B.floorY + 2.86, az + 0.1);
+  awn.position.set(cx, B.floorY + 2.98, az + 0.1);
   awn.rotation.x = 0.05;
   g.add(awn);
   for (const px of [B.x0 + 0.1, cx - 2.4, cx + 2.4, B.x1 - 0.1]) {
-    const post = fx(0.16, 2.85, 0.16, M.timber);
-    post.position.set(px, B.floorY + 1.42, az - 0.8);
+    const post = fx(0.16, 3.0, 0.16, M.timber);
+    post.position.set(px, B.floorY + 1.5, az - 0.8);
     g.add(post);
-    reg(px - 0.09, px + 0.09, az - 0.89, az - 0.71, B.floorY, B.floorY + 2.85);
+    reg(px - 0.09, px + 0.09, az - 0.89, az - 0.71, B.floorY, B.floorY + 3.0);
   }
   // strung bulbs under the awning
   for (let i = 0; i < 7; i++) {
     const b = new THREE.Mesh(new THREE.SphereGeometry(0.07, 6, 5), M.bulb);
-    b.position.set(B.x0 + 0.7 + i * ((B.x1 - B.x0 - 1.4) / 6), B.floorY + 2.62, az - 0.6);
+    b.position.set(B.x0 + 0.7 + i * ((B.x1 - B.x0 - 1.4) / 6), B.floorY + 2.74, az - 0.6);
     g.add(b);
   }
 
-  sign(g, signTex("THE SHADE SHACK", "OPEN TILL THE UV DROPS"), 4.0, 0.7, cx, B.floorY + 2.62, B.z0 - T - 0.03, Math.PI);
+  sign(g, board("THE SHADE SHACK", "OPEN TILL THE UV DROPS", 4.0, 0.7), 4.0, 0.7, cx, B.floorY + 2.62, B.z0 - T - 0.03, Math.PI);
   sign(g, awningTex("SPF 50+", "ON TAP"), 1.7, 0.55, B.x0 + 1.4, B.floorY + 1.75, B.z0 - T - 0.03, Math.PI);
   sign(g, awningTex("NO SHIRT", "NO SHADE"), 1.7, 0.55, B.x1 - 1.4, B.floorY + 1.75, B.z0 - T - 0.03, Math.PI);
 
@@ -589,8 +640,8 @@ function buildShadeShack(reg) {
   g.add(fridge);
   reg(B.x0, B.x0 + 0.95, B.z1 - 0.75, B.z1, B.floorY, B.floorY + 1.6, true);
 
-  sign(g, signTex("TODAY'S SPECIAL", "ZINC COLADA · $9"), 1.9, 0.95, cx + 2.4, B.floorY + 2.42, B.z1 - 0.02, Math.PI);
-  sign(g, signTex("UV 14", "THAT'S NOT A DRINK"), 1.9, 0.7, cx - 2.4, B.floorY + 2.42, B.z1 - 0.02, Math.PI);
+  sign(g, board("TODAY'S SPECIAL", "ZINC COLADA · $9", 1.9, 0.95), 1.9, 0.95, cx + 2.4, B.floorY + 2.42, B.z1 - 0.02, Math.PI);
+  sign(g, board("UV 14", "THAT'S NOT A DRINK", 1.9, 0.7), 1.9, 0.7, cx - 2.4, B.floorY + 2.42, B.z1 - 0.02, Math.PI);
 
   // stools facing the bar
   for (let i = 0; i < 6; i++) {
@@ -668,13 +719,13 @@ function buildChangeRooms(reg) {
 
   // --- signage -------------------------------------------------------
   const sz = B.z0 - T - 0.03;
-  sign(g, signTex("CHANGE ROOMS", "RINSE · ZINC · REPEAT"), 3.2, 0.5, cx, B.floorY + 2.62, sz, Math.PI);
+  sign(g, board("CHANGE ROOMS", "RINSE · ZINC · REPEAT", 3.2, 0.5), 3.2, 0.5, cx, B.floorY + 2.62, sz, Math.PI);
   sign(g, awningTex("BLOKES", ""), 1.1, 0.3, dBlokes, B.floorY + 2.2, sz, Math.PI);
   sign(g, awningTex("SHEILAS", ""), 1.1, 0.3, dSheilas, B.floorY + 2.2, sz, Math.PI);
   // Interior notices go on the partition faces — the back wall is all shower
   // recess and basin bench.
-  sign(g, signTex("SHOWER FIRST", "SAND IS NOT SUNSCREEN"), 1.7, 0.6, cx - 0.11, B.floorY + 1.85, 25.2, -Math.PI / 2);
-  sign(g, signTex("DUNNY", "OUT OF ORDER SINCE '94"), 1.7, 0.6, cx + 0.11, B.floorY + 1.85, 25.2, Math.PI / 2);
+  sign(g, board("SHOWER FIRST", "SAND IS NOT SUNSCREEN", 1.7, 0.6), 1.7, 0.6, cx - 0.11, B.floorY + 1.85, 25.2, -Math.PI / 2);
+  sign(g, board("DUNNY", "OUT OF ORDER SINCE '94", 1.7, 0.6), 1.7, 0.6, cx + 0.11, B.floorY + 1.85, 25.2, Math.PI / 2);
 
   // --- fittings ------------------------------------------------------
   for (const [side, wx] of [
@@ -831,18 +882,84 @@ export function spawnInteriors(scene, colliders) {
     return null;
   }
 
-  function hits(x, y, z, r) {
+  /**
+   * Post-process the follow camera so it never sits through a wall or on the
+   * roof. Call AFTER `updateFollowCam(camera, player, dt)`.
+   */
+  /**
+   * Slab-method ray/AABB: first t in (0,1] at which the segment enters a
+   * blocker expanded by the camera probe radius. Returns 1 when nothing is hit.
+   */
+  function firstHit(ox, oy, oz, dx, dy, dz) {
+    let best = 1;
     for (let i = 0; i < blockers.length; i++) {
       const c = blockers[i];
-      if (y < c.y0 || y > c.y1) continue;
-      if (x > c.minX - r && x < c.maxX + r && z > c.minZ - r && z < c.maxZ + r) return true;
+      let t0 = 0;
+      let t1 = best;
+      // x slab
+      const minX = c.minX - CAM_R;
+      const maxX = c.maxX + CAM_R;
+      if (Math.abs(dx) < 1e-9) {
+        if (ox < minX || ox > maxX) continue;
+      } else {
+        const inv = 1 / dx;
+        let a = (minX - ox) * inv;
+        let b = (maxX - ox) * inv;
+        if (a > b) {
+          const t = a;
+          a = b;
+          b = t;
+        }
+        if (a > t0) t0 = a;
+        if (b < t1) t1 = b;
+        if (t0 > t1) continue;
+      }
+      // z slab
+      const minZ = c.minZ - CAM_R;
+      const maxZ = c.maxZ + CAM_R;
+      if (Math.abs(dz) < 1e-9) {
+        if (oz < minZ || oz > maxZ) continue;
+      } else {
+        const inv = 1 / dz;
+        let a = (minZ - oz) * inv;
+        let b = (maxZ - oz) * inv;
+        if (a > b) {
+          const t = a;
+          a = b;
+          b = t;
+        }
+        if (a > t0) t0 = a;
+        if (b < t1) t1 = b;
+        if (t0 > t1) continue;
+      }
+      // y slab
+      const minY = c.y0 - 0.06;
+      const maxY = c.y1 + 0.06;
+      if (Math.abs(dy) < 1e-9) {
+        if (oy < minY || oy > maxY) continue;
+      } else {
+        const inv = 1 / dy;
+        let a = (minY - oy) * inv;
+        let b = (maxY - oy) * inv;
+        if (a > b) {
+          const t = a;
+          a = b;
+          b = t;
+        }
+        if (a > t0) t0 = a;
+        if (b < t1) t1 = b;
+        if (t0 > t1) continue;
+      }
+      if (t1 < 0) continue;
+      const enter = Math.max(0, t0);
+      if (enter < best) best = enter;
     }
-    return false;
+    return best;
   }
 
   /**
    * Post-process the follow camera so it never sits through a wall or on the
-   * roof. Call AFTER `updateFollowCam(camera, player, dt)`.
+   * roof. Call AFTER `updateFollowCam(camera, player, dt)` each frame.
    */
   function adjustCamera(camera, player) {
     const p = player.pos;
@@ -852,12 +969,12 @@ export function spawnInteriors(scene, colliders) {
     if (dist < 1e-4) return;
 
     const here = isIndoors(p);
-    // Cheap reject: nothing near either endpoint.
     if (!here) {
+      // Cheap reject: nothing within a camera boom of the player.
       let near = false;
       for (const b of buildings) {
-        const dx = Math.max(b.B.x0 - 5.5 - p.x, 0, p.x - (b.B.x1 + 5.5));
-        const dz = Math.max(b.B.z0 - 5.5 - p.z, 0, p.z - (b.B.z1 + 5.5));
+        const dx = Math.max(b.B.x0 - 6 - p.x, 0, p.x - (b.B.x1 + 6));
+        const dz = Math.max(b.B.z0 - 6 - p.z, 0, p.z - (b.B.z1 + 6));
         if (dx === 0 && dz === 0) {
           near = true;
           break;
@@ -866,21 +983,18 @@ export function spawnInteriors(scene, colliders) {
       if (!near) return;
     }
 
-    const N = 12;
-    let free = 1;
-    for (let i = 1; i <= N; i++) {
-      const t = i / N;
-      const x = _chest.x + _v.x * t;
-      const y = _chest.y + _v.y * t;
-      const z = _chest.z + _v.z * t;
-      if (hits(x, y, z, CAM_R)) {
-        free = (i - 1) / N;
-        break;
-      }
+    // Indoors, shorten the boom before testing: a 4.2 m third-person boom is
+    // longer than most of these rooms, so without this the occlusion pull-in
+    // would be doing all the work every frame and snapping hard.
+    if (here && dist > INDOOR_BOOM) {
+      _v.multiplyScalar(INDOOR_BOOM / dist);
+      camera.position.copy(_chest).add(_v);
     }
-
-    if (free < 1) {
-      const t = Math.max(0.16, free - 0.5 / N);
+    const d2 = _v.length();
+    const hit = firstHit(_chest.x, _chest.y, _chest.z, _v.x, _v.y, _v.z);
+    if (hit < 1) {
+      const tMin = Math.min(1, CAM_MIN / d2);
+      const t = Math.max(tMin, hit - 0.02 / d2);
       camera.position.set(_chest.x + _v.x * t, _chest.y + _v.y * t, _chest.z + _v.z * t);
     }
     if (here) {

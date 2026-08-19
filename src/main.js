@@ -30,6 +30,8 @@ import { runApplyFrame } from "./game/applyFlow.js";
 import { bindBottle, tickBottle } from "./view/bottle.js";
 import { createRecall } from "./game/recall.js";
 import { createPanic } from "./game/panic.js";
+import { createCombat } from "./game/combat.js";
+import { createPropPhysics } from "./phys/props.js";
 import { createReticuleBay } from "./hud/reticule.js";
 import { createRadioHud } from "./hud/radio.js";
 import { createApplyMinigame } from "./hud/applyMinigame.js";
@@ -70,6 +72,14 @@ const follow = createFollowCam();
 
 const colliders = createColliders();
 const level = buildGoldCoast(scene, colliders);
+const props = createPropPhysics({
+  scene,
+  bounds: BOUNDS,
+  colliders,
+  isWood: (x, z) => level.isWood(x, z),
+});
+for (const ball of level.balls) props.add(ball);
+
 const player = createPlayer({ x: 0, y: 0, z: 10 });
 player.yaw = 0;
 
@@ -121,21 +131,28 @@ const recall = createRecall({
 });
 let radio = null;
 
-function commitViolence(kind) {
-  if (!playing || paused) return;
-  const fired = recall.tryFire(kind);
-  if (fired) panic.trigger(player.pos);
-}
+// Violence is a physical act, not a keypress: `combat` swings and raycasts, and
+// only reports through onHarm when someone is actually struck. A whiff summons
+// nothing.
+const combat = createCombat({
+  scene,
+  cast,
+  play: (id) => voice.play(id),
+  onHarm: (info) => {
+    panic.onHarm(info);
+    recall.onHarm(info);
+  },
+});
 
 window.addEventListener("keydown", (e) => {
-  if (!playing || paused) return;
+  if (!playing || paused || e.repeat) return;
   if (e.code === "KeyF") {
     e.preventDefault();
-    commitViolence("laser");
+    combat.laser(player.pos, player.yaw, player.pitch);
   }
   if (e.code === "KeyG") {
     e.preventDefault();
-    commitViolence("punch");
+    combat.punch(player.pos, player.yaw, player.pitch);
   }
 });
 
@@ -330,11 +347,19 @@ function frame() {
     radio?.tick?.();
     recall.tick(raw || TICK, player.pos);
     panic.tick(raw || TICK, player.pos);
+    // After recall/panic: recall.onHarm reads the lastPos its own tick stores.
+    combat.tick(raw || TICK, player.pos);
+    props.tick(raw || TICK, player.pos, player.vel);
     const speed = Math.hypot(player.vel.x, player.vel.z);
     aus101.position.set(player.pos.x, player.pos.y, player.pos.z);
     // Rig face is +Z; locomotion forward is −Z at yaw=0 (Coconuts convention).
     aus101.rotation.y = player.yaw + Math.PI;
-    poseAus101(aus101, { walkPhase: player.step, speed });
+    poseAus101(aus101, {
+      walkPhase: player.step,
+      speed,
+      punchT: combat.punchT,
+      laserT: combat.laserT,
+    });
     updateFollowCam(camera, player, raw || 0.016);
     lotionFoley.tick(performance.now(), speed > 0.4);
     steps.tick({
