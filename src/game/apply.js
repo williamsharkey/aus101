@@ -19,6 +19,8 @@ const FRONT_U = 0.5;
 const FRONT_V = 0.4;
 /** Vertical rub on the facing meridian. Cloth centers are skipped. */
 const STAMP_V = [0.14, 0.4, 0.68];
+/** Side lobes so a frontal hold also reaches the 2D-map arms. */
+const STAMP_U_OFF = [0, 0.3, -0.3];
 
 function dist2(a, b) {
   const dx = a.x - b.x;
@@ -93,10 +95,13 @@ export function tickApply(cast, playerPos, squeezing, dt, playerYaw) {
   const uv = facingUV(playerPos, best.mesh, playerYaw);
   const amount = Math.min(1, Math.max(0, dt) * RATE);
   let stamped = false;
-  for (const v of STAMP_V) {
-    if (hitsCloth(best, uv.u, v)) continue;
-    stampCoverage(best, uv.u, v, STAMP_R, amount);
-    stamped = true;
+  for (const du of STAMP_U_OFF) {
+    const u = wrap01(uv.u + du);
+    for (const v of STAMP_V) {
+      if (hitsCloth(best, u, v)) continue;
+      stampCoverage(best, u, v, STAMP_R, amount);
+      stamped = true;
+    }
   }
   if (stamped) applyCoverageToMats(best);
   return { npc: best, coverage: coveragePercent(best) };
