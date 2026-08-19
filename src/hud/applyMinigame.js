@@ -239,8 +239,8 @@ export function createApplyMinigame({ onStamp } = {}) {
 
   function sizeCanvas() {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const cssW = Math.max(1, canvas.clientWidth || card.clientWidth || 160);
-    const cssH = Math.max(1, canvas.clientHeight || card.clientHeight || 280);
+    const cssW = Math.max(1, canvas.clientWidth || card.clientWidth || 260);
+    const cssH = Math.max(1, canvas.clientHeight || card.clientHeight || 480);
     const w = Math.max(1, Math.round(cssW * dpr));
     const h = Math.max(1, Math.round(cssH * dpr));
     if (canvas.width !== w || canvas.height !== h) {
@@ -249,13 +249,18 @@ export function createApplyMinigame({ onStamp } = {}) {
       parts = null;
     }
     if (!parts || bufW !== w || bufH !== h) {
+      const ox = bufW || w;
+      const oy = bufH || h;
       parts = makeParts(w, h);
-      bufW = w;
-      bufH = h;
-      if (!brush.on) {
+      if (brush.on && ox && oy) {
+        brush.x = (brush.x / ox) * w;
+        brush.y = (brush.y / oy) * h;
+      } else {
         brush.x = w * 0.5;
         brush.y = h * 0.4;
       }
+      bufW = w;
+      bufH = h;
     }
     return { w, h };
   }
