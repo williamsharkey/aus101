@@ -31,6 +31,7 @@ import { bindBottle, tickBottle } from "./view/bottle.js";
 import { createRecall } from "./game/recall.js";
 import { createReticuleBay } from "./hud/reticule.js";
 import { createRadioHud } from "./hud/radio.js";
+import { createEncounterDirector } from "./game/encounters.js";
 import { createArtist } from "./chars/artist.js";
 import { spawnParty } from "./world/party.js";
 import { spawnFights } from "./phys/fights.js";
@@ -222,6 +223,28 @@ async function beginPlay() {
 }
 
 const reel = new CutsceneReel({ onDone: () => beginPlay() });
+const pickCast = (kind) => cast.find((c) => c.kind === kind)?.mesh?.position;
+const encounters = createEncounterDirector({
+  reel,
+  getPlayerPos: () => player.pos,
+  isPlaying: () => playing && !paused && !reel.playing,
+  spots: [
+    { id: "piano", getPos: () => level.piano, radius: 8 },
+    { id: "painter", getPos: () => artist.root?.position, radius: 6 },
+    { id: "incel", getPos: () => pickCast("sigma_07"), radius: 5.5 },
+    { id: "kid", getPos: () => pickCast("kid"), radius: 5.2 },
+    { id: "babe", getPos: () => pickCast("babe"), radius: 5.5 },
+    { id: "fight", getPos: () => ({ x: 16, z: 2 }), radius: 7 },
+  ],
+  onStart: () => {
+    paused = true;
+    if (document.pointerLockElement) document.exitPointerLock();
+  },
+  onEnd: () => {
+    paused = false;
+    input.tryLock();
+  },
+});
 const poster = new PosterOverlay({
   onStart: async () => {
     try {
@@ -298,6 +321,7 @@ function frame() {
     if (audioOn) walkby.tick(performance.now(), player.pos);
     music?.tick(player.pos, audioOn);
     artist.tick(renderer, scene, performance.now());
+    encounters.tick();
   } else if (!playing) {
     camera.position.set(8, 6.5, 22);
     camera.lookAt(0, 1.2, 4);

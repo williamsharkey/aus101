@@ -1,6 +1,6 @@
 /** Opening skit: still sequence after the poster tap. Tap skips. */
 
-const STILLS = [
+export const INTRO_STILLS = [
   { src: "assets/media/cutscene/s1_bunker_bay.jpg", hold: 2200 },
   { src: "assets/media/cutscene/s2_captured_units.jpg", hold: 2400 },
   { src: "assets/media/cutscene/s3_what_now.jpg", hold: 2200 },
@@ -31,17 +31,26 @@ export class CutsceneReel {
     document.body.appendChild(this.root);
     this._i = 0;
     this._timer = 0;
+    this._stills = INTRO_STILLS;
+    this._done = false;
     this.root.addEventListener("pointerdown", () => this.finish());
   }
 
-  start() {
+  get playing() {
+    return this.root.style.display === "flex";
+  }
+
+  /** @param {{src:string,hold?:number}[]} [stills] */
+  start(stills) {
+    this._stills = stills && stills.length ? stills : INTRO_STILLS;
     this._i = 0;
+    this._done = false;
     this.root.style.display = "flex";
     this.show();
   }
 
   show() {
-    const shot = STILLS[this._i];
+    const shot = this._stills[this._i];
     if (!shot) {
       this.finish();
       return;
@@ -55,8 +64,10 @@ export class CutsceneReel {
   }
 
   finish() {
+    if (this._done) return;
+    this._done = true;
     clearTimeout(this._timer);
     this.root.style.display = "none";
-    this.onDone();
+    this.onDone?.();
   }
 }
