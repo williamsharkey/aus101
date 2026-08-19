@@ -7,6 +7,8 @@ const BOTTLE_ML = 200;
 const HAND_CAP = 6;
 const SQUEEZE_ML_S = 10;
 const PAINT_ML_S = 2.2;
+/** First squeeze frame puts enough on the palm for canPaint(). */
+const STARTER_ML = 1;
 
 export function createLotion() {
   const lotion = {
@@ -23,7 +25,10 @@ export function createLotion() {
       lotion.squeezing = !!squeezeHeld;
 
       if (lotion.squeezing && lotion.bottleMl > 0) {
-        const from = Math.min(SQUEEZE_ML_S * t, lotion.bottleMl);
+        let from = Math.min(SQUEEZE_ML_S * t, lotion.bottleMl);
+        if (lotion.handMl <= 0) {
+          from = Math.max(from, Math.min(STARTER_ML, lotion.bottleMl));
+        }
         lotion.bottleMl -= from;
         lotion.handMl += from;
         if (lotion.handMl > HAND_CAP) {

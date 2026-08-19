@@ -12,7 +12,8 @@ import {
 } from "./coverage.js";
 
 const REACH = 2.35;
-const RATE = 0.38;
+/** ~1.0 thickness in 0.3 s so zinc reads on the 2D map immediately. */
+const RATE = 3.5;
 const STAMP_R = 0.22;
 const FRONT_U = 0.5;
 const FRONT_V = 0.4;
@@ -55,15 +56,11 @@ export function facingUV(playerPos, mesh, playerYaw) {
 }
 
 /**
+ * Nearest paintable adult inside REACH, or null.
  * @param {{ mesh: object, kind: string, ageBand: string }[]} cast
  * @param {{ x: number, z: number }} playerPos
- * @param {boolean} squeezing
- * @param {number} dt
- * @param {number} [playerYaw] optional — stamp the look-facing meridian
- * @returns {{ npc: object, coverage: number } | null}
  */
-export function tickApply(cast, playerPos, squeezing, dt, playerYaw) {
-  if (!squeezing) return null;
+export function pickApplyTarget(cast, playerPos) {
   let best = null;
   let bestD = REACH * REACH;
   for (const npc of cast) {
@@ -76,6 +73,20 @@ export function tickApply(cast, playerPos, squeezing, dt, playerYaw) {
       best = npc;
     }
   }
+  return best;
+}
+
+/**
+ * @param {{ mesh: object, kind: string, ageBand: string }[]} cast
+ * @param {{ x: number, z: number }} playerPos
+ * @param {boolean} squeezing
+ * @param {number} dt
+ * @param {number} [playerYaw] optional — stamp the look-facing meridian
+ * @returns {{ npc: object, coverage: number } | null}
+ */
+export function tickApply(cast, playerPos, squeezing, dt, playerYaw) {
+  if (!squeezing) return null;
+  const best = pickApplyTarget(cast, playerPos);
   if (!best) return null;
 
   ensureCoverageMap(best);
