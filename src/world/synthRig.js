@@ -302,8 +302,8 @@ export function spawnSynthRig(scene) {
     if (!preview) {
       preview = createPatternBed(ctx, ctx.destination, pattern, { peak: 0.48 });
     }
-    preview.start();
     preview.setMix(0.4, 0.06);
+    preview.start();
   }
 
   function stopPreview() {
