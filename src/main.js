@@ -31,6 +31,7 @@ import { bindBottle, tickBottle } from "./view/bottle.js";
 import { createRecall } from "./game/recall.js";
 import { createReticuleBay } from "./hud/reticule.js";
 import { createRadioHud } from "./hud/radio.js";
+import { createApplyMinigame } from "./hud/applyMinigame.js";
 import { createEncounterDirector } from "./game/encounters.js";
 import { createArtist } from "./chars/artist.js";
 import { spawnParty } from "./world/party.js";
@@ -100,6 +101,7 @@ const lotion = createLotion();
 bindBottle(aus101);
 const bay = createReticuleBay();
 document.body.appendChild(bay.html);
+const applyUx = createApplyMinigame();
 
 const recall = createRecall({
   scene,
@@ -334,7 +336,13 @@ function frame() {
     const painted = lotion.canPaint()
       ? tickApply(cast, player.pos, squeezing, raw || TICK, player.yaw)
       : null;
-    if (painted) bay.track(painted.npc);
+    if (painted) {
+      bay.track(painted.npc);
+      applyUx.show(painted.npc);
+    } else {
+      applyUx.hide();
+    }
+    applyUx.tick();
     bay.tick(raw || TICK, painted?.npc);
     lotion.tick({ squeezeHeld: squeezing, applying: !!painted, dt: raw || TICK });
     tickBottle(aus101, lotion, raw || TICK);
