@@ -61,11 +61,11 @@ function part(geo, mat, sx, sy = sx, sz = sx) {
  * and a hair's breadth larger, so the top of the head is never bare. `tilt`
  * rakes the hairline: negative lifts the brow and drops the nape.
  */
-function addHair(head, hairM, headR, { crown = 1.06, back = 1.09, tilt = -0.1, nape = 1 } = {}) {
+function addHair(head, hairM, headR, { crown = 1.06, back = 1.09, tilt = -0.1 } = {}) {
   const cap = part(GEO.hairCrown, hairM, headR * 0.99 * crown, headR * 1.05 * crown, headR * 1.02 * crown);
   cap.rotation.x = tilt;
   head.add(cap);
-  const rear = part(GEO.hairBack, hairM, headR * 1.0 * back, headR * 1.06 * back * nape, headR * 1.03 * back);
+  const rear = part(GEO.hairBack, hairM, headR * 1.0 * back, headR * 1.06 * back, headR * 1.03 * back);
   rear.rotation.x = tilt * 0.5;
   head.add(rear);
   return cap;
@@ -156,7 +156,7 @@ function buildBiped({
   jaw.position.set(0, -headR * 0.58, headR * 0.3);
   head.add(jaw);
   for (const side of [-1, 1]) {
-    const eye = part(GEO.sphereLo, MAT.eye, 0.016 * s);
+    const eye = part(GEO.sphere, MAT.eye, 0.016 * s);
     eye.position.set(side * 0.038 * s, 0.012 * s, headR * 0.8);
     head.add(eye);
     const ear = part(GEO.sphereLo, skinM, 0.014 * s, 0.03 * s, 0.018 * s);
@@ -339,8 +339,8 @@ const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
  * @param {number} [opts.thigh=Math.PI/2]  thigh pitch from vertical; PI/2 = level, less = knees low
  * @param {number} [opts.spread=0.06]      knees apart, radians per leg
  * @param {number} [opts.floorY=0]         soles reach for this Y; pass null to let the shins hang
- * @param {number} [opts.lift]                hip rise above the seat; defaults to 0.06 x body scale,
- *                                        which puts the glutes on the seat instead of through it
+ * @param {number} [opts.lift]             hip rise above the seat; defaults to 0.06 x body scale,
+ *                                    which rests the glutes on the seat instead of through it
  * @returns {{hipY:number, kneeY:number, kneeZ:number, footY:number}} where the pose landed
  */
 export function poseSit(npc, seatY, opts = {}) {
@@ -356,15 +356,14 @@ export function poseSit(npc, seatY, opts = {}) {
     const k = (kneeY - floorY - b.footH) / b.shinH;
     a = k >= 1 ? 0 : -Math.acos(clamp(k, -1, 1));
   }
-  for (const [leg, side] of [
-    [b.legL, -1],
-    [b.legR, 1],
+  for (const [leg, foot, side] of [
+    [b.legL, b.footL, -1],
+    [b.legR, b.footR, 1],
   ]) {
     if (!leg) continue;
     const hinge = kneeHinge(leg, -b.thighH);
     leg.rotation.set(-thigh, 0, side * spread);
     hinge.rotation.x = thigh + a;
-    const foot = leg.getObjectByName("foot");
     if (foot) foot.rotation.x = -a;
   }
   npc.position.y = hipWorld - b.hipY;
@@ -424,7 +423,7 @@ function ken({ hair = 0xf4c431, shorts = 0x1f6f78, skin = 0xd4a06a } = {}) {
   for (let row = 0; row < 3; row++) {
     for (const side of [-1, 1]) {
       // Domed cells, mostly buried — they catch light instead of sitting on the chest as panels.
-      const cell = part(GEO.sphereLo, absM, 0.052 * s, 0.031 * s, 0.046 * s);
+      const cell = part(GEO.sphere, absM, 0.052 * s, 0.031 * s, 0.046 * s);
       cell.position.set(side * 0.05 * s, hipY + 0.28 * s - row * 0.066 * s, chestD * 0.5 - 0.032 * s);
       g.add(cell);
     }

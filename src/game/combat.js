@@ -120,6 +120,7 @@ const FX_MAT = {
 
 const Y_UP = new THREE.Vector3(0, 1, 0);
 const SCORCH_POOL = 8;
+const _nrm = new THREE.Matrix3();
 
 /** Per-victim doll materials are cached by colour so repeat kills reuse them. */
 const matCache = new Map();
@@ -133,6 +134,15 @@ function skinMat(hex) {
 }
 
 function noRaycast() {}
+
+/** World-space normal of a hit face — `face.normal` is object-local. */
+function surfaceNormal(hit, out) {
+  const n = hit.face?.normal;
+  if (!n) return out.copy(Y_UP);
+  _nrm.getNormalMatrix(hit.object.matrixWorld);
+  out.copy(n).applyMatrix3(_nrm);
+  return out.lengthSq() < 1e-8 ? out.copy(Y_UP) : out.normalize();
+}
 
 function rand(a, b) {
   return a + Math.random() * (b - a);
@@ -299,7 +309,6 @@ export function createCombat({ scene, cast, onHarm, play } = {}) {
   let punchResolved = true;
   let laserResolved = true;
   let punchYaw = 0;
-  let punchPitch = 0;
   let laserYaw = 0;
   let laserPitch = 0;
   let beamT = 0;
@@ -494,14 +503,15 @@ export function createCombat({ scene, cast, onHarm, play } = {}) {
    * Start a swing. The strike is resolved mid-animation by `tick`, never here.
    * @param {{x:number,y?:number,z:number}} playerPos
    * @param {number} yaw
-   * @param {number} [pitch]
+   * @param {number} [pitch] accepted for call-site symmetry; a punch is resolved
+   *   on the horizontal plane, so look pitch does not change the arc
    * @returns {boolean} true if a swing started (not that it hit anything)
    */
+  // eslint-disable-next-line no-unused-vars
   function punch(playerPos, yaw = 0, pitch = 0) {
     if (punchTime >= 0 || laserTime >= 0) return false;
     if (playerPos) _player.set(playerPos.x, playerPos.y || 0, playerPos.z);
     punchYaw = yaw;
-    punchPitch = pitch;
     punchTime = 0;
     punchT = 0;
     punchResolved = false;
@@ -593,9 +603,7 @@ export function createCombat({ scene, cast, onHarm, play } = {}) {
       beamShow(_origin, _dir, len);
       if (w) {
         _pt.copy(w.point);
-        _n.copy(w.face?.normal || Y_UP);
-        if (w.object?.normalMatrix) _n.applyNormalMatrix(w.object.normalMatrix).normalize();
-        if (_n.lengthSq() < 1e-6) _n.copy(Y_UP);
+        surfaceNormal(w, _n);
         putScorch(_pt, _n);
         popFlash(_pt, 0.11);
       }
@@ -606,9 +614,7 @@ export function createCombat({ scene, cast, onHarm, play } = {}) {
     if (w && w.distance < vDist - 0.05) {
       beamShow(_origin, _dir, w.distance);
       _pt.copy(w.point);
-      _n.copy(w.face?.normal || Y_UP);
-      if (w.object?.normalMatrix) _n.applyNormalMatrix(w.object.normalMatrix).normalize();
-      if (_n.lengthSq() < 1e-6) _n.copy(Y_UP);
+      surfaceNormal(w, _n);
       putScorch(_pt, _n);
       popFlash(_pt, 0.11);
       return false;

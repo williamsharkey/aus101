@@ -36,20 +36,21 @@ const CRUISE = 46; // top inbound speed, m/s
 const SEEK = 2.2; // approach deceleration rate
 const OBS_Y = 15; // spotter/observation altitude
 const HELI_Y = 9.6; // drop altitude
-const RING = 13; // drop-zone radius around the incident
+const RING = 11.5; // drop-zone radius around the incident
 const ROPE_V = 5.2; // fast-rope descent, m/s
 const RELEASE_Y = 2.6; // rope let-go height
 const DROP_G = 30;
-const DROP_STAGGER = 0.45; // seconds between units leaving the door
+const HOVER_S = 0.45; // ship steadies over the drop zone before the first rope
+const DROP_STAGGER = 0.42; // seconds between units leaving the door
 
 // Ground units
 const HULL_MIN = 6;
 const HULL_MAX = 8;
 const LAND_S = 0.55; // impact crouch + rise
-const FORM_S = 1.6; // hold on the drop line while the rest of the squad lands
+const FORM_S = 0.9; // hold on the drop line while the rest of the squad lands
 const STALK_S = 1.2; // menacing walk before the run
 const STALK_V = 1.7;
-const SPRINT = 7.4;
+const SPRINT = 8.2;
 const ACCEL = 7.0;
 const CAPTURE_R = 1.45;
 const SEIZE_S = 0.75; // grab-and-hold beat before the cut to black
@@ -391,7 +392,7 @@ export function createRecall({ scene, onGameOver, play, onLevel, rng } = {}) {
         heli: h,
         side,
         mode: "aboard", // aboard → rope → fall → land → stalk → run → seize
-        wait: (indexBase + i) * DROP_STAGGER + rand() * 0.12,
+        wait: HOVER_S + (indexBase + i) * DROP_STAGGER + rand() * 0.12,
         x,
         y: h.pos.y - 1.1,
         z,
@@ -430,7 +431,20 @@ export function createRecall({ scene, onGameOver, play, onLevel, rng } = {}) {
       return;
     }
 
-    if (u.crouch > 0.001) {
+    if (u.mode === "rope") {
+      // Both hands on the line, legs clamped — a descent, not a skydive.
+      rig.shoulderL.rotation.set(-2.78, 0, -0.06);
+      rig.shoulderR.rotation.set(-2.78, 0, 0.06);
+      rig.elbowL.rotation.x = 0.34;
+      rig.elbowR.rotation.x = 0.34;
+      rig.hipL.rotation.x = -0.22;
+      rig.hipR.rotation.x = -0.3;
+      rig.kneeL.rotation.x = 0.42;
+      rig.kneeR.rotation.x = 0.62;
+      rig.footL.rotation.x = -0.2;
+      rig.footR.rotation.x = -0.3;
+      rig.spine.rotation.x = 0.06;
+    } else if (u.crouch > 0.001) {
       // Two-link squat: thigh forward by a, shin back by 2a, ankle flat again —
       // the soles stay planted, so the pelvis just drops by the leg's shortening.
       const a = 0.66 * u.crouch;
@@ -575,11 +589,15 @@ export function createRecall({ scene, onGameOver, play, onLevel, rng } = {}) {
     u.root.visible = u.mode !== "aboard";
 
     if (u.rope.visible) {
+      // Anchor at the belly hatch, run to the unit's hands — span the real
+      // distance, not just the height, or a slanted rope comes up short.
       const top = u.heli.pos;
-      const len = Math.max(0.2, top.y - 0.9 - u.y);
-      u.rope.scale.set(1, len, 1);
-      u.rope.position.set((top.x + u.x) * 0.5, u.y + len * 0.5, (top.z + u.z) * 0.5);
-      _dir.set(top.x - u.x, len, top.z - u.z).normalize();
+      const ty = top.y - 0.9;
+      _dir.set(top.x - u.x, ty - (u.y + 1.5), top.z - u.z);
+      const d = Math.max(0.2, _dir.length());
+      u.rope.scale.set(1, d, 1);
+      u.rope.position.set((top.x + u.x) * 0.5, (ty + u.y + 1.5) * 0.5, (top.z + u.z) * 0.5);
+      _dir.multiplyScalar(1 / d);
       u.rope.quaternion.setFromUnitVectors(Y_UP, _dir);
     }
 

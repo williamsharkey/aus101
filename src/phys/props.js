@@ -504,7 +504,7 @@ export function createPropPhysics(opts = {}) {
 
   // --- the step ---------------------------------------------------------------
 
-  function playerPass(playerPos, playerVel, dt) {
+  function playerPass(playerPos, playerVel) {
     if (!playerPos) return;
     const pvx = playerVel?.x || 0;
     const pvz = playerVel?.z || 0;
@@ -551,9 +551,6 @@ export function createPropPhysics(opts = {}) {
   }
 
   function bodyStep(b, dt) {
-    const g = groundAt(b.p.x, b.p.z);
-    const surf = g.surf;
-
     // --- water: buoyancy, swell, drag -----------------------------------------
     let sub = 0;
     if (b.p.z < W.waterEdgeZ + 0.6) {
@@ -745,7 +742,7 @@ export function createPropPhysics(opts = {}) {
 
   function step(dt, playerPos, playerVel) {
     time += dt;
-    playerPass(playerPos, playerVel, dt);
+    playerPass(playerPos, playerVel);
     for (let i = 0; i < bodies.length; i++) {
       const b = bodies[i];
       if (!b.awake || b.fixed) continue;

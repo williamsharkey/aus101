@@ -338,16 +338,16 @@ export function createPanic({ scene, cast = [], play } = {}) {
 
     const p = ev.point || ev.victim?.mesh?.position || _from;
     _from.set(p.x || 0, 0, p.z || 0);
+    const first = level < 1;
     on = true;
     scream();
-    if (level < 1) {
-      level = 1;
-      scatter(_from);
-      addCops(2, _from);
-      return level;
-    }
     scatter(_from);
-    if (ev.lethal || level >= 1) {
+    if (first) {
+      level = 1;
+      addCops(2, _from);
+    }
+    // A killing blow, or a second strike after the first, brings the squad.
+    if (ev.lethal || !first) {
       if (level < 2) {
         level = 2;
         try {

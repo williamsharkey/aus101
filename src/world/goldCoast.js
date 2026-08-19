@@ -258,7 +258,7 @@ const PEOPLE = [
   [-8.2, 4.0], [6.2, 2.2], [2.0, 16.5], [11.5, 14.0], [9.8, 6.2], [-4.2, -1.8],
   [-3.5, 15.5], [8.0, 19.6], [-7.2, 22.2], [25.2, 7.4], [-14.0, 3.2], [1.4, -4.6],
   [-22.0, 9.5], [15.5, 9.0], [-10.0, 19.6], [10.2, 4.8],
-  [-22.2, 5.4], [-21.0, 8.6], [-25.5, 6.8], [-23.6, 9.2], [-20.4, 6.2],
+  [-24.5, 3.9], [-22.3, 4.5], [-21.0, 5.8], [-22.8, 2.7], [-20.6, 3.6],
 ];
 
 /** True when (x,z) is at least `r` metres from every body. */
@@ -516,7 +516,7 @@ export function buildGoldCoast(scene, colliders) {
     [-1.5, GC.boardwalkZ + 3.4],
   ]) {
     const bin = box(0.55, 0.85, 0.55, mat(0x2a6b3c));
-    bin.position.set(bx, 0.42, bz);
+    bin.position.set(bx, 0.645, bz); // deck top is 0.22, not 0
     scene.add(bin);
     add(bx - 0.32, bx + 0.32, bz - 0.32, bz + 0.32);
   }
@@ -1037,58 +1037,158 @@ function slideCanvas() {
   return { tex, paint, canvas: c };
 }
 
+/**
+ * Sunset-session rig: riser, booth, PA stacks and a scaffold-hung screen. The
+ * screen used to float unsupported and ate half the sky, so it is smaller now
+ * and hangs off a truss that reaches the sand.
+ */
 function buildDjBooth(scene, add) {
   const g = new THREE.Group();
-  const desk = box(3.4, 1.1, 1.4, mat(0x1a1a1e));
-  desk.position.y = 0.55;
+  const K = kit();
+  const dark = mat(0x1a1a1e, { roughness: 0.6 });
+  const steel = mat(0x8e949c, { roughness: 0.45, metalness: 0.55 });
+  const grille = mat(0x101014, { roughness: 0.85 });
+
+  const riser = box(4.6, 0.3, 2.6, new THREE.MeshStandardMaterial({ map: cloneMap(K.woodMap, 6, 3), roughness: 0.9 }));
+  riser.position.set(0, 0.15, -0.3);
+  g.add(riser);
+
+  const desk = box(3.4, 1.0, 1.15, dark);
+  desk.position.set(0, 0.8, 0.35);
   g.add(desk);
-  const decks = box(2.6, 0.08, 0.9, mat(0x2a2a30, { metalness: 0.4, roughness: 0.4 }));
-  decks.position.y = 1.14;
+  const fascia = new THREE.Mesh(
+    new THREE.PlaneGeometry(2.9, 0.62),
+    new THREE.MeshBasicMaterial({ map: signTex("AUS101 FM", "SUNSET SESSIONS"), side: THREE.DoubleSide })
+  );
+  fascia.position.set(0, 0.86, 0.93);
+  g.add(fascia);
+
+  const decks = box(3.5, 0.09, 1.22, mat(0x2a2a30, { metalness: 0.4, roughness: 0.4 }));
+  decks.position.set(0, 1.34, 0.35);
   g.add(decks);
-  for (const sx of [-0.7, 0.7]) {
-    const platter = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.32, 0.04, 16), mat(0x111, { metalness: 0.6 }));
-    platter.position.set(sx, 1.2, 0.05);
+  for (const sx of [-1.0, 1.0]) {
+    const platter = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.34, 0.05, 16), mat(0x111, { metalness: 0.6, roughness: 0.35 }));
+    platter.position.set(sx, 1.41, 0.3);
     g.add(platter);
+    const spindle = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.08, 6), steel);
+    spindle.position.set(sx, 1.45, 0.3);
+    g.add(spindle);
+    const arm = box(0.05, 0.03, 0.38, steel);
+    arm.position.set(sx + 0.3, 1.44, 0.12);
+    arm.rotation.y = -0.5;
+    g.add(arm);
   }
+  const mixer = box(0.62, 0.11, 0.72, mat(0x24242a, { roughness: 0.5 }));
+  mixer.position.set(0, 1.44, 0.3);
+  g.add(mixer);
+  for (let i = 0; i < 4; i++) {
+    const fader = box(0.05, 0.03, 0.2, mat(0xd8d2c4));
+    fader.position.set(-0.21 + i * 0.14, 1.51, 0.34);
+    g.add(fader);
+  }
+  const lap = box(0.42, 0.025, 0.3, mat(0xb8bcc2, { metalness: 0.4, roughness: 0.4 }));
+  lap.position.set(-1.15, 1.4, 0.72);
+  g.add(lap);
+  const lid = box(0.42, 0.28, 0.02, mat(0x1c1c22, { roughness: 0.4 }));
+  lid.position.set(-1.15, 1.53, 0.59);
+  lid.rotation.x = -0.35;
+  g.add(lid);
+
+  // PA stacks
+  for (const sx of [-2.55, 2.55]) {
+    const stack = new THREE.Group();
+    const sub = box(0.82, 0.8, 0.7, dark);
+    sub.position.y = 0.4;
+    stack.add(sub);
+    const top = box(0.7, 0.9, 0.6, dark);
+    top.position.y = 1.28;
+    stack.add(top);
+    for (const [cy, cr] of [
+      [0.4, 0.28],
+      [1.12, 0.17],
+    ]) {
+      const cone = new THREE.Mesh(new THREE.CylinderGeometry(cr, cr, 0.05, 12), grille);
+      cone.rotation.x = Math.PI / 2;
+      cone.position.set(0, cy, 0.34);
+      stack.add(cone);
+    }
+    const horn = new THREE.Mesh(new THREE.ConeGeometry(0.2, 0.22, 4), grille);
+    horn.rotation.x = -Math.PI / 2;
+    horn.position.set(0, 1.55, 0.3);
+    stack.add(horn);
+    stack.position.set(sx, 0, 0.1);
+    stack.rotation.y = sx < 0 ? 0.25 : -0.25;
+    g.add(stack);
+  }
+
+  // Scaffold + screen
+  const slides = slideCanvas();
+  const screenY = 3.15;
+  for (const sx of [-2.7, 2.7]) {
+    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.075, screenY + 1.6, 8), steel);
+    post.castShadow = true;
+    post.position.set(sx, (screenY + 1.6) / 2, -1.5);
+    g.add(post);
+    const foot = box(0.5, 0.12, 0.5, steel);
+    foot.position.set(sx, 0.06, -1.5);
+    g.add(foot);
+    for (const by of [1.3, 2.9]) {
+      const brace = box(0.05, 0.05, 1.5, steel);
+      brace.position.set(sx * 0.72, by, -0.9);
+      brace.rotation.y = sx < 0 ? -0.55 : 0.55;
+      g.add(brace);
+    }
+  }
+  const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 5.4, 8), steel);
+  beam.rotation.z = Math.PI / 2;
+  beam.position.set(0, screenY + 1.55, -1.5);
+  g.add(beam);
+  const frame = box(5.1, 2.94, 0.1, dark);
+  frame.position.set(0, screenY, -1.48);
+  g.add(frame);
+  const screen = new THREE.Mesh(new THREE.PlaneGeometry(4.9, 2.76), new THREE.MeshBasicMaterial({ map: slides.tex }));
+  screen.position.set(0, screenY, -1.42);
+  g.add(screen);
+
   const djKen = ken({ hair: 0x1a1a12, shorts: 0x1a1a22, skin: 0xc68642 });
   djKen.name = "dj-ken";
-  djKen.position.set(0, 0, -0.32);
+  djKen.position.set(0, 0.3, -0.38);
   djKen.userData.paintTarget = false;
   const db = djKen.userData.body;
-  db.armL.rotation.set(-1.18, 0.06, 0.42);
-  db.armR.rotation.set(-1.14, -0.06, -0.4);
+  // Elbows, so his hands land on the platters instead of hovering over them.
+  const djArms = [];
+  for (const [arm, side] of [
+    [db.armL, -1],
+    [db.armR, 1],
+  ]) {
+    const hinge = wrapBelow(arm, jointY(arm, -0.29));
+    const hand = hinge.children.find((c) => c.isGroup);
+    arm.rotation.set(-0.3, side * -0.22, side * 0.24);
+    hinge.rotation.x = -1.0;
+    if (hand) hand.rotation.x = 0.49;
+    djArms.push({ arm, hinge });
+  }
   const phones = box(0.32, 0.06, 0.1, mat(0x111));
-  phones.position.set(0, db.headY + 0.02, 0);
+  phones.position.set(0, db.headY + 0.06, 0);
   djKen.add(phones);
   for (const s of [-1, 1]) {
-    const cup = box(0.04, 0.08, 0.08, mat(0x111));
-    cup.position.set(s * 0.13, db.headY - 0.01, 0);
+    const cup = box(0.05, 0.1, 0.1, mat(0x111));
+    cup.position.set(s * 0.135, db.headY - 0.005, 0);
     djKen.add(cup);
   }
   g.add(djKen);
 
-  const slides = slideCanvas();
-  const screen = new THREE.Mesh(
-    new THREE.PlaneGeometry(8.4, 4.7),
-    new THREE.MeshBasicMaterial({ map: slides.tex })
-  );
-  screen.position.set(0, 4.4, -1.35);
-  g.add(screen);
-  const frame = box(8.7, 5.0, 0.12, mat(0x111));
-  frame.position.set(0, 4.4, -1.42);
-  g.add(frame);
-
   g.position.set(-24, 0, 7);
-  g.rotation.y = 0.55;
+  g.rotation.y = Math.PI - 0.45; // faces the open sand, screen backing onto the esplanade
   scene.add(g);
-  add(-26.5, -21.5, 5.2, 8.8);
+  add(-26.9, -21.4, 5.1, 9.4);
 
   let last = 0;
   return {
     tick(t) {
-      djKen.position.y = Math.abs(Math.sin(t * 4)) * 0.03;
-      db.armL.rotation.x = -1.18 + Math.sin(t * 4) * 0.06;
-      db.armR.rotation.x = -1.14 + Math.sin(t * 4 + 1.2) * 0.06;
+      djKen.position.y = 0.3 + Math.abs(Math.sin(t * 4)) * 0.035;
+      djArms[0].arm.rotation.x = -0.3 + Math.sin(t * 4) * 0.08;
+      djArms[1].arm.rotation.x = -0.3 + Math.sin(t * 4 + 1.2) * 0.08;
       if (t - last > 4.2) {
         last = t;
         slides.paint();
@@ -1100,12 +1200,14 @@ function buildDjBooth(scene, add) {
 
 function spawnDancers(scene) {
   const out = [];
+  // Fanned out in front of the rig, clear of the booth collider, the goth at
+  // (−22, 9.5) and the palm at (−26, 8).
   const spots = [
-    [-22.2, 5.4],
-    [-21.0, 8.6],
-    [-25.5, 6.8],
-    [-23.6, 9.2],
-    [-20.4, 6.2],
+    [-24.5, 3.9],
+    [-22.3, 4.5],
+    [-21.0, 5.8],
+    [-22.8, 2.7],
+    [-20.6, 3.6],
   ];
   const looks = [
     { fn: babe, hair: 0xc9a227, bikini: 0xe23d7a, skin: 0xe0b08a },
@@ -1120,20 +1222,22 @@ function spawnDancers(scene) {
     d.name = look.fn === babe ? `dj-babe-${i}` : `dj-ken-${i}`;
     d.userData.paintTarget = false;
     d.position.set(x, 0, z);
+    d.rotation.y = Math.atan2(-24 - x, 7 - z);
     scene.add(d);
     const b = d.userData.body;
     const ph = i * 0.9;
+    const yaw0 = d.rotation.y;
     out.push({
       tick(t) {
         const hop = Math.abs(Math.sin(t * 5 + ph));
-        d.position.y = hop * 0.18;
-        d.rotation.y = Math.sin(t * 2 + ph) * 0.4;
-        d.rotation.z = Math.sin(t * 5 + ph) * 0.12;
+        d.position.y = hop * 0.16;
+        d.rotation.y = yaw0 + Math.sin(t * 2 + ph) * 0.35;
+        d.rotation.z = Math.sin(t * 5 + ph) * 0.1;
         if (!b) return;
         b.armL.rotation.set(-0.35 + hop * 0.55, 0.08, 0.35 + hop * 0.85);
         b.armR.rotation.set(-0.35 + (1 - hop) * 0.55, -0.08, -0.35 - hop * 0.85);
-        b.legL.rotation.x = hop * 0.38;
-        b.legR.rotation.x = (1 - hop) * 0.28;
+        b.legL.rotation.x = hop * 0.34;
+        b.legR.rotation.x = (1 - hop) * 0.26;
       },
     });
   });

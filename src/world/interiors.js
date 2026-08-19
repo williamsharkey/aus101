@@ -17,6 +17,7 @@
 import * as THREE from "three";
 import {
   kit,
+  brickTex,
   cloneMap,
   mat,
   hipRoof,
@@ -74,10 +75,17 @@ function mats() {
     // Interior face: slightly emissive so a shadowed room never goes to black.
     wallIn: mat(0xe7ddc8, { roughness: 0.96, emissive: 0x2a1f14, emissiveIntensity: 1 }),
     ceiling: mat(0xd8cdb6, { roughness: 0.98, emissive: 0x241a12, emissiveIntensity: 1 }),
+    // Floor tile is deliberately darker than the walls — a white room on a
+    // white floor reads as a void under this sunset key.
     tile: new THREE.MeshStandardMaterial({
-      map: cloneMap(K.brickLight, 7, 5),
-      roughness: 0.7,
-      emissive: 0x1c1610,
+      map: cloneMap(brickTex("#9fb3ae", "#6f8781"), 9, 7),
+      roughness: 0.6,
+      emissive: 0x0e1414,
+    }),
+    tileWall: new THREE.MeshStandardMaterial({
+      map: cloneMap(brickTex("#dfeae6", "#a9bfb9"), 3, 5),
+      roughness: 0.45,
+      emissive: 0x0e1212,
     }),
     floorWood: new THREE.MeshStandardMaterial({
       map: cloneMap(K.woodMap, 8, 5),
@@ -99,8 +107,8 @@ function mats() {
     steel: mat(0xc4c9cd, { metalness: 0.6, roughness: 0.4 }),
     dark: mat(0x2b2f33, { roughness: 0.6 }),
     vinyl: mat(0x1d4a30, { roughness: 0.75 }),
-    porcelain: mat(0xf4f6f5, { roughness: 0.35, emissive: 0x1a1d1c }),
-    mirror: mat(0x9fc3cf, { roughness: 0.12, metalness: 0.6, emissive: 0x14232a }),
+    porcelain: mat(0xe9eeec, { roughness: 0.35, emissive: 0x0b0d0d }),
+    mirror: mat(0x5f8b99, { roughness: 0.1, metalness: 0.75, emissive: 0x0a1418 }),
     bulb: new THREE.MeshBasicMaterial({ color: 0xffe9b8, fog: false }),
     fluoro: new THREE.MeshBasicMaterial({ color: 0xeaf6ff, fog: false }),
     bottle: [0x6fae3a, 0xc23a1f, 0xe6c133, 0x3a86b0, 0x8a4fb0, 0xe8862a, 0x2f9aa8].map((c) =>
@@ -141,8 +149,9 @@ function runs(a, b, doors) {
  * cream field into something that reads as a building from 20 m away.
  */
 function bands(g, w, d, cx, cz, B, band) {
-  const skirt = fx(w + 0.06, 0.5, d + 0.06, band);
-  skirt.position.set(cx, B.floorY + 0.25, cz);
+  const sh = B.skirtH || 0.5;
+  const skirt = fx(w + 0.06, sh, d + 0.06, band);
+  skirt.position.set(cx, B.floorY + sh / 2, cz);
   g.add(skirt);
   const fascia = fx(w + 0.06, 0.2, d + 0.06, band);
   fascia.position.set(cx, B.floorY + B.h - 0.1, cz);
@@ -347,9 +356,11 @@ function buildSurfClub(reg) {
     h: 3.15,
     floorY: 0.05,
     band: "teal",
-    // Door is deliberately OFF-CENTRE: goldCoast.js puts a lamppost at
-    // (−18, 19.2), dead in front of the building's midline.
-    doors: [{ side: "n", at: -20.0, w: 1.9 }],
+    // Door is deliberately OFF-CENTRE and wide. Two props from files this
+    // module does not own sit on the club's midline: a lamppost at (−18, 19.2)
+    // (goldCoast.js) and a PSA kiosk at (−20, 16) (psa.js). A 2.6 m opening at
+    // the east end clears both, and stays walkable even if either one moves.
+    doors: [{ side: "n", at: -15.9, w: 2.6 }],
   };
   const dx = B.doors[0].at;
   const cx = (B.x0 + B.x1) / 2;
@@ -364,7 +375,7 @@ function buildSurfClub(reg) {
   deck.position.set(cx, B.floorY - 0.06, vz);
   g.add(deck);
   // Post spacing dodges both the doorway and the lamppost at x = −18.
-  for (const px of [B.x0 + 0.15, -16.8, B.x1 - 0.15]) {
+  for (const px of [B.x0 + 0.15, -19.3, B.x1 - 0.15]) {
     const post = fx(0.16, 2.9, 0.16, M.timber);
     post.position.set(px, B.floorY + 1.45, vz + 0.8);
     g.add(post);
@@ -378,12 +389,13 @@ function buildSurfClub(reg) {
   g.add(awn);
 
   // --- exterior signage ---------------------------------------------
+  // All signage lives on the long blank run west of the door.
   const fz = B.z1 + T + 0.03;
-  sign(g, signTex("SURF CLUB", "MEMBERS · VISITORS · THE UNZINCED"), 4.4, 0.9, cx, B.floorY + 2.72, fz, 0);
-  sign(g, awningTex("ENTRY", "MIND THE GLARE"), 1.5, 0.42, dx, B.floorY + 2.4, fz, 0);
-  sign(g, awningTex("NO HAT", "NO PLAY"), 1.2, 0.42, B.x0 + 0.68, B.floorY + 1.5, fz, 0);
-  sign(g, awningTex("ZINC UP", "OR ZIP IT"), 1.2, 0.42, -17.5, B.floorY + 1.5, fz, 0);
-  sign(g, signTex("PATROL 0600", "UV 14 BY 0900 · SEEK SHADE"), 1.7, 0.85, -15.0, B.floorY + 1.62, fz, 0);
+  sign(g, signTex("SURF CLUB", "MEMBERS · VISITORS · THE UNZINCED"), 4.4, 0.9, -19.75, B.floorY + 2.72, fz, 0);
+  sign(g, awningTex("ENTRY", "MIND THE GLARE"), 1.9, 0.5, dx, B.floorY + 2.42, fz, 0);
+  sign(g, awningTex("NO HAT", "NO PLAY"), 1.3, 0.44, -21.4, B.floorY + 1.5, fz, 0);
+  sign(g, awningTex("ZINC UP", "OR ZIP IT"), 1.3, 0.44, -19.75, B.floorY + 1.5, fz, 0);
+  sign(g, signTex("PATROL 0600", "UV 14 BY 0900 · SEEK SHADE"), 1.7, 0.85, -18.15, B.floorY + 1.62, fz, 0);
   const roofSign = makeSignPlane(signTex("SPF 50+", "SINCE THE OZONE WENT"), 3.4, 0.85);
   roofSign.position.set(cx, B.floorY + B.h + 0.95, B.z1 + T + 0.35);
   roofSign.rotation.x = -0.16;
@@ -441,31 +453,31 @@ function buildSurfClub(reg) {
   reg(B.x0, B.x0 + 0.66, 13.14, 16.3, B.floorY, B.floorY + 1.9, true);
 
   // bench + gear rail down the east wall
-  const bench = fx(0.62, 0.1, 3.0, M.timber);
-  bench.position.set(B.x1 - 0.34, B.floorY + 0.45, 14.7);
+  const bench = fx(0.62, 0.1, 2.5, M.timber);
+  bench.position.set(B.x1 - 0.34, B.floorY + 0.45, 13.95);
   g.add(bench);
-  for (const bz of [13.4, 16.0]) {
+  for (const bz of [12.9, 15.0]) {
     const lg = fx(0.5, 0.45, 0.12, M.timber);
     lg.position.set(B.x1 - 0.34, B.floorY + 0.22, bz);
     g.add(lg);
   }
-  reg(B.x1 - 0.7, B.x1, 13.2, 16.2, B.floorY, B.floorY + 0.55, true);
+  reg(B.x1 - 0.7, B.x1, 12.7, 15.2, B.floorY, B.floorY + 0.55, true);
   for (let i = 0; i < 4; i++) {
     const hook = fx(0.1, 0.08, 0.08, M.steel);
-    hook.position.set(B.x1 - 0.1, B.floorY + 1.7, 13.6 + i * 0.75);
+    hook.position.set(B.x1 - 0.1, B.floorY + 1.7, 12.9 + i * 0.6);
     g.add(hook);
   }
-  sign(g, signTex("RASHIE HIRE", "$4 · HONESTY BOX"), 1.5, 0.75, B.x1 - 0.02, B.floorY + 2.35, 14.7, -Math.PI / 2);
+  sign(g, signTex("RASHIE HIRE", "$4 · HONESTY BOX"), 1.5, 0.75, B.x1 - 0.02, B.floorY + 2.35, 13.95, -Math.PI / 2);
 
   // first-aid / zinc station by the door
   const cab = fx(0.5, 0.6, 0.24, M.porcelain);
-  cab.position.set(B.x1 - 1.4, B.floorY + 1.9, B.z1 - 0.14);
+  cab.position.set(B.x0 + 1.6, B.floorY + 1.9, B.z1 - 0.14);
   g.add(cab);
   const cross = fx(0.3, 0.08, 0.02, M.trim);
-  cross.position.set(B.x1 - 1.4, B.floorY + 1.9, B.z1 - 0.26);
+  cross.position.set(B.x0 + 1.6, B.floorY + 1.9, B.z1 - 0.26);
   g.add(cross);
   const crossV = fx(0.08, 0.3, 0.02, M.trim);
-  crossV.position.set(B.x1 - 1.4, B.floorY + 1.9, B.z1 - 0.26);
+  crossV.position.set(B.x0 + 1.6, B.floorY + 1.9, B.z1 - 0.26);
   g.add(crossV);
 
   // ceiling fan (spun in tick) + the one lamp
@@ -478,7 +490,7 @@ function buildSurfClub(reg) {
     bl.rotation.y = -(i / 4) * Math.PI * 2;
     fan.add(bl);
   }
-  fan.position.set(cx + 2.2, info.ceilingY - 0.34, cz + 0.4);
+  fan.position.set(cx + 1.8, info.ceilingY - 0.34, cz - 0.3);
   g.add(fan);
 
   const lamp = ceilingLamp(g, cx - 1.2, info.ceilingY - 0.42, cz, 0xffdca8, 16, 13);
@@ -537,7 +549,7 @@ function buildShadeShack(reg) {
     g.add(b);
   }
 
-  sign(g, signTex("THE SHADE SHACK", "OPEN TILL THE UV DROPS"), 4.6, 1.15, cx, B.floorY + 2.5, B.z0 - T - 0.03, Math.PI);
+  sign(g, signTex("THE SHADE SHACK", "OPEN TILL THE UV DROPS"), 4.0, 0.72, cx, B.floorY + 2.55, B.z0 - T - 0.03, Math.PI);
   sign(g, awningTex("SPF 50+", "ON TAP"), 1.7, 0.55, B.x0 + 1.4, B.floorY + 1.75, B.z0 - T - 0.03, Math.PI);
   sign(g, awningTex("NO SHIRT", "NO SHADE"), 1.7, 0.55, B.x1 - 1.4, B.floorY + 1.75, B.z0 - T - 0.03, Math.PI);
 
@@ -633,6 +645,7 @@ function buildChangeRooms(reg) {
     floorY: 0.05,
     tileFloor: true,
     band: "teal",
+    skirtH: 1.15,
     doors: [
       { side: "s", at: -28.2, w: 1.6 },
       { side: "s", at: -24.8, w: 1.6 },
@@ -706,7 +719,7 @@ function buildChangeRooms(reg) {
 
     // shower head + tiled recess on the outer side
     const sx = px + s * 2.5;
-    const rec = fx(1.1, 2.2, 0.06, M.tile);
+    const rec = fx(1.1, 2.2, 0.06, M.tileWall);
     rec.position.set(sx, B.floorY + 1.1, B.z1 - 0.05);
     g.add(rec);
     const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.34, 6), M.steel);
@@ -731,7 +744,7 @@ function buildChangeRooms(reg) {
   const tube = new THREE.Mesh(bgeo(3.0, 0.09, 0.13), M.fluoro.clone());
   tube.position.set(cx, info.ceilingY - 0.16, cz);
   g.add(tube);
-  const lamp = ceilingLamp(g, cx, info.ceilingY - 0.3, cz, 0xdff0ff, 13, 11);
+  const lamp = ceilingLamp(g, cx, info.ceilingY - 0.3, cz, 0xcfe6f2, 9, 11);
 
   return {
     id: "changeRooms",
@@ -741,7 +754,7 @@ function buildChangeRooms(reg) {
     center: { x: cx, z: cz },
     ceilingY: info.ceilingY,
     lamp,
-    lampBase: 13,
+    lampBase: 9,
     fan: null,
     fluoro: tube,
     door: { x: dBlokes, z: B.z0 - T / 2 },

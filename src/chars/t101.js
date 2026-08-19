@@ -63,7 +63,7 @@ function ribGeo(i, y, halfW, front, back, side) {
       new THREE.Vector3(sx * halfW * 0.78, y - 0.03, front * 0.72),
       new THREE.Vector3(sx * 0.042, y - 0.055, front),
     ]);
-    return new THREE.TubeGeometry(curve, 9, 0.0165, 5, false);
+    return new THREE.TubeGeometry(curve, 7, 0.0165, 5, false);
   });
 }
 
@@ -124,11 +124,11 @@ function buildPelvis(hips, C, G) {
 
 function buildLeg(hips, side, C, G, D) {
   const hip = group(hips, side * 0.113, -0.028, 0);
-  put(hip, sph(0.072, 10, 8), G);
+  put(hip, sph(0.072, 8, 6), G);
   put(hip, cyl(0.048, 0.048, 0.09, 8), G, [side * 0.028, 0.006, 0], [0, 0, Math.PI / 2]);
 
   // femur: main bone + rear hydraulic + front actuator housing
-  put(hip, cap(0.062, THIGH - 0.15, 3, 9), C, [0, -THIGH / 2 - 0.01, 0], null, [1, 1, 0.92]);
+  put(hip, cap(0.062, THIGH - 0.15, 2, 7), C, [0, -THIGH / 2 - 0.01, 0], null, [1, 1, 0.92]);
   put(hip, cyl(0.072, 0.056, 0.12, 9), C, [0, -0.09, 0]);
   put(hip, cyl(0.021, 0.021, THIGH - 0.14, 8), G, [0, -THIGH / 2, -0.052]);
   put(hip, box(0.052, 0.15, 0.048), D, [0, -0.16, 0.05]);
@@ -141,7 +141,7 @@ function buildLeg(hips, side, C, G, D) {
   put(knee, sph(0.045, 8, 6), D, [0, 0, -0.04]);
 
   // tibia + fibula strut + calf ram
-  put(knee, cap(0.046, SHIN - 0.14, 3, 9), C, [0, -SHIN / 2 - 0.01, 0.006]);
+  put(knee, cap(0.046, SHIN - 0.14, 2, 7), C, [0, -SHIN / 2 - 0.01, 0.006]);
   put(knee, cyl(0.057, 0.04, 0.11, 9), C, [0, -0.075, 0.004]);
   put(knee, cyl(0.016, 0.016, SHIN - 0.11, 6), G, [side * 0.036, -SHIN / 2, -0.012]);
   put(knee, cyl(0.023, 0.023, 0.17, 8), D, [0, -0.135, -0.05]);
@@ -189,15 +189,15 @@ function buildRibcage(chest, C, G, D) {
 
 function buildArm(chest, side, C, G, D) {
   // shoulder mount lives on the chest so there is never a gap at the joint
-  put(chest, sph(0.072, 10, 8), G, [side * 0.192, 0.322, 0], null, [1, 0.95, 1]);
+  put(chest, sph(0.072, 8, 6), G, [side * 0.192, 0.322, 0], null, [1, 0.95, 1]);
   put(chest, cyl(0.026, 0.026, 0.19, 7), G, [side * 0.1, 0.352, 0.02], [0, 0, side * 1.34]);
 
   const shoulder = group(chest, side * 0.208, 0.312, 0);
-  put(shoulder, sph(0.076, 10, 8), C, [0, 0.008, 0], null, [1, 0.92, 1]); // deltoid cowl
+  put(shoulder, sph(0.076, 9, 7), C, [0, 0.008, 0], null, [1, 0.92, 1]); // deltoid cowl
   put(shoulder, box(0.055, 0.09, 0.1), C, [side * 0.03, 0.02, 0], [0, 0, -side * 0.2]);
 
   // humerus + rear piston
-  put(shoulder, cap(0.045, UPPER_ARM - 0.13, 3, 8), C, [0, -UPPER_ARM / 2 - 0.005, 0]);
+  put(shoulder, cap(0.045, UPPER_ARM - 0.13, 2, 7), C, [0, -UPPER_ARM / 2 - 0.005, 0]);
   put(shoulder, cyl(0.052, 0.04, 0.1, 8), C, [0, -0.085, 0]);
   put(shoulder, cyl(0.016, 0.016, UPPER_ARM - 0.11, 6), G, [0, -UPPER_ARM / 2, -0.041]);
   put(shoulder, box(0.038, 0.11, 0.036), D, [0, -0.13, 0.038]);
@@ -208,7 +208,7 @@ function buildArm(chest, side, C, G, D) {
   put(elbow, box(0.045, 0.05, 0.045), C, [0, 0.005, -0.035]);
 
   // ulna + radius
-  put(elbow, cap(0.037, FOREARM - 0.12, 3, 8), C, [0, -FOREARM / 2 - 0.005, 0.004]);
+  put(elbow, cap(0.037, FOREARM - 0.12, 2, 7), C, [0, -FOREARM / 2 - 0.005, 0.004]);
   put(elbow, cyl(0.044, 0.032, 0.09, 8), C, [0, -0.06, 0.004]);
   put(elbow, cyl(0.014, 0.014, FOREARM - 0.09, 6), G, [side * 0.028, -FOREARM / 2, -0.014]);
   put(elbow, cyl(0.018, 0.018, 0.12, 6), D, [0, -0.11, 0.036]);
@@ -261,7 +261,7 @@ function buildHead(neck, C, G, D, eyeMat) {
   for (const s of [-1, 1]) {
     put(head, sph(0.03, 8, 6), D, [s * 0.047, 0.0, 0.07], null, [1.1, 0.9, 0.7]);
     put(head, box(0.022, 0.056, 0.05), C, [s * 0.079, 0.0, 0.07], [0, s * 0.3, 0]); // orbital wall
-    const e = new THREE.Mesh(sph(0.017, 8, 8), eyeMat);
+    const e = new THREE.Mesh(sph(0.017, 8, 6), eyeMat);
     e.position.set(s * 0.047, 0.0, 0.086);
     head.add(e);
     eyes.push(e);
