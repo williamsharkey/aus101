@@ -28,7 +28,7 @@ import {
 } from "./coconutsHelpers.js";
 import { pianoPulse, playPianoPluck } from "../audio/shades.js";
 import { acquireCtx } from "../audio/tapeDeck.js";
-import { ken, babe } from "../chars/npcs.js";
+import { ken, babe, poseSit } from "../chars/npcs.js";
 
 export const GC = {
   width: 90,
@@ -250,6 +250,29 @@ function buildSunsetSky(scene) {
 }
 
 /**
+ * Where bodies stand. Mirrors spawnBeachCast() in ../chars/npcs.js plus the DJ
+ * dancers below; furniture placement is filtered against it so chairs and tables
+ * never spawn through a person. Keep in sync when the cast moves.
+ */
+const PEOPLE = [
+  [-8.2, 4.0], [6.2, 2.2], [2.0, 16.5], [11.5, 14.0], [9.8, 6.2], [-4.2, -1.8],
+  [-3.5, 15.5], [8.0, 19.6], [-7.2, 22.2], [25.2, 7.4], [-14.0, 3.2], [1.4, -4.6],
+  [-22.0, 9.5], [15.5, 9.0], [-10.0, 19.6], [10.2, 4.8],
+  [-22.2, 5.4], [-21.0, 8.6], [-25.5, 6.8], [-23.6, 9.2], [-20.4, 6.2],
+];
+
+/** True when (x,z) is at least `r` metres from every body. */
+function clearOf(x, z, r) {
+  const r2 = r * r;
+  for (const [px, pz] of PEOPLE) {
+    const dx = px - x;
+    const dz = pz - z;
+    if (dx * dx + dz * dz < r2) return false;
+  }
+  return true;
+}
+
+/**
  * @param {THREE.Scene} scene
  * @param {{ addCollider: Function, COL?: any[] }} colliders
  */
@@ -265,12 +288,13 @@ export function buildGoldCoast(scene, colliders) {
 
   // Sand — Gold Coast blonde, not OC grey-tan
   const sandMap = canvasTex(sandCanvas());
-  sandMap.repeat.set(48, 36);
+  sandMap.repeat.set(48, 26);
   const sand = new THREE.Mesh(
-    new THREE.PlaneGeometry(GC.width + 30, GC.depth + 24),
+    new THREE.PlaneGeometry(GC.width + 30, 66),
     new THREE.MeshStandardMaterial({ map: sandMap, roughness: 1, color: 0xf0d9a0 })
   );
   sand.rotation.x = -Math.PI / 2;
+  sand.position.z = 15;
   sand.receiveShadow = true;
   scene.add(sand);
 
@@ -279,7 +303,7 @@ export function buildGoldCoast(scene, colliders) {
     new THREE.MeshStandardMaterial({ color: 0xc4a070, roughness: 0.42, metalness: 0.08 })
   );
   wet.rotation.x = -Math.PI / 2;
-  wet.position.set(0, 0.03, GC.wetZ);
+  wet.position.set(0, 0.028, GC.wetZ);
   wet.receiveShadow = true;
   scene.add(wet);
 
@@ -287,21 +311,21 @@ export function buildGoldCoast(scene, colliders) {
   const oceanGeo = new THREE.PlaneGeometry(GC.width + 50, 36, 40, 10);
   const ocean = new THREE.Mesh(
     oceanGeo,
-    new THREE.MeshStandardMaterial({ color: 0x2ec4d4, roughness: 0.28, metalness: 0.12 })
+    new THREE.MeshStandardMaterial({ color: 0x17a2b8, roughness: 0.22, metalness: 0.2 })
   );
   ocean.rotation.x = -Math.PI / 2;
-  ocean.position.set(0, 0.02, GC.oceanZ - 10);
+  ocean.position.set(0, 0.06, GC.oceanZ - 10);
   scene.add(ocean);
   const oceanBase = Float32Array.from(oceanGeo.attributes.position.array);
 
   for (let i = 0; i < 7; i++) {
     const w = new THREE.Mesh(
-      new THREE.PlaneGeometry(GC.width + 24, 2.4),
+      new THREE.PlaneGeometry(GC.width + 24, 1.9),
       new THREE.MeshBasicMaterial({ color: 0xe8f6f4, transparent: true, opacity: 0, depthWrite: false })
     );
     w.rotation.x = -Math.PI / 2;
     w.userData.spd = 1.8 + i * 0.28;
-    w.userData.z0 = GC.oceanZ - 6 - i * 2.6;
+    w.userData.z0 = GC.wetZ - 16 + i * 1.15;
     w.userData.dieZ = GC.wetZ + 2;
     w.position.set(0, 0.08, w.userData.z0);
     scene.add(w);
@@ -325,28 +349,9 @@ export function buildGoldCoast(scene, colliders) {
   rail.position.set(0, 1.18, GC.boardwalkZ + 4.2);
   scene.add(rail);
 
-  // Surf club (was Coconuts bar) — cream walls, red corrugated roof, "SPF CLUB" / "SURFERS"
-  const club = new THREE.Group();
-  const walls = box(8.4, 3.2, 5.2, K.wall);
-  walls.position.y = 1.7;
-  club.add(walls);
-  const roofMap = metalRoofTex();
-  roofMap.repeat.set(6, 4);
-  const roof = box(9.2, 0.22, 6.0, new THREE.MeshStandardMaterial({ map: roofMap, roughness: 0.55, metalness: 0.15 }));
-  roof.position.y = 3.45;
-  club.add(roof);
-  const awning = box(8.6, 0.12, 2.2, mat(0xc8402e, { roughness: 0.7 }));
-  awning.position.set(0, 2.55, 3.2);
-  club.add(awning);
-  const sign = new THREE.Mesh(
-    new THREE.PlaneGeometry(4.6, 1.1),
-    new THREE.MeshBasicMaterial({ map: signTex("SURF CLUB", "SPF 50 · GOLD COAST"), side: THREE.DoubleSide })
-  );
-  sign.position.set(0, 2.85, 2.72);
-  club.add(sign);
-  club.position.set(-18, 0, GC.boardwalkZ - 1.2);
-  scene.add(club);
-  add(-22.4, -13.6, GC.boardwalkZ - 3.8, GC.boardwalkZ + 1.4);
+  // Surf-club footprint deliberately left EMPTY — x −22.4..−13.6, z 12.2..17.4
+  // (centred −18, 14.8). The enterable club in src/world/interiors.js drops in
+  // here, so no shell and no collider from this file.
 
   // SLS tower — yellow/red
   const tower = new THREE.Group();
@@ -374,7 +379,9 @@ export function buildGoldCoast(scene, colliders) {
   const booth = box(3.4, 2.4, 2.6, K.wall);
   booth.position.y = 1.2;
   kiosk.add(booth);
-  const kroof = box(3.8, 0.16, 3.0, mat(0xc8402e));
+  const kroofMap = metalRoofTex();
+  kroofMap.repeat.set(3, 2);
+  const kroof = box(3.8, 0.16, 3.0, new THREE.MeshStandardMaterial({ map: kroofMap, color: 0xd85a44, roughness: 0.55, metalness: 0.15 }));
   kroof.position.y = 2.5;
   kiosk.add(kroof);
   const ksign = new THREE.Mesh(
@@ -424,10 +431,10 @@ export function buildGoldCoast(scene, colliders) {
   );
   vsign.position.set(1.1, 2.35, 1.24);
   van.add(vsign);
-  van.position.set(-6, 0, GC.boardwalkZ + 6.6);
+  van.position.set(-14.5, 0, GC.boardwalkZ + 6.6);
   van.rotation.y = -0.15;
   scene.add(van);
-  add(-9.2, -2.2, GC.boardwalkZ + 4.8, GC.boardwalkZ + 8.4);
+  add(-17.7, -10.7, GC.boardwalkZ + 4.8, GC.boardwalkZ + 8.4);
 
   // Spray-tan tent
   const tent = new THREE.Group();
@@ -449,10 +456,10 @@ export function buildGoldCoast(scene, colliders) {
   );
   tsign.position.set(0, 2.05, 1.28);
   tent.add(tsign);
-  tent.position.set(26, 0, 8);
+  tent.position.set(29.5, 0, 4.5);
   tent.rotation.y = -0.6;
   scene.add(tent);
-  add(24.6, 27.4, 6.6, 9.4);
+  add(28.1, 30.9, 3.1, 5.9);
 
   // Inflatable palm + bins + camcorder tourist stand
   const infl = new THREE.Group();
@@ -533,32 +540,36 @@ export function buildGoldCoast(scene, colliders) {
   ];
   for (const [x, z, s] of palmSpots) placePalm(scene, add, palms, x, z, s);
 
-  // Patio umbrellas + chairs (Coconuts factory, denser)
+  // Patio umbrellas + chairs (Coconuts factory). Laid out in the gaps between the
+  // cast, then filtered again by clearOf() so nothing spawns through a body.
   const umb = [
-    [-10, 6, true],
-    [-6, 3, true],
-    [-2, 5, true],
-    [2, 2, true],
-    [6, 5, true],
-    [10, 3, true],
-    [-14, 1, true],
-    [14, 1, true],
-    [-8, -1, false],
-    [4, -3, false],
-    [12, -5, false],
-    [-16, -3, false],
-    [0, 8, true],
-    [-20, 4, true],
-    [18, 4, true],
+    [-11.5, 7.5, true],
+    [-5.5, 6.5, true],
+    [-1.5, 3.0, true],
+    [3.5, 5.5, true],
+    [13.0, 3.0, true],
+    [-17.5, 5.5, true],
+    [-11.0, 0.5, true],
+    [17.0, 6.0, true],
+    [-1.0, 9.5, true],
+    [7.5, 9.0, true],
+    [-7.5, -4.5, false],
+    [5.0, -2.0, false],
+    [12.5, -5.5, false],
+    [-16.5, -2.5, false],
+    [20.5, 1.0, false],
   ];
-  for (const [x, z, chairs] of umb) placeUmbrella(scene, add, x, z, chairs, Math.random() * 0.4);
+  for (const [x, z, chairs] of umb) {
+    if (!clearOf(x, z, chairs ? 2.0 : 1.4)) continue;
+    placeUmbrella(scene, add, x, z, chairs, Math.random() * 0.4);
+  }
 
-  // Loungers toward the water
+  // Loungers toward the water, skipping any row slot a body is standing in
   const loungeCols = [0xf2c12e, 0xf2654e, 0x2f7fd0, 0x1fb6a6, 0xe23b6e];
   for (let i = 0; i < 10; i++) {
     const x = -18 + i * 4.1;
-    makeLounger(scene, x, -2.5, 0.05, loungeCols[i % loungeCols.length]);
-    makeLounger(scene, x + 0.9, 0.4, -0.08, loungeCols[(i + 2) % loungeCols.length]);
+    if (clearOf(x, -6.5, 1.5)) makeLounger(scene, x, -6.5, 0.05, loungeCols[i % loungeCols.length]);
+    if (clearOf(x + 1.1, -3.6, 1.5)) makeLounger(scene, x + 1.1, -3.6, -0.08, loungeCols[(i + 2) % loungeCols.length]);
   }
 
   // Surfboards in a rack near the club
@@ -572,11 +583,12 @@ export function buildGoldCoast(scene, colliders) {
 
   // Beach balls
   for (const [x, z] of [
-    [-5, 1],
-    [7, -1],
-    [3, 7],
-    [-11, -4],
+    [-2.6, -1.2],
+    [8.4, -3.4],
+    [0.6, 11.5],
+    [-12.5, -6.0],
   ]) {
+    if (!clearOf(x, z, 1.1)) continue;
     const ball = makeBeachBall(1);
     ball.position.set(x, 0.35, z);
     scene.add(ball);
@@ -584,10 +596,12 @@ export function buildGoldCoast(scene, colliders) {
   }
 
   // Lamps / torches along the deck
-  for (const x of [-28, -16, -4, 8, 20, 30]) {
-    makeLamppost(scene, add, x, GC.boardwalkZ + 3.2);
+  for (const x of [-30, -18, -6, 6, 18, 30]) {
+    if (clearOf(x, GC.boardwalkZ + 3.2, 1.2)) makeLamppost(scene, add, x, GC.boardwalkZ + 3.2);
   }
-  for (const x of [-24, -8, 4, 16]) makeTorch(scene, add, flames, x, GC.boardwalkZ - 4.2);
+  for (const x of [-26, -8, 4, 18]) {
+    if (clearOf(x, GC.boardwalkZ - 4.2, 1.2)) makeTorch(scene, add, flames, x, GC.boardwalkZ - 4.2);
+  }
 
   // Gull flock
   for (let i = 0; i < 8; i++) {
@@ -602,6 +616,7 @@ export function buildGoldCoast(scene, colliders) {
   const pianoPos = { x: 7, z: -29 };
   const pianoRig = buildPianoMan();
   pianoRig.position.set(pianoPos.x, 0.15, pianoPos.z);
+  pianoRig.rotation.y = 1.92; // treble side + open lid toward the beach
   scene.add(pianoRig);
 
   // DJ booth + stupid big screen + dancers
@@ -626,8 +641,8 @@ export function buildGoldCoast(scene, colliders) {
       for (let i = 0; i < pos.count; i++) {
         const ix = i * 3;
         const x = oceanBase[ix];
-        const z = oceanBase[ix + 2];
-        pos.array[ix + 1] = Math.sin(x * 0.12 + t * 1.35) * 0.16 + Math.sin(z * 0.2 + t * 0.95) * 0.1;
+        const z = -oceanBase[ix + 1]; // local y → world −z once the plane is laid flat
+        pos.array[ix + 2] = Math.sin(x * 0.12 + t * 1.35) * 0.16 + Math.sin(z * 0.2 + t * 0.95) * 0.1;
       }
       pos.needsUpdate = true;
 
@@ -637,7 +652,7 @@ export function buildGoldCoast(scene, colliders) {
         const u = (w.position.z - w.userData.z0) / Math.max(0.001, span);
         if (u < 0.12) w.material.opacity = u / 0.12;
         else if (u > 0.72) w.material.opacity = Math.max(0, 1 - (u - 0.72) / 0.28);
-        else w.material.opacity = 0.6;
+        else w.material.opacity = 0.55;
         if (w.position.z >= w.userData.dieZ) {
           w.position.z = w.userData.z0;
           w.material.opacity = 0;
@@ -684,22 +699,20 @@ export function buildGoldCoast(scene, colliders) {
   };
 }
 
-/** Knee sphere sits between hip and ankle; shin/foot live below it. */
-function kneeY(leg) {
-  let y = -0.46;
+/** Highest sphere joint below a limb root — the knee on a leg, the elbow on an arm. */
+function jointY(limb, fallback) {
+  let y = fallback;
   let best = -Infinity;
-  for (const c of leg.children) {
+  for (const c of limb.children) {
     if (!c.isMesh || c.geometry?.type !== "SphereGeometry") continue;
-    if (c.position.y >= -0.15) continue;
-    if (c.position.y > best) {
-      best = c.position.y;
-      y = c.position.y;
-    }
+    if (c.position.y >= -0.15 || c.position.y <= best) continue;
+    best = c.position.y;
+    y = c.position.y;
   }
   return y;
 }
 
-/** Reparent meshes below `cutY` onto a hinge so a sit/bend can rotate them. */
+/** Reparent meshes below `cutY` onto a hinge so a bend can rotate them. */
 function wrapBelow(parent, cutY) {
   const pivot = new THREE.Group();
   pivot.position.y = cutY;
@@ -714,63 +727,263 @@ function wrapBelow(parent, cutY) {
   return pivot;
 }
 
-/** Fold a planted biped onto a bench. Origin stays at the soles. */
-function sitBiped(npc, seatY, { thigh = 1.18, shin = -1.32 } = {}) {
-  const b = npc.userData.body;
-  if (!b) return;
-  for (const [leg, side] of [
-    [b.legL, -1],
-    [b.legR, 1],
-  ]) {
-    if (!leg) continue;
-    const hinge = wrapBelow(leg, kneeY(leg));
-    hinge.rotation.x = shin;
-    for (const c of hinge.children) {
-      if (c.isGroup) c.rotation.x = -(thigh + shin);
-    }
-    leg.rotation.x = thigh;
-    leg.rotation.z = side * 0.05;
+/* ── Piano man ──────────────────────────────────────────────────────────────
+   A baby grand lashed to a pontoon, 30 m out in the swell. Every height hangs
+   off two anchors: DECK (raft top, where the soles land) and the keybed, which
+   is *derived* from where the seated arms actually put his fingertips — so the
+   instrument follows the pose instead of the pose guessing at the instrument. */
+const PIANO = {
+  deck: 0.06, // raft top
+  bench: 0.39, // bench top
+  lift: 0.137, // hip joint sits this far above the seat (pelvis half-depth)
+  manZ: -0.1,
+  arm: [-0.33, -1.19, 0.37], // shoulder pitch, elbow bend, wrist lift
+};
+
+/**
+ * Grand rim outline: straight spine on +x (bass), bent side on −x, front edge at
+ * z=0. `k` shrinks it about the case centre — k<1 gives the inset plate.
+ */
+function grandRimGeo(depth, k = 1) {
+  const cx = -0.02;
+  const cz = 0.66;
+  const p = (x, z) => [cx + (x - cx) * k, cz + (z - cz) * k];
+  const s = new THREE.Shape();
+  s.moveTo(...p(0.66, 0));
+  s.lineTo(...p(0.66, 1.08));
+  s.quadraticCurveTo(...p(0.64, 1.3), ...p(0.3, 1.33));
+  s.lineTo(...p(0.06, 1.31));
+  s.quadraticCurveTo(...p(-0.46, 1.18), ...p(-0.66, 0.56));
+  s.quadraticCurveTo(...p(-0.78, 0.2), ...p(-0.7, 0));
+  s.closePath();
+  const g = new THREE.ExtrudeGeometry(s, { depth, bevelEnabled: false, curveSegments: 6 });
+  g.rotateX(Math.PI / 2); // shape +y → +z, extrusion → −y, so the top face lands on y=0
+  return g;
+}
+
+/** Ivory with the 52 key splits painted in — cheaper than 52 meshes, reads the same. */
+function keyTex() {
+  const c = document.createElement("canvas");
+  c.width = 512;
+  c.height = 32;
+  const x = c.getContext("2d");
+  x.fillStyle = "#f8f4ea";
+  x.fillRect(0, 0, 512, 32);
+  x.fillStyle = "#b0a894";
+  for (let i = 1; i < 52; i++) x.fillRect(Math.round((i * 512) / 52) - 1, 0, 2, 32);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+
+/** 52 whites as one textured slab; the 36 blacks as one instanced draw. */
+function keyboard(w, topY, frontZ, whiteM, blackM) {
+  const g = new THREE.Group();
+  const n = 52;
+  const kw = w / n;
+  const white = box(w, 0.045, 0.17, whiteM);
+  white.position.set(0, topY - 0.0225, frontZ + 0.085);
+  g.add(white);
+  const blacks = new THREE.InstancedMesh(new THREE.BoxGeometry(kw * 0.55, 0.022, 0.095), blackM, 36);
+  blacks.castShadow = true;
+  const m = new THREE.Matrix4();
+  let k = 0;
+  for (let i = 0; i < n - 1; i++) {
+    if (![0, 2, 3, 5, 6].includes(i % 7)) continue; // gaps that carry a sharp, keyboard starting on A
+    m.makeTranslation(-w / 2 + (i + 1) * kw, topY + 0.005, frontZ + 0.1225);
+    blacks.setMatrixAt(k++, m);
   }
-  npc.position.y = seatY - b.hipY;
+  blacks.count = k;
+  blacks.instanceMatrix.needsUpdate = true;
+  g.add(blacks);
+  return g;
 }
 
 function buildPianoMan() {
   const g = new THREE.Group();
-  const black = mat(0x141414);
-  const benchY = 0.66;
-  const man = ken({ hair: 0x1a1410, shorts: 0x141418, skin: 0xc9b09a });
+  const P = PIANO;
+  const K = kit();
+  const gloss = mat(0x0e0e12, { roughness: 0.32, metalness: 0.08 });
+  const brass = mat(0x9a7a34, { roughness: 0.35, metalness: 0.55 });
+  const ivory = mat(0xffffff, { roughness: 0.42, map: keyTex() });
+  const ebony = mat(0x141418, { roughness: 0.3 });
+
+  // ── the man ───────────────────────────────────────────────────────────────
+  const man = ken({ hair: 0x1a1410, shorts: 0x141418, skin: 0xbb8f66 });
   man.name = "piano-ken";
   man.userData.paintTarget = false;
-  sitBiped(man, benchY);
-  man.position.x = 0;
-  man.position.z = -0.02;
-  const { armL, armR } = man.userData.body;
-  armL.rotation.set(-1.12, 0.08, 0.38);
-  armR.rotation.set(-1.16, -0.06, -0.34);
+  man.position.set(0, 0, P.manZ);
+  const b = man.userData.body;
+  const tux = mat(0x16161c, { roughness: 0.62 });
+  const vTop = b.shoulderY - 0.05 * b.scale;
+  const vBot = b.hipY - 0.03 * b.scale;
+  const vest = box(b.chestW * 1.26, vTop - vBot, b.chestD * 1.22, tux);
+  vest.position.set(0, (vTop + vBot) * 0.5, 0);
+  man.add(vest);
+  const placket = box(0.1, (vTop - vBot) * 0.86, 0.03, mat(0xf2efe6, { roughness: 0.7 }));
+  placket.position.set(0, (vTop + vBot) * 0.5 - 0.02, b.chestD * 0.62);
+  man.add(placket);
+  const bow = box(0.095, 0.04, 0.04, mat(0x8e1f2c, { roughness: 0.6 }));
+  bow.position.set(0, vTop + 0.035, b.chestD * 0.58);
+  man.add(bow);
+  poseSit(man, P.bench, { lift: P.lift, floorY: P.deck, thigh: Math.PI / 2, spread: 0.12 });
+
+  // Arms get a real elbow, so the forearms run level and the hands drop onto the
+  // keys instead of spearing the case.
+  const [A, B, H] = P.arm;
+  const arms = [];
+  for (const [arm, side] of [
+    [b.armL, -1],
+    [b.armR, 1],
+  ]) {
+    const hinge = wrapBelow(arm, jointY(arm, -0.29));
+    const hand = hinge.children.find((c) => c.isGroup);
+    arm.rotation.set(A, 0, side * 0.12);
+    hinge.rotation.x = B;
+    if (hand) hand.rotation.x = H;
+    arms.push({ arm, hinge, hand });
+  }
   g.add(man);
 
-  const piano = box(1.35, 0.18, 0.55, black);
-  piano.position.set(0.15, 0.78, 0.42);
-  g.add(piano);
-  const keys = box(1.2, 0.04, 0.22, mat(0xf4f0e6));
-  keys.position.set(0.15, 0.89, 0.52);
+  // Keybed height/depth read straight off the posed hand: no floating fingers.
+  man.updateMatrixWorld(true);
+  const hb = new THREE.Box3().setFromObject(arms[1].hand);
+  const KY = hb.min.y; // key tops
+  const KZ = hb.max.z - 0.065; // key front edge — fingers land on the front third
+  const RZ = KZ + 0.21; // rim front
+  const rimTop = KY + 0.06;
+  const rimBot = rimTop - 0.22;
+
+  // ── raft ──────────────────────────────────────────────────────────────────
+  const deck = box(1.86, 0.12, 2.42, new THREE.MeshStandardMaterial({ map: cloneMap(K.woodMap, 4, 5), roughness: 0.9 }));
+  deck.position.set(-0.05, 0, 0.79);
+  g.add(deck);
+  for (const fz of [0.12, 1.5]) {
+    const drum = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 1.8, 10), mat(0x2c5c6e, { roughness: 0.6 }));
+    drum.rotation.z = Math.PI / 2;
+    drum.position.set(-0.05, -0.16, fz);
+    g.add(drum);
+  }
+
+  // ── bench ─────────────────────────────────────────────────────────────────
+  const seat = box(0.86, 0.07, 0.34, gloss);
+  seat.position.set(0, P.bench - 0.07, P.manZ - 0.04);
+  g.add(seat);
+  const cushion = box(0.8, 0.035, 0.29, mat(0x7c2230, { roughness: 0.85 }));
+  cushion.position.set(0, P.bench - 0.017, P.manZ - 0.04);
+  g.add(cushion);
+  for (const bx of [-0.36, 0.36]) {
+    const legPanel = box(0.05, P.bench - 0.105 - P.deck, 0.26, gloss);
+    legPanel.position.set(bx, (P.deck + P.bench - 0.105) / 2, P.manZ - 0.04);
+    g.add(legPanel);
+  }
+  const stretcher = box(0.68, 0.04, 0.05, gloss);
+  stretcher.position.set(0, P.deck + 0.09, P.manZ - 0.04);
+  g.add(stretcher);
+
+  // ── case ──────────────────────────────────────────────────────────────────
+  const rimGeo = grandRimGeo(0.22);
+  const rim = new THREE.Mesh(rimGeo, gloss);
+  rim.castShadow = true;
+  rim.receiveShadow = true;
+  rim.position.set(0, rimTop, RZ);
+  g.add(rim);
+
+  for (const [lx, lz] of [
+    [-0.56, 0.14],
+    [0.56, 0.14],
+    [0.34, 1.14],
+  ]) {
+    const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.065, rimBot - P.deck, 8), gloss);
+    leg.castShadow = true;
+    leg.position.set(lx, (P.deck + rimBot) / 2, RZ + lz);
+    g.add(leg);
+  }
+
+  // Keybed: shelf, key slip, cheeks, name board.
+  const shelf = box(1.42, 0.04, 0.3, gloss);
+  shelf.position.set(0, KY - 0.0625, KZ + 0.1);
+  g.add(shelf);
+  const slip = box(1.42, 0.075, 0.045, gloss);
+  slip.position.set(0, KY - 0.0375, KZ - 0.03);
+  g.add(slip);
+  for (const cx of [-0.655, 0.655]) {
+    const cheek = box(0.11, 0.175, RZ - KZ + 0.06, gloss);
+    cheek.position.set(cx, KY - 0.0275, (KZ - 0.05 + RZ) / 2);
+    g.add(cheek);
+  }
+  const nameBoard = box(1.42, 0.09, 0.09, gloss);
+  nameBoard.position.set(0, KY + 0.02, KZ + 0.205);
+  g.add(nameBoard);
+  const badge = new THREE.Mesh(
+    new THREE.PlaneGeometry(0.4, 0.05),
+    new THREE.MeshBasicMaterial({ map: signTex("AUS101", "GOLD COAST"), transparent: true })
+  );
+  badge.position.set(0, KY + 0.03, KZ + 0.161);
+  badge.rotation.y = Math.PI;
+  g.add(badge);
+
+  const keys = keyboard(1.24, KY, KZ, ivory, ebony);
   g.add(keys);
-  const lid = box(1.3, 0.04, 0.5, black);
-  lid.position.set(0.15, 1.05, 0.28);
-  lid.rotation.x = -0.7;
-  g.add(lid);
-  const bench = box(0.5, 0.08, 0.22, black);
-  bench.position.set(0, 0.62, 0);
-  g.add(bench);
+
+  // Plate + frame bars, so the open lid shows an instrument instead of a black hole.
+  const plate = new THREE.Mesh(grandRimGeo(0.03, 0.9), mat(0x6b5426, { roughness: 0.4, metalness: 0.5 }));
+  plate.position.set(0, rimTop + 0.004, RZ);
+  g.add(plate);
+  for (const px of [-0.36, -0.12, 0.12, 0.36]) {
+    const bar = box(0.04, 0.012, 0.94, brass);
+    bar.position.set(px, rimTop + 0.014, RZ + 0.62);
+    g.add(bar);
+  }
+
+  // Lid: same outline, thinned, hinged on the spine and propped open.
+  const lidPivot = new THREE.Group();
+  lidPivot.position.set(0.66, rimTop + 0.012, RZ);
+  lidPivot.rotation.z = -0.62;
+  const lid = new THREE.Mesh(rimGeo, gloss);
+  lid.castShadow = true;
+  lid.scale.y = 0.16;
+  lid.position.set(-0.66, 0, 0);
+  lidPivot.add(lid);
+  g.add(lidPivot);
+  const prop = new THREE.Mesh(new THREE.CylinderGeometry(0.011, 0.011, 0.6, 6), gloss);
+  prop.position.set(-0.42, rimTop + 0.3, RZ + 0.5);
+  g.add(prop);
+
+  // Music desk + a sheet of something he is plainly not reading.
+  const desk = box(0.86, 0.28, 0.02, gloss);
+  desk.position.set(0, KY + 0.19, RZ + 0.14);
+  desk.rotation.x = 0.32;
+  g.add(desk);
+  const sheet = box(0.3, 0.22, 0.006, mat(0xf2efe4, { roughness: 0.9 }));
+  sheet.position.set(0, KY + 0.2, RZ + 0.118);
+  sheet.rotation.x = 0.32;
+  g.add(sheet);
+
+  // Pedal lyre, tucked in behind his toes.
+  const lyre = box(0.16, rimBot - 0.2 - P.deck, 0.05, gloss);
+  lyre.position.set(0, (P.deck + 0.2 + rimBot) / 2, RZ + 0.06);
+  g.add(lyre);
+  for (const px of [-0.055, 0, 0.055]) {
+    const pedal = box(0.045, 0.016, 0.13, brass);
+    pedal.position.set(px, P.deck + 0.1, RZ + 0.02);
+    g.add(pedal);
+  }
+
   let lastLocal = 0;
   g.userData.tick = (t) => {
     const age = pianoPulse.at ? (performance.now() - pianoPulse.at) / 1000 : 99;
     const hit = age < 0.22 ? 1 - age / 0.22 : 0;
+    const damp = pianoPulse.mix > 0.08 ? 0.35 : 1;
     const idle = Math.abs(Math.sin(t * 6));
-    const pulse = Math.max(hit, idle * (pianoPulse.mix > 0.08 ? 0.35 : 1));
-    armL.rotation.x = -1.12 + pulse * 0.05;
-    armR.rotation.x = -1.16 + Math.max(hit, Math.abs(Math.sin(t * 6 + 0.8)) * 0.45) * 0.05;
-    keys.position.y = 0.89 + pulse * 0.012;
+    const pulse = Math.max(hit, idle * damp);
+    const alt = Math.max(hit, Math.abs(Math.sin(t * 6 + 0.9)) * damp);
+    arms[0].hinge.rotation.x = B + pulse * 0.05;
+    arms[1].hinge.rotation.x = B + alt * 0.05;
+    if (arms[0].hand) arms[0].hand.rotation.x = H + pulse * 0.14;
+    if (arms[1].hand) arms[1].hand.rotation.x = H + alt * 0.14;
+    keys.position.y = -pulse * 0.007;
+    man.rotation.z = Math.sin(t * 1.6) * 0.02;
     g.position.y = 0.12 + Math.sin(t * 0.7) * 0.06;
     if (pianoPulse.mix > 0.08) return;
     if (idle < 0.92 || t - lastLocal < 0.8) return;

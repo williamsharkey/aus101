@@ -229,10 +229,13 @@ function poseCop(rig, { walkPhase = 0, speed = 0, reach = 0 } = {}) {
   r.footR.rotation.x = -Math.max(0, -swing) * 0.3 * amp;
 
   const armSwing = (0.55 + run * 0.35) * amp;
-  r.armL.rotation.x = swing * armSwing + 0.05 - reach * 1.6;
-  r.armR.rotation.x = -swing * armSwing + 0.05 - reach * 1.6;
-  r.foreL.rotation.x = -0.5 - run * 0.55 - Math.max(0, swing) * 0.3 - reach * 0.4;
-  r.foreR.rotation.x = -0.5 - run * 0.55 - Math.max(0, -swing) * 0.3 - reach * 0.4;
+  // `reach` folds the swing into a two-handed grab: arms out, elbows still bent.
+  r.armL.rotation.x = swing * armSwing * (1 - reach) + 0.05 - reach * 0.95;
+  r.armR.rotation.x = -swing * armSwing * (1 - reach) + 0.05 - reach * 0.95;
+  r.armL.rotation.z = -0.08 - reach * 0.26;
+  r.armR.rotation.z = 0.08 + reach * 0.26;
+  r.foreL.rotation.x = -0.5 - run * 0.55 - Math.max(0, swing) * 0.3 * (1 - reach) + reach * 0.12;
+  r.foreR.rotation.x = -0.5 - run * 0.55 - Math.max(0, -swing) * 0.3 * (1 - reach) + reach * 0.12;
   r.head.rotation.x = -run * 0.1;
 }
 

@@ -89,6 +89,8 @@ export function ensureCoverageMap(npc) {
   if (!isPaintable(npc)) return null;
   const mesh = meshOf(npc);
   const ud = mesh.userData;
+  // A caller can hand us a bare position stand-in; refuse rather than throw.
+  if (!ud) return null;
   if (ud.coverageMap) return ud.coverageMap;
   const size = MAP_SIZE;
   const data = new Uint8Array(size * size);

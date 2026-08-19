@@ -2,12 +2,19 @@
  * Handhelds + sand internet-cafe laptops.
  * VideoTexture when assets/media/psa/*.mp4 or ads/loop_*.mp4 exist;
  * otherwise canvas "websites" cycled every 3s.
+ *
+ * Also home to the shared arm rig (`elbowHinge` / `armIK`) that party.js and
+ * synthRig.js use to put hands on props: the biped from chars/npcs.js exposes
+ * `userData.body.{armL,armR}` as real joints, so anything held is parented to
+ * the hand at the end of that chain instead of floated in the character's
+ * root space.
  */
 import * as THREE from "three";
 
 const CYCLE_S = 3;
 const FACE_R = 4.8;
-const FACE_BLEND = 0.62;
+/** How far the screen is allowed to swing out of its grip toward the player. */
+const FACE_BLEND = 0.26;
 const VIDEO_NEAR = 8;
 const PSA_DIR = "assets/media/psa/";
 const ADS_DIR = "assets/media/ads/";
@@ -96,14 +103,148 @@ const _qLocal = new THREE.Quaternion();
 const _qFlip = new THREE.Quaternion().setFromAxisAngle(_up, Math.PI);
 const _m = new THREE.Matrix4();
 
-const phoneBodyGeo = new THREE.BoxGeometry(0.058, 0.112, 0.009);
-const phoneScreenGeo = new THREE.PlaneGeometry(0.05, 0.098);
-const tabletBodyGeo = new THREE.BoxGeometry(0.112, 0.154, 0.009);
-const tabletScreenGeo = new THREE.PlaneGeometry(0.1, 0.138);
-const phoneShell = new THREE.MeshStandardMaterial({ color: 0x1a1a1e, roughness: 0.45, metalness: 0.38 });
-const tabletShell = new THREE.MeshStandardMaterial({ color: 0x222228, roughness: 0.4, metalness: 0.28 });
+/* ------------------------------------------------------------------ arm rig */
+
+const _aim = new THREE.Vector3();
+const _rest = new THREE.Vector3();
+const _qAim = new THREE.Quaternion();
+const _qRoll = new THREE.Quaternion();
+
+const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
+
+/**
+ * Segment lengths read off the rig itself, so nothing here hard-codes the
+ * proportions in chars/npcs.js: the upper arm is the only child whose top edge
+ * sits at the shoulder (centre = -len/2, height = len), and the hand group
+ * hangs at -(upper + forearm).
+ */
+function segLens(arm) {
+  if (arm.userData.segLens) return arm.userData.segLens;
+  const hand = arm.getObjectByName("hand") || arm.children.find((c) => c.isGroup) || null;
+  const wrist = hand ? -hand.position.y : 0.54;
+  let upper = wrist * 0.52;
+  for (const c of arm.children) {
+    if (!c.isMesh) continue;
+    const len = c.scale.y;
+    if (len > wrist * 0.3 && Math.abs(c.position.y + len * 0.5) < 1e-3) {
+      upper = len;
+      break;
+    }
+  }
+  const out = { upper, fore: Math.max(wrist - upper, 0.02), wrist, hand };
+  arm.userData.segLens = out;
+  return out;
+}
+
+/**
+ * Reparent everything below `cutY` onto a hinge so the far segment can fold.
+ * Same trick chars/npcs.js uses for the knee; cached under `key` so repeat
+ * calls (and poseSit) share one hinge per joint.
+ *
+ * @param {THREE.Object3D} joint  limb root group (armL/armR/legL/legR)
+ * @param {number} cutY           local Y of the hinge
+ * @param {string} key            userData cache key
+ * @param {string} name           object name for the pivot
+ */
+export function limbHinge(joint, cutY, key, name) {
+  if (!joint) return null;
+  if (joint.userData[key]) return joint.userData[key];
+  const pivot = new THREE.Group();
+  pivot.name = name;
+  pivot.position.y = cutY;
+  joint.add(pivot);
+  for (const c of [...joint.children]) {
+    if (c === pivot || c.position.y > cutY - 1e-3) continue;
+    c.position.y -= cutY;
+    pivot.add(c);
+  }
+  joint.userData[key] = pivot;
+  return pivot;
+}
+
+/**
+ * Elbow hinge for an arm from chars/npcs.js.
+ * @param {THREE.Object3D} arm  `userData.body.armL` / `armR`
+ */
+export function elbowHinge(arm) {
+  if (!arm) return null;
+  if (arm.userData.elbowHinge) return arm.userData.elbowHinge;
+  return limbHinge(arm, -segLens(arm).upper, "elbowHinge", "elbow");
+}
+
+/** @returns {THREE.Object3D|null} the hand group at the end of an arm chain. */
+export function handOf(npc, side) {
+  const arm = side < 0 ? npc?.userData?.body?.armL : npc?.userData?.body?.armR;
+  if (!arm) return null;
+  elbowHinge(arm);
+  return segLens(arm).hand;
+}
+
+/**
+ * Two-bone IK: swing the shoulder and fold the elbow so the wrist lands on
+ * `target`. Everything is in the character's own space (the arm group's parent),
+ * which is also where props parented to the character live.
+ *
+ * @param {THREE.Object3D} npc     biped group from chars/npcs.js
+ * @param {-1|1} side              -1 = armL, 1 = armR
+ * @param {THREE.Vector3} target   wrist position in character space
+ * @param {number} [roll]          spin the elbow around the shoulder→wrist axis
+ * @returns {{hand: THREE.Object3D, hinge: THREE.Object3D, arm: THREE.Object3D}|null}
+ */
+export function armIK(npc, side, target, roll = 0) {
+  const body = npc?.userData?.body;
+  const arm = side < 0 ? body?.armL : body?.armR;
+  if (!arm) return null;
+  const hinge = elbowHinge(arm);
+  const { upper: u, fore: f, hand } = segLens(arm);
+
+  _aim.copy(target).sub(arm.position);
+  let d = _aim.length();
+  if (d < 1e-4) return null;
+  d = clamp(d, Math.abs(u - f) + 0.03, (u + f) * 0.995);
+  const cosI = clamp((u * u + f * f - d * d) / (2 * u * f), -1, 1);
+  // Negative elbow angle folds the forearm forward (+Z), the way a human elbow goes.
+  const phi = -(Math.PI - Math.acos(cosI));
+  _rest.set(0, -(u + f * Math.cos(phi)), -f * Math.sin(phi)).normalize();
+  _aim.normalize();
+  _qAim.setFromUnitVectors(_rest, _aim);
+  if (roll) {
+    _qRoll.setFromAxisAngle(_aim, roll);
+    arm.quaternion.copy(_qRoll).multiply(_qAim);
+  } else {
+    arm.quaternion.copy(_qAim);
+  }
+  hinge.rotation.set(phi, 0, 0);
+  return { hand, hinge, arm };
+}
+
+/* ------------------------------------------------------------- shared parts */
+
+const phoneW = 0.071;
+const phoneH = 0.146;
+const tabletW = 0.152;
+const tabletH = 0.212;
+
+const GEO = {
+  phoneBack: new THREE.BoxGeometry(phoneW, phoneH, 0.0072),
+  phoneRail: new THREE.BoxGeometry(phoneW + 0.0035, phoneH + 0.0035, 0.0044),
+  phoneScreen: new THREE.PlaneGeometry(phoneW - 0.007, phoneH - 0.011),
+  phoneBump: new THREE.BoxGeometry(0.024, 0.024, 0.0022),
+  tabletBack: new THREE.BoxGeometry(tabletW, tabletH, 0.0068),
+  tabletRail: new THREE.BoxGeometry(tabletW + 0.004, tabletH + 0.004, 0.0042),
+  tabletScreen: new THREE.PlaneGeometry(tabletW - 0.017, tabletH - 0.022),
+  lens: new THREE.CylinderGeometry(0.0055, 0.0055, 0.0026, 8),
+  fingerTip: new THREE.BoxGeometry(0.017, 0.013, 0.019),
+  thumbPad: new THREE.BoxGeometry(0.019, 0.03, 0.017),
+};
+
+const phoneShell = new THREE.MeshStandardMaterial({ color: 0x16161a, roughness: 0.42, metalness: 0.3 });
+const railMetal = new THREE.MeshStandardMaterial({ color: 0x9aa2ac, roughness: 0.24, metalness: 0.88 });
+const glassBlack = new THREE.MeshStandardMaterial({ color: 0x05050a, roughness: 0.18, metalness: 0.1 });
+const tabletShell = new THREE.MeshStandardMaterial({ color: 0x24242a, roughness: 0.38, metalness: 0.26 });
 const laptopShell = new THREE.MeshStandardMaterial({ color: 0x3a3c42, roughness: 0.38, metalness: 0.48 });
 const laptopDark = new THREE.MeshStandardMaterial({ color: 0x1a1a1e, roughness: 0.5, metalness: 0.22 });
+const defaultSkin = new THREE.MeshStandardMaterial({ color: 0xd4a06a, roughness: 0.72, metalness: 0.04 });
 
 function shadow(mesh) {
   mesh.castShadow = true;
@@ -129,11 +270,28 @@ function setScreenTex(mat, tex) {
   mat.needsUpdate = true;
 }
 
-function paintSite(site, w, h) {
+function roundRect(x, rx, ry, w, h, r) {
+  x.beginPath();
+  x.moveTo(rx + r, ry);
+  x.arcTo(rx + w, ry, rx + w, ry + h, r);
+  x.arcTo(rx + w, ry + h, rx, ry + h, r);
+  x.arcTo(rx, ry + h, rx, ry, r);
+  x.arcTo(rx, ry, rx + w, ry, r);
+  x.closePath();
+}
+
+function paintSite(site, w, h, chrome = "phone") {
   const c = document.createElement("canvas");
   c.width = w;
   c.height = h;
   const x = c.getContext("2d");
+  // Black surround + rounded clip: the panel reads as glass, not a printed card.
+  x.fillStyle = "#05050a";
+  x.fillRect(0, 0, w, h);
+  x.save();
+  roundRect(x, 0, 0, w, h, Math.min(w, h) * 0.07);
+  x.clip();
+
   x.fillStyle = site.bg;
   x.fillRect(0, 0, w, h);
 
@@ -143,14 +301,20 @@ function paintSite(site, w, h) {
   x.font = `600 ${Math.round(h * 0.022)}px Arial, sans-serif`;
   x.textAlign = "left";
   x.textBaseline = "middle";
-  x.fillText("9:41", w * 0.05, h * 0.028);
+  x.fillText("9:41", w * 0.06, h * 0.028);
   x.textAlign = "right";
-  x.fillText("LTE   74%", w * 0.95, h * 0.028);
+  x.fillText("LTE   74%", w * 0.94, h * 0.028);
+  if (chrome === "phone") {
+    x.fillStyle = "#05050a";
+    roundRect(x, w * 0.34, h * 0.006, w * 0.32, h * 0.034, h * 0.017);
+    x.fill();
+  }
 
   x.fillStyle = "#00000066";
   const chipY = h * 0.07;
   const chipH = h * 0.048;
-  x.fillRect(w * 0.08, chipY, w * 0.84, chipH);
+  roundRect(x, w * 0.08, chipY, w * 0.84, chipH, chipH * 0.4);
+  x.fill();
   x.fillStyle = site.dim;
   x.font = `${Math.round(h * 0.02)}px Arial, sans-serif`;
   x.textAlign = "center";
@@ -184,11 +348,48 @@ function paintSite(site, w, h) {
     y += h * 0.105;
   }
 
+  if (chrome === "phone") {
+    x.fillStyle = "#ffffff66";
+    roundRect(x, w * 0.32, h * 0.968, w * 0.36, h * 0.008, h * 0.004);
+    x.fill();
+  }
+
+  // Glass sheen + scanlines.
+  const gl = x.createLinearGradient(0, 0, w, h);
+  gl.addColorStop(0, "rgba(255,255,255,0.10)");
+  gl.addColorStop(0.35, "rgba(255,255,255,0.02)");
+  gl.addColorStop(1, "rgba(255,255,255,0.06)");
+  x.fillStyle = gl;
+  x.fillRect(0, 0, w, h);
   x.globalAlpha = 0.1;
   x.fillStyle = "#000";
   for (let i = 0; i < h; i += 3) x.fillRect(0, i, w, 1);
   x.globalAlpha = 1;
+  x.restore();
 
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 4;
+  tex.needsUpdate = true;
+  return tex;
+}
+
+function keyboardTex() {
+  const c = document.createElement("canvas");
+  c.width = 256;
+  c.height = 128;
+  const x = c.getContext("2d");
+  x.fillStyle = "#1a1a1e";
+  x.fillRect(0, 0, 256, 128);
+  x.fillStyle = "#2e2e34";
+  for (let r = 0; r < 5; r++) {
+    for (let k = 0; k < 15; k++) {
+      const w = r === 4 && k > 3 && k < 9 ? 60 : 13;
+      if (r === 4 && k > 4 && k < 9) continue;
+      roundRect(x, 6 + k * 16.5, 6 + r * 24, w, 18, 3);
+      x.fill();
+    }
+  }
   const tex = new THREE.CanvasTexture(c);
   tex.colorSpace = THREE.SRGBColorSpace;
   tex.needsUpdate = true;
@@ -218,8 +419,8 @@ function towelTex(hex) {
 
 function makeScreens() {
   return {
-    portrait: SITES.map((s) => paintSite(s, 384, 640)),
-    landscape: SITES.map((s) => paintSite(s, 640, 400)),
+    portrait: SITES.map((s) => paintSite(s, 384, 640, "phone")),
+    landscape: SITES.map((s) => paintSite(s, 640, 400, "flat")),
   };
 }
 
@@ -293,65 +494,155 @@ function canHold(npc) {
   return npc.ageBand === "adult" || npc.kind === "ken" || npc.kind === "babe" || npc.kind === "sigma_07" || npc.kind === "goth";
 }
 
-function findArm(mesh, side) {
-  const name = side < 0 ? "armL" : "armR";
-  const body = mesh.userData?.body;
-  if (body) {
-    if (name === "armR" && body.armR) return body.armR;
-    if (name === "armL" && body.armL) return body.armL;
-    if (Array.isArray(body.arms)) {
-      const hit = body.arms.find((a) => a?.name === name);
-      if (hit) return hit;
-    }
-  }
-  return mesh.getObjectByName?.(name) || null;
-}
-
-function findHand(arm) {
-  if (!arm?.children?.length) return null;
-  const named = arm.getObjectByName?.("hand") || arm.children.find((c) => /hand/i.test(c.name || ""));
-  if (named) return named;
-  for (let i = arm.children.length - 1; i >= 0; i--) {
-    const c = arm.children[i];
-    if (!c?.children?.length) continue;
-    const palm = c.children.some((ch) => /palm/i.test(ch.name || "") || ch.isMesh);
-    if (palm) return c;
-  }
-  return null;
-}
-
-function makeHandset(kind, tex) {
+/**
+ * A handset whose origin is the grip point — bottom edge for a phone, side edge
+ * for a tablet — with +Y up the device and +Z out of the screen, so the hand
+ * closes on the origin and the slab stands out of the fist.
+ */
+function makeHandset(kind, tex, skinM, side) {
   const g = new THREE.Group();
   const tablet = kind === "tablet";
-  const body = shadow(new THREE.Mesh(tablet ? tabletBodyGeo : phoneBodyGeo, tablet ? tabletShell : phoneShell));
-  const screen = new THREE.Mesh(tablet ? tabletScreenGeo : phoneScreenGeo, screenMat(tex));
-  screen.position.z = tablet ? 0.0052 : 0.005;
-  g.add(body, screen);
-  return { group: g, screen, mat: screen.material };
+  const w = tablet ? tabletW : phoneW;
+  const h = tablet ? tabletH : phoneH;
+  // Phone: held at the bottom edge. Tablet: held at the side edge, two-handed.
+  const cx = tablet ? -side * w * 0.5 : 0;
+  const cy = tablet ? 0 : h * 0.5;
+
+  const back = shadow(new THREE.Mesh(tablet ? GEO.tabletBack : GEO.phoneBack, tablet ? tabletShell : phoneShell));
+  back.position.set(cx, cy, 0);
+  const rail = shadow(new THREE.Mesh(tablet ? GEO.tabletRail : GEO.phoneRail, railMetal));
+  rail.position.set(cx, cy, 0);
+  const glass = new THREE.Mesh(tablet ? GEO.tabletBack : GEO.phoneBack, glassBlack);
+  glass.position.set(cx, cy, 0.0022);
+  glass.scale.set(0.985, 0.99, 0.5);
+  const screen = new THREE.Mesh(tablet ? GEO.tabletScreen : GEO.phoneScreen, screenMat(tex));
+  screen.position.set(cx, cy, 0.0052);
+  g.add(back, rail, glass, screen);
+
+  const camX = cx - w * 0.3;
+  const camY = cy + h * 0.38;
+  const bump = new THREE.Mesh(GEO.phoneBump, phoneShell);
+  bump.position.set(camX, camY, -0.0048);
+  bump.scale.set(tablet ? 0.8 : 1, tablet ? 0.8 : 1, 1);
+  g.add(bump);
+  for (const dy of tablet ? [0] : [0.006, -0.006]) {
+    const lens = new THREE.Mesh(GEO.lens, glassBlack);
+    lens.rotation.x = Math.PI / 2;
+    lens.position.set(camX, camY + dy, -0.0058);
+    g.add(lens);
+  }
+
+  // Fingertips curled over the far face and a thumb on the glass: the read is
+  // "gripped", not "stuck to the palm".
+  const skin = skinM || defaultSkin;
+  const grip = new THREE.Group();
+  for (let i = 0; i < 3; i++) {
+    const f = shadow(new THREE.Mesh(GEO.fingerTip, skin));
+    if (tablet) {
+      f.position.set(0.004, (i - 1) * 0.026, 0.008);
+      f.rotation.z = Math.PI / 2;
+    } else {
+      f.position.set(-side * (w * 0.5 - 0.003), 0.016 + i * 0.019, 0.006);
+      f.rotation.z = -side * 0.12;
+    }
+    grip.add(f);
+  }
+  const thumb = shadow(new THREE.Mesh(GEO.thumbPad, skin));
+  if (tablet) thumb.position.set(-side * 0.014, 0.03, 0.009);
+  else thumb.position.set(side * (w * 0.36), 0.036, 0.009);
+  thumb.rotation.z = side * 0.45;
+  grip.add(thumb);
+  g.add(grip);
+
+  return { group: g, screen, mat: screen.material, grip, width: w };
 }
 
-function attachHandset(npc, kind, tex, side) {
+/**
+ * Where the gripping wrist goes, in character space, and how the device should
+ * sit in the world once it is there. Keeping the device's attitude in character
+ * space (rather than baking it into the hand) is what stops a phone from
+ * reading as a slab glued to a forearm.
+ */
+const POSES = {
+  scroll: { hand: [0.09, -0.22, 0.19], tilt: -1.02, yaw: 0.3, roll: 0.62, head: 0.34 },
+  photo: { hand: [0.1, -0.07, 0.24], tilt: -0.24, yaw: 0.05, roll: 0.7, head: 0.05 },
+  tablet: { hand: [0.1, -0.2, 0.2], tilt: -0.88, yaw: 0.2, roll: 0.55, head: 0.3 },
+};
+
+function handTarget(body, side, pose, out) {
+  const s = body.scale || 1;
+  const p = POSES[pose] || POSES.scroll;
+  return out.set(side * p.hand[0] * s, body.shoulderY + p.hand[1] * s, (body.chestD || 0.18) * 0.5 + p.hand[2] * s);
+}
+
+const _target = new THREE.Vector3();
+const _steady = new THREE.Vector3();
+const _edge = new THREE.Vector3();
+const _qWant = new THREE.Quaternion();
+const _eWant = new THREE.Euler();
+const _qChain = new THREE.Quaternion();
+
+function attachHandset(npc, kind, tex, side, pose) {
   const mesh = npc.mesh;
-  const { group, mat } = makeHandset(kind, tex);
-  const arm = findArm(mesh, side);
-  const hand = findHand(arm);
-  if (arm && hand) {
-    arm.rotation.x = -0.95;
-    const tablet = kind === "tablet";
-    group.position.set(0, tablet ? -0.08 : -0.07, tablet ? 0.03 : 0.026);
-    group.rotation.set(0, 0, 0);
+  const body = mesh.userData?.body;
+  const { group, mat, grip, width } = makeHandset(kind, tex, body?.skinM, side);
+  const hand = handOf(mesh, side);
+
+  if (hand && body) {
+    const s = body.scale || 1;
+    group.position.set(side * 0.006 * s, -0.05 * s, 0.014 * s);
     hand.add(group);
+    npc.gadgetPose = { side, pose, body, mesh, width };
   } else {
-    const h = mesh.userData?.body?.shoulderY || 1.36;
+    const h = body?.shoulderY || 1.36;
     group.position.set(side * 0.16, h - 0.16, 0.2);
     group.rotation.set(-0.95, side * 0.22, side * 0.08);
     mesh.add(group);
   }
   mesh.userData.hasGadget = true;
-  return { yawNode: group, mat, restQuat: group.quaternion.clone() };
+  return { yawNode: group, mat, grip, restQuat: group.quaternion.clone() };
 }
 
-function makeCafe(spot, tex) {
+/**
+ * Re-solve a holder's arms and re-seat the device every frame, so idle
+ * animation elsewhere can never strand the prop in mid-air.
+ */
+function poseHolder(h, t) {
+  const p = h.pose;
+  if (!p) return;
+  const { body, mesh, side } = p;
+  const s = body.scale || 1;
+  const spec = POSES[p.pose] || POSES.scroll;
+  handTarget(body, side, p.pose, _target);
+  _target.y += Math.sin(t * 1.1 + h.phase) * 0.006;
+  if (p.pose === "photo") _target.z += Math.sin(t * 0.8 + h.phase) * 0.008;
+
+  const rig = armIK(mesh, side, _target, side * spec.roll);
+  if (!rig) return;
+
+  // Device attitude, expressed in character space then pulled back through the
+  // shoulder + elbow so the grip transform lands it exactly there.
+  _eWant.set(spec.tilt, -side * spec.yaw, 0);
+  _qWant.setFromEuler(_eWant);
+  _qChain.copy(rig.arm.quaternion).multiply(rig.hinge.quaternion).invert().multiply(_qWant);
+  h.restQuat.copy(_qChain);
+
+  if (p.pose === "tablet") {
+    // Second hand at the far edge — a tablet is a two-handed object.
+    _edge.set(-side * p.width, 0, 0).applyQuaternion(_qWant);
+    _steady.copy(_target).add(_edge);
+    armIK(mesh, -side, _steady, -side * 0.3);
+  } else if (p.pose === "photo") {
+    _steady.copy(_target);
+    _steady.x = -side * 0.13 * s;
+    _steady.y -= 0.03;
+    _steady.z -= 0.04;
+    armIK(mesh, -side, _steady, -side * 0.75);
+  }
+  if (body.head) body.head.rotation.x = spec.head;
+}
+
+function makeCafe(spot, tex, keyTex) {
   const g = new THREE.Group();
   const towel = new THREE.Mesh(
     new THREE.PlaneGeometry(1.12, 2.15),
@@ -363,21 +654,35 @@ function makeCafe(spot, tex) {
   g.add(towel);
 
   const laptop = new THREE.Group();
-  const base = shadow(new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.014, 0.24), laptopShell));
-  base.position.y = 0.01;
+  const base = shadow(new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.016, 0.245), laptopShell));
+  base.position.y = 0.012;
   laptop.add(base);
-  const keys = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.004, 0.16), laptopDark);
-  keys.position.set(0, 0.018, 0.02);
-  laptop.add(keys);
+  const deck = new THREE.Mesh(
+    new THREE.PlaneGeometry(0.29, 0.145),
+    new THREE.MeshStandardMaterial({ map: keyTex, roughness: 0.7, metalness: 0.1 })
+  );
+  deck.rotation.x = -Math.PI / 2;
+  deck.position.set(0, 0.0205, -0.03);
+  laptop.add(deck);
+  const trackpad = new THREE.Mesh(new THREE.PlaneGeometry(0.1, 0.058), laptopDark);
+  trackpad.rotation.x = -Math.PI / 2;
+  trackpad.position.set(0, 0.0205, 0.078);
+  laptop.add(trackpad);
+  const hinge = shadow(new THREE.Mesh(new THREE.CylinderGeometry(0.009, 0.009, 0.3, 8), laptopDark));
+  hinge.rotation.z = Math.PI / 2;
+  hinge.position.set(0, 0.018, -0.115);
+  laptop.add(hinge);
 
   const lid = new THREE.Group();
-  lid.position.set(0, 0.016, -0.112);
-  lid.rotation.x = -0.42;
-  const lidMesh = shadow(new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.22, 0.01), laptopShell));
-  lidMesh.position.set(0, 0.11, 0);
-  const screen = new THREE.Mesh(new THREE.PlaneGeometry(0.3, 0.184), screenMat(tex));
-  screen.position.set(0, 0.11, 0.0065);
-  lid.add(lidMesh, screen);
+  lid.position.set(0, 0.018, -0.115);
+  lid.rotation.x = -0.38;
+  const lidMesh = shadow(new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.225, 0.011), laptopShell));
+  lidMesh.position.set(0, 0.112, 0);
+  const bezel = new THREE.Mesh(new THREE.BoxGeometry(0.322, 0.208, 0.004), glassBlack);
+  bezel.position.set(0, 0.112, 0.0068);
+  const screen = new THREE.Mesh(new THREE.PlaneGeometry(0.296, 0.183), screenMat(tex));
+  screen.position.set(0, 0.114, 0.0093);
+  lid.add(lidMesh, bezel, screen);
   laptop.add(lid);
 
   laptop.position.set(0, 0.028, -0.38);
@@ -419,6 +724,7 @@ function nearAmt(ax, az, playerPos, radius) {
  */
 export function attachGadgets(cast, scene) {
   const sites = makeScreens();
+  const keyTex = keyboardTex();
   const holders = [];
   let siteTick = -1;
 
@@ -426,25 +732,30 @@ export function attachGadgets(cast, scene) {
   adults.forEach((npc, i) => {
     const kind = i % 3 === 1 ? "tablet" : "phone";
     const side = i % 2 === 0 ? 1 : -1;
+    const pose = kind === "tablet" ? "tablet" : i % 4 === 2 ? "photo" : "scroll";
     const tex = sites.portrait[i % sites.portrait.length];
-    const { yawNode, mat, restQuat } = attachHandset(npc, kind, tex, side);
-    holders.push({
+    const holder = {
       kind,
-      yawNode,
-      mat,
-      restQuat,
       mesh: npc.mesh,
       offset: i,
       usesVideo: false,
       video: null,
       phase: i * 0.73,
       landscape: false,
-    });
+      pose: null,
+    };
+    const { yawNode, mat, restQuat } = attachHandset(npc, kind, tex, side, pose);
+    holder.yawNode = yawNode;
+    holder.mat = mat;
+    holder.restQuat = restQuat;
+    holder.pose = npc.gadgetPose || null;
+    holders.push(holder);
+    poseHolder(holder, 0);
   });
 
   CAFE_SPOTS.forEach((spot, i) => {
     const tex = sites.landscape[i % sites.landscape.length];
-    const cafe = makeCafe(spot, tex);
+    const cafe = makeCafe(spot, tex, keyTex);
     scene.add(cafe.group);
     holders.push({
       kind: "laptop",
@@ -457,6 +768,7 @@ export function attachGadgets(cast, scene) {
       video: null,
       phase: 2.1 + i,
       landscape: true,
+      pose: null,
     });
   });
 
@@ -490,11 +802,12 @@ export function attachGadgets(cast, scene) {
         const ax = h.mesh.position.x;
         const az = h.mesh.position.z;
         const { amt, d2 } = nearAmt(ax, az, playerPos, FACE_R);
+        poseHolder(h, t);
         faceScreen(h.yawNode, h.restQuat, playerPos, amt);
         if (h.kind !== "laptop") {
-          h.yawNode.rotateX(Math.sin(t * 1.6 + h.phase) * 0.018);
+          h.yawNode.rotateX(Math.sin(t * 1.6 + h.phase) * 0.014);
         }
-        const live = 0.42 + amt * 0.7;
+        const live = 0.42 + amt * 1.4;
         h.mat.emissiveIntensity += (live - h.mat.emissiveIntensity) * 0.12;
         if (h.video && d2 < VIDEO_NEAR * VIDEO_NEAR) videoNear.add(h.video);
       }

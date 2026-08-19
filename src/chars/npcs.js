@@ -148,8 +148,9 @@ function buildBiped({
   head.position.y = headY;
   const skull = part(GEO.skull, skinM, headR * 0.94, headR * 1.03, headR);
   head.add(skull);
-  const jaw = part(GEO.sphere, skinM, headR * 0.7, headR * 0.5, headR * 0.78);
-  jaw.position.set(0, -headR * 0.5, headR * 0.14);
+  // Chin juts just past the skull so the head is not a plain ball in profile.
+  const jaw = part(GEO.sphere, skinM, headR * 0.58, headR * 0.4, headR * 0.62);
+  jaw.position.set(0, -headR * 0.58, headR * 0.3);
   head.add(jaw);
   for (const side of [-1, 1]) {
     const eye = part(GEO.sphere, MAT.eye, 0.016 * s);
@@ -159,8 +160,9 @@ function buildBiped({
     ear.position.set(side * headR * 0.92, -0.004 * s, -0.01 * s);
     head.add(ear);
   }
-  const nose = part(GEO.sphere, skinM, 0.016 * s, 0.022 * s, 0.022 * s);
-  nose.position.set(0, -0.012 * s, headR * 0.9);
+  const nose = part(GEO.cone4, skinM, 0.014 * s, 0.03 * s, 0.03 * s);
+  nose.rotation.x = Math.PI / 2;
+  nose.position.set(0, -0.006 * s, headR * 0.84);
   head.add(nose);
   g.add(head);
 
@@ -334,13 +336,14 @@ const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
  * @param {number} [opts.thigh=Math.PI/2]  thigh pitch from vertical; PI/2 = level, less = knees low
  * @param {number} [opts.spread=0.06]      knees apart, radians per leg
  * @param {number} [opts.floorY=0]         soles reach for this Y; pass null to let the shins hang
- * @param {number} [opts.lift=0]           extra Y on top of the seat (cushion squash, shorts)
+ * @param {number} [opts.lift]                hip rise above the seat; defaults to 0.06 x body scale,
+ *                                        which puts the glutes on the seat instead of through it
  * @returns {{hipY:number, kneeY:number, kneeZ:number, footY:number}} where the pose landed
  */
 export function poseSit(npc, seatY, opts = {}) {
   const b = npc?.userData?.body;
   if (!b) return null;
-  const { thigh = Math.PI / 2, spread = 0.06, floorY = 0, lift = 0 } = opts;
+  const { thigh = Math.PI / 2, spread = 0.06, floorY = 0, lift = b.scale * 0.06 } = opts;
   const hipWorld = seatY + lift;
   const kneeY = hipWorld - b.thighH * Math.cos(thigh);
   // Shin angle from vertical: 0 = straight down. Negative swings the foot forward,
@@ -401,14 +404,10 @@ function ken({ hair = 0xf4c431, shorts = 0x1f6f78, skin = 0xd4a06a } = {}) {
   });
   const { head, headR, shoulderY, hipY, scale: s, chestD, hairM, skinM } = g.userData.body;
   // Quiff rides on top of the crown shell rather than replacing it.
-  const quiff = part(GEO.sphereHi, hairM, headR * 0.66, headR * 0.44, headR * 0.62);
-  quiff.position.set(0, headR * 0.82, headR * 0.3);
-  quiff.rotation.x = -0.42;
+  const quiff = part(GEO.sphereHi, hairM, headR * 0.78, headR * 0.34, headR * 0.66);
+  quiff.position.set(0, headR * 0.74, headR * 0.42);
+  quiff.rotation.x = -0.55;
   head.add(quiff);
-  const sweep = part(GEO.sphere, hairM, headR * 0.5, headR * 0.3, headR * 0.4);
-  sweep.position.set(0, headR * 0.95, headR * 0.62);
-  sweep.rotation.x = -0.9;
-  head.add(sweep);
   addSharkTooth(g, shoulderY + 0.05 * s);
 
   // Pecs and abs are sunk into the chest box — only the crown of each shape shows.
@@ -421,8 +420,9 @@ function ken({ hair = 0xf4c431, shorts = 0x1f6f78, skin = 0xd4a06a } = {}) {
   const absM = std(skin, { roughness: 0.48, metalness: 0.08 });
   for (let row = 0; row < 3; row++) {
     for (const side of [-1, 1]) {
-      const cell = part(GEO.box, absM, 0.078 * s, 0.05 * s, 0.036 * s);
-      cell.position.set(side * 0.048 * s, hipY + 0.28 * s - row * 0.068 * s, chestD * 0.5 - 0.03 * s);
+      // Domed cells, mostly buried — they catch light instead of sitting on the chest as panels.
+      const cell = part(GEO.sphere, absM, 0.052 * s, 0.031 * s, 0.046 * s);
+      cell.position.set(side * 0.05 * s, hipY + 0.28 * s - row * 0.066 * s, chestD * 0.5 - 0.032 * s);
       g.add(cell);
     }
   }
@@ -451,7 +451,7 @@ function babe({ hair = 0xc9a227, bikini = 0xe23d7a, skin = 0xe0b08a } = {}) {
     armR: 0.036,
     legR: 0.05,
   });
-  const { head, headY, headR, hipY, shoulderY, scale: s, chestD, hairM } = g.userData.body;
+  const { head, headY, headR, hipY, shoulderY, scale: s, chestD, chestW, hairM } = g.userData.body;
   const bikiniM = std(bikini, { roughness: 0.62 });
   // Tresses hang off the back of the crown shell; face-framing locks in front of the ears.
   const tress = part(GEO.sphereHi, hairM, headR * 1.02, headR * 1.5, headR * 0.8);
@@ -471,8 +471,9 @@ function babe({ hair = 0xc9a227, bikini = 0xe23d7a, skin = 0xe0b08a } = {}) {
     cup.position.set(side * 0.056 * s, shoulderY - 0.13 * s, chestD * 0.5 - 0.028 * s);
     g.add(cup);
   }
-  const strap = part(GEO.box, bikiniM, 0.16 * s, 0.014 * s, chestD * 0.98);
-  strap.position.set(0, shoulderY - 0.055 * s, 0);
+  // Band proud of the torso box, or it hides inside it.
+  const strap = part(GEO.box, bikiniM, chestW * 1.03, 0.016 * s, chestD * 1.04);
+  strap.position.set(0, shoulderY - 0.062 * s, 0);
   g.add(strap);
   const bottoms = part(GEO.box, bikiniM, 0.23 * s, 0.1 * s, chestD * 1.02);
   bottoms.position.set(0, hipY - 0.03 * s, 0.005 * s);
@@ -552,8 +553,8 @@ function goth() {
   fringe.position.set(headR * 0.16, headR * 0.42, headR * 0.62);
   fringe.rotation.set(-0.3, 0, 0.24);
   head.add(fringe);
-  const coat = part(GEO.box, linen, 0.4 * s, 0.72 * s, 0.22 * s);
-  coat.position.set(0, hipY + 0.22 * s, -0.02 * s);
+  const coat = part(GEO.box, linen, 0.37 * s, 0.62 * s, 0.21 * s);
+  coat.position.set(0, hipY + 0.17 * s, -0.02 * s);
   g.add(coat);
   const cig = part(GEO.cyl, std(0xd8d0c4, { roughness: 0.5 }), 0.006 * s, 0.07 * s, 0.006 * s);
   cig.rotation.z = Math.PI / 2;
@@ -618,77 +619,83 @@ function seagull() {
   const grey = MAT.gullGrey;
   const orange = MAT.gullLeg;
 
-  // Body: breast low and forward, tail high and aft.
-  const belly = part(GEO.sphereHi, white, 0.078, 0.088, 0.155);
-  belly.position.set(0, 0.165, 0.01);
-  belly.rotation.x = 0.16;
+  // Body: one egg, breast low and forward, rump high and aft.
+  const belly = part(GEO.sphereHi, white, 0.072, 0.082, 0.165);
+  belly.position.set(0, 0.165, 0.005);
+  belly.rotation.x = 0.17;
   g.add(belly);
-  const breast = part(GEO.sphere, white, 0.068, 0.072, 0.07);
-  breast.position.set(0, 0.185, 0.085);
+  const breast = part(GEO.sphere, white, 0.064, 0.07, 0.072);
+  breast.position.set(0, 0.19, 0.08);
   g.add(breast);
-  // Mantle sits proud of the white body so the grey/white break reads.
-  const mantle = part(GEO.sphereHi, grey, 0.072, 0.058, 0.14);
-  mantle.position.set(0, 0.208, -0.01);
-  mantle.rotation.x = 0.16;
+  // Grey mantle proud of the white flanks — the break is what says "gull".
+  const mantle = part(GEO.sphereHi, grey, 0.066, 0.055, 0.145);
+  mantle.position.set(0, 0.209, -0.012);
+  mantle.rotation.x = 0.17;
   g.add(mantle);
-
-  const rump = part(GEO.cone, white, 0.055, 0.14, 0.05);
-  rump.rotation.x = -Math.PI / 2 + 0.5;
-  rump.position.set(0, 0.2, -0.13);
+  const rump = part(GEO.cone, white, 0.052, 0.15, 0.048);
+  rump.rotation.x = -Math.PI / 2 + 0.42;
+  rump.position.set(0, 0.198, -0.125);
   g.add(rump);
-  const tail = part(GEO.box, white, 0.075, 0.014, 0.1);
-  tail.rotation.x = 0.32;
-  tail.position.set(0, 0.235, -0.215);
+
+  // Square-ended tail, raked up off the rump.
+  const tail = part(GEO.box, white, 0.082, 0.012, 0.108);
+  tail.rotation.x = 0.28;
+  tail.position.set(0, 0.222, -0.203);
   g.add(tail);
 
-  const neck = part(GEO.limb, white, 0.036, 0.085, 0.038);
-  neck.position.set(0, 0.245, 0.09);
-  neck.rotation.x = 0.62;
+  const neck = part(GEO.limb, white, 0.038, 0.09, 0.04);
+  neck.position.set(0, 0.248, 0.088);
+  neck.rotation.x = 0.6;
   g.add(neck);
-  const head = part(GEO.sphereHi, white, 0.044, 0.043, 0.05);
-  head.position.set(0, 0.288, 0.115);
+  const head = part(GEO.sphereHi, white, 0.043, 0.042, 0.049);
+  head.position.set(0, 0.292, 0.117);
   g.add(head);
 
-  const beak = part(GEO.cone10, MAT.beak, 0.014, 0.078, 0.016);
-  beak.rotation.x = Math.PI / 2 + 0.08;
-  beak.position.set(0, 0.284, 0.178);
-  g.add(beak);
-  const gonys = part(GEO.sphere, MAT.beakSpot, 0.008, 0.007, 0.008);
-  gonys.position.set(0, 0.272, 0.198);
+  // Bill: near-parallel sides with a dropped tip, not a spike.
+  const bill = part(GEO.cone10, MAT.beak, 0.016, 0.082, 0.017);
+  bill.rotation.x = Math.PI / 2 + 0.06;
+  bill.position.set(0, 0.286, 0.168);
+  g.add(bill);
+  const gonys = part(GEO.sphere, MAT.beakSpot, 0.0055);
+  gonys.position.set(0, 0.2805, 0.176);
   g.add(gonys);
   for (const side of [-1, 1]) {
     const eye = part(GEO.sphere, MAT.eye, 0.008);
-    eye.position.set(side * 0.026, 0.296, 0.14);
+    eye.position.set(side * 0.026, 0.3, 0.139);
     g.add(eye);
   }
 
   for (const side of [-1, 1]) {
-    // Folded wing: coverts wrap the flank, primaries taper back over the tail.
-    const coverts = part(GEO.sphereHi, grey, 0.032, 0.062, 0.135);
-    coverts.position.set(side * 0.06, 0.19, -0.005);
-    coverts.rotation.set(0.16, 0, side * -0.14);
+    // Folded wing: coverts wrap the flank, primaries run aft on one shared axis
+    // so the black tip lands exactly on the point instead of floating near it.
+    const coverts = part(GEO.sphereHi, grey, 0.03, 0.058, 0.13);
+    coverts.position.set(side * 0.058, 0.192, -0.012);
+    coverts.rotation.set(0.17, 0, side * -0.13);
     g.add(coverts);
-    const primary = part(GEO.cone, grey, 0.022, 0.16, 0.034);
-    primary.rotation.set(-Math.PI / 2 - 0.16, side * 0.1, 0);
-    primary.position.set(side * 0.042, 0.205, -0.095);
-    g.add(primary);
-    const tip = part(GEO.cone, MAT.gullTip, 0.014, 0.055, 0.021);
-    tip.rotation.copy(primary.rotation);
-    tip.position.set(side * 0.03, 0.222, -0.192);
-    g.add(tip);
+
+    const wing = new THREE.Group();
+    wing.position.set(side * 0.036, 0.191, -0.062);
+    wing.rotation.set(-Math.PI / 2 + 0.1, side * 0.06, 0);
+    const primary = part(GEO.cone, grey, 0.015, 0.185, 0.024);
+    primary.position.y = 0.0925;
+    // Tip picks up exactly where the primary has narrowed to, so it reads as one feather.
+    const tip = part(GEO.cone, MAT.gullTip, 0.0058, 0.065, 0.0094);
+    tip.position.y = 0.1525;
+    wing.add(primary, tip);
+    g.add(wing);
   }
 
   for (const side of [-1, 1]) {
-    const leg = part(GEO.cyl, orange, 0.009, 0.075, 0.009);
-    leg.position.set(side * 0.03, 0.055, 0.035);
+    const leg = part(GEO.cyl, orange, 0.009, 0.08, 0.009);
+    leg.position.set(side * 0.03, 0.052, 0.02);
     g.add(leg);
-    const web = part(GEO.cone4, orange, 0.05, 0.055, 0.012);
+    const hock = part(GEO.sphere, orange, 0.013, 0.014, 0.013);
+    hock.position.set(side * 0.03, 0.013, 0.022);
+    g.add(hock);
+    const web = part(GEO.cone4, orange, 0.046, 0.06, 0.011);
     web.rotation.x = Math.PI / 2;
-    web.position.set(side * 0.03, 0.012, 0.055);
+    web.position.set(side * 0.03, 0.011, 0.048);
     g.add(web);
-    const heel = part(GEO.sphere, orange, 0.014, 0.011, 0.014);
-    heel.position.set(side * 0.03, 0.013, 0.026);
-    g.add(heel);
   }
 
   g.userData.kind = "gull";

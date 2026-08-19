@@ -40,12 +40,15 @@ const FORE_ARM = 0.27;
 /** Shoulder -> hand travel the IK will honour, and hand -> bristle tip. */
 const HAND_MIN = 0.22;
 const HAND_MAX = (UP_ARM + FORE_ARM) * 0.985;
-const BRUSH_LEN = 0.3;
-const RETRACT = 0.075;
+const BRUSH_LEN = 0.34;
+const RETRACT = 0.035;
 const ELBOW_ROLL = 0.55;
+/** How far the body may lean/rock after a stroke that is out of arm's reach. */
+const LEAN_PITCH = 0.17;
+const LEAN_ROLL = 0.15;
 
 /** Painter's stance in easel-local space (easel sits at the artist root origin). */
-const STANCE = { x: 0.36, z: 0.62, turn: 0.22 };
+const STANCE = { x: 0.36, z: 0.8, turn: 0.22 };
 
 const QUAD_VERT = `
 varying vec2 vUv;
@@ -89,6 +92,11 @@ const GEO = {
   box: new THREE.BoxGeometry(1, 1, 1),
   sphere: new THREE.SphereGeometry(1, 10, 8),
   sphereHi: new THREE.SphereGeometry(1, 12, 10),
+  skull: new THREE.SphereGeometry(1, 16, 12),
+  // Open-bottomed hair shells: they sit ON the skull instead of swallowing the
+  // face. `hairCrown` caps the crown down to the hairline, `hairBack` the nape.
+  hairCrown: new THREE.SphereGeometry(1, 16, 10, 0, Math.PI * 2, 0, 1.32),
+  hairBack: new THREE.SphereGeometry(1, 12, 8, Math.PI, Math.PI, 0.42, 1.55),
   cyl: new THREE.CylinderGeometry(1, 1, 1, 8),
   cyl12: new THREE.CylinderGeometry(1, 1, 1, 12),
   cone: new THREE.ConeGeometry(1, 1, 6),
@@ -249,9 +257,10 @@ function makeFlatHand(skinM, flip = 1) {
   const fingers = part(GEO.box, skinM, 0.07, 0.022, 0.056);
   fingers.position.set(0, 0.008, 0.104);
   fingers.rotation.x = -0.22;
-  const thumb = part(GEO.box, skinM, 0.024, 0.024, 0.056);
-  thumb.position.set(flip * 0.042, 0.006, 0.05);
+  const thumb = part(GEO.box, skinM, 0.024, 0.05, 0.05);
+  thumb.position.set(flip * 0.04, 0.024, 0.048);
   thumb.rotation.y = flip * -0.35;
+  thumb.rotation.z = flip * -0.2;
   h.add(wristBall, palm, fingers, thumb);
   return h;
 }
@@ -287,41 +296,51 @@ function makePainter() {
   const eyeM = std(0x1a1410, { roughness: 0.45 });
 
   // ---- trunk -------------------------------------------------------------
-  const pelvis = part(GEO.box, pants, hipW, 0.18, chestD * 0.95);
-  pelvis.position.y = hipY;
+  const pelvis = part(GEO.box, pants, hipW, 0.2, chestD * 0.98);
+  pelvis.position.y = hipY - 0.03;
   g.add(pelvis);
 
-  const belt = part(GEO.box, std(0x4a3a24, { roughness: 0.7 }), hipW * 1.03, 0.045, chestD * 0.99);
-  belt.position.y = hipY + 0.085;
+  const belt = part(GEO.box, std(0x4a3a24, { roughness: 0.7 }), hipW * 1.03, 0.045, chestD * 1.01);
+  belt.position.y = hipY + 0.075;
   g.add(belt);
 
   const torso = part(GEO.box, shirt, chestW, torsoH, chestD);
-  torso.position.y = hipY + torsoH * 0.5 - 0.01;
+  torso.position.y = hipY + torsoH * 0.5 - 0.02;
   g.add(torso);
 
-  // Shoulders: a clavicle slab plus deltoid balls, so the arms seat in the body.
-  const clav = part(GEO.box, shirt, shoulderW * 0.9, 0.09, chestD * 0.9);
-  clav.position.y = shoulderY;
+  // Two-step taper out to the shoulder yoke: ribcage -> lats -> clavicle, so the
+  // arms hang off the ends of the yoke instead of off thin air beside the chest.
+  const lats = part(GEO.box, shirt, (chestW + shoulderW) * 0.5, 0.14, chestD * 0.95);
+  lats.position.y = shoulderY - 0.13;
+  g.add(lats);
+
+  const clav = part(GEO.box, shirt, shoulderW * 0.94, 0.13, chestD * 0.92);
+  clav.position.y = shoulderY - 0.04;
   g.add(clav);
+
+  // Deltoid caps on the body itself, so the socket stays filled however the
+  // painting arm swings.
   for (const side of [-1, 1]) {
-    const delt = part(GEO.sphere, shirt, 0.075, 0.07, chestD * 0.5);
-    delt.position.set(side * shoulderW * 0.44, shoulderY - 0.01, 0);
+    const delt = part(GEO.sphere, shirt, 0.072, 0.075, chestD * 0.52);
+    delt.position.set(side * (shoulderW * 0.5 - armR * 0.6), shoulderY - 0.035, 0);
     g.add(delt);
   }
+  const trap = part(GEO.sphere, shirt, 0.1, 0.055, 0.075);
+  trap.position.y = shoulderY + 0.005;
+  g.add(trap);
 
-  const collar = part(GEO.cyl12, shirt, 0.072, 0.05, 0.072);
-  collar.position.y = shoulderY + 0.035;
-  g.add(collar);
-
-  const neck = part(GEO.cyl, skin, 0.045, neckH, 0.045);
-  neck.position.y = shoulderY + neckH * 0.45;
+  // Neck runs from inside the clavicle up into the skull, so nothing floats.
+  const neckTop = headY - headR * 0.62;
+  const neckBot = shoulderY - 0.05;
+  const neck = part(GEO.cyl12, skin, 0.05, neckTop - neckBot, 0.048);
+  neck.position.y = (neckTop + neckBot) * 0.5;
   g.add(neck);
 
   // Splashes of paint on the shirt.
   for (const [dx, dy, col] of [
-    [-0.06, -0.1, 0xc8402e],
-    [0.05, -0.19, 0x2f6f9a],
-    [0.09, -0.05, 0xd4a017],
+    [-0.06, -0.12, 0xc8402e],
+    [0.05, -0.21, 0x2f6f9a],
+    [0.09, -0.07, 0xd4a017],
   ]) {
     const dab = part(GEO.sphere, std(col, { roughness: 0.6 }), 0.018, 0.024, 0.008);
     dab.position.set(dx, shoulderY + dy, chestD * 0.5);
@@ -332,39 +351,35 @@ function makePainter() {
   const head = new THREE.Group();
   head.position.y = headY;
   head.rotation.y = -STANCE.turn; // square his gaze with the locked view
-  const skull = part(GEO.sphereHi, skin, headR, headR * 1.06, headR * 1.02);
+  const skull = part(GEO.skull, skin, headR * 0.96, headR * 1.05, headR);
   head.add(skull);
-  const jaw = part(GEO.box, skin, headR * 1.1, headR * 0.6, headR * 1.2);
-  jaw.position.set(0, -headR * 0.5, headR * 0.1);
+  const jaw = part(GEO.sphere, skin, headR * 0.72, headR * 0.52, headR * 0.8);
+  jaw.position.set(0, -headR * 0.52, headR * 0.14);
   head.add(jaw);
-  const nose = part(GEO.cone, skin, 0.02, 0.045, 0.02);
+  const nose = part(GEO.cone, skin, 0.018, 0.04, 0.018);
   nose.rotation.x = Math.PI / 2;
-  nose.position.set(0, -0.012, headR * 0.92);
+  nose.position.set(0, -0.014, headR * 0.9);
   head.add(nose);
   for (const side of [-1, 1]) {
-    const eye = part(GEO.sphere, eyeM, 0.016);
-    eye.position.set(side * 0.042, 0.016, headR * 0.82);
+    const eye = part(GEO.sphere, eyeM, 0.015);
+    eye.position.set(side * 0.04, 0.012, headR * 0.8);
     head.add(eye);
-    const ear = part(GEO.sphere, skin, 0.012, 0.026, 0.02);
-    ear.position.set(side * headR * 0.98, -0.008, 0);
+    const ear = part(GEO.sphere, skin, 0.013, 0.028, 0.019);
+    ear.position.set(side * headR * 0.95, -0.008, -0.006);
     head.add(ear);
   }
 
-  // Hair: a full cap over the crown (nothing bald peeks out under the brim)
-  // plus a fringe and a nape tuft.
-  const hairCap = part(GEO.sphereHi, hairM, headR * 1.09, headR * 1.02, headR * 1.11);
-  hairCap.position.y = headR * 0.16;
+  // Hair: shells concentric with the skull, so the crown is covered under the
+  // brim without a slab of hair hanging over his eyes.
+  const hairCap = part(GEO.hairCrown, hairM, headR * 1.04, headR * 1.09, headR * 1.05);
+  hairCap.rotation.x = -0.13;
   head.add(hairCap);
-  const fringe = part(GEO.box, hairM, headR * 1.5, 0.03, 0.035);
-  fringe.position.set(0, headR * 0.42, headR * 0.86);
-  fringe.rotation.x = 0.25;
-  head.add(fringe);
-  const nape = part(GEO.sphere, hairM, headR * 0.95, headR * 0.7, headR * 0.6);
-  nape.position.set(0, -headR * 0.25, -headR * 0.62);
-  head.add(nape);
+  const hairBack = part(GEO.hairBack, hairM, headR * 1.05, headR * 1.14, headR * 1.07);
+  hairBack.rotation.x = -0.06;
+  head.add(hairBack);
   for (const side of [-1, 1]) {
-    const burn = part(GEO.box, hairM, 0.022, 0.05, 0.03);
-    burn.position.set(side * headR * 0.94, -headR * 0.18, -headR * 0.12);
+    const burn = part(GEO.box, hairM, 0.02, 0.048, 0.028);
+    burn.position.set(side * headR * 0.93, -headR * 0.2, -headR * 0.16);
     head.add(burn);
   }
 
@@ -391,15 +406,15 @@ function makePainter() {
   // ---- painting arm (aimed by aimBrush; local +Z runs down the arm) -------
   const limb = makeLimb(shirt, skin, armR);
   const arm = limb.group;
-  arm.position.set(shoulderW * 0.5, shoulderY, 0.02);
+  arm.position.set(shoulderW * 0.5 - armR * 0.6, shoulderY - 0.035, 0.015);
   const brush = makeBrush(skin);
-  brush.position.z = 0.46;
+  brush.position.z = 0.42;
   arm.add(brush);
-  poseLimb(limb, 0.46, ELBOW_ROLL);
+  poseLimb(limb, 0.42, ELBOW_ROLL);
   g.add(arm);
 
   // ---- palette arm (static, bent, hand under the palette) ----------------
-  const pShoulder = new THREE.Vector3(-shoulderW * 0.5, shoulderY, 0.02);
+  const pShoulder = new THREE.Vector3(-(shoulderW * 0.5 - armR * 0.6), shoulderY - 0.035, 0.015);
   const pElbow = new THREE.Vector3(-0.255, 1.145, 0.035);
   const pHand = new THREE.Vector3(-0.145, 1.055, 0.235);
   const pDelt = part(GEO.sphere, shirt, armR * 1.3, armR * 1.24, armR * 1.24);
@@ -416,28 +431,28 @@ function makePainter() {
 
   const palHand = makeFlatHand(skin, -1);
   palHand.position.copy(pHand);
-  palHand.rotation.set(-0.15, 0.55, 0.25);
+  palHand.rotation.set(-0.1, 0.5, 0.2);
   g.add(palHand);
 
+  // Palette rides on the flat of that hand, thumb up through it.
   const palette = new THREE.Group();
-  palette.position.set(-0.115, 1.088, 0.275);
-  palette.rotation.set(-1.24, 0.18, -0.3);
-  const disc = part(GEO.cyl12, std(0xcbb896, { roughness: 0.7 }), 0.105, 0.012, 0.085);
-  disc.rotation.x = Math.PI / 2;
+  palette.position.set(0, 0.03, 0.028);
+  palette.rotation.y = -0.15;
+  const disc = part(GEO.cyl12, std(0xcbb896, { roughness: 0.7 }), 0.105, 0.011, 0.078);
   palette.add(disc);
-  for (const [ox, oy, col] of [
-    [-0.05, 0.028, 0xc8402e],
-    [-0.012, 0.045, 0x2f6f9a],
-    [0.03, 0.03, 0xd4a017],
-    [0.05, -0.012, 0x3a7a3a],
-    [0.012, -0.038, 0xe8e2d2],
-    [-0.04, -0.028, 0x6a3a8a],
+  for (const [ox, oz, col] of [
+    [-0.055, -0.022, 0xc8402e],
+    [-0.03, 0.036, 0x2f6f9a],
+    [0.014, 0.044, 0xd4a017],
+    [0.048, 0.02, 0x3a7a3a],
+    [0.058, -0.026, 0xe8e2d2],
+    [0.008, -0.042, 0x6a3a8a],
   ]) {
-    const dab = part(GEO.sphere, std(col, { roughness: 0.5 }), 0.017, 0.017, 0.008);
-    dab.position.set(ox, oy, 0.01);
+    const dab = part(GEO.sphere, std(col, { roughness: 0.5 }), 0.016, 0.007, 0.013);
+    dab.position.set(ox, 0.008, oz);
     palette.add(dab);
   }
-  g.add(palette);
+  palHand.add(palette);
 
   // ---- legs --------------------------------------------------------------
   for (const [side, zOff, splay] of [
@@ -534,6 +549,8 @@ export function createArtist(scene, pose = { x: 4.5, z: -6.2, yaw: -2.6 }) {
   const { group: easel, board } = makeEasel();
   const painter = makePainter();
   painter.position.set(STANCE.x, 0, STANCE.z);
+  // YXZ: yaw first, then pitch/roll in his own frame — a lean about the ankles.
+  painter.rotation.order = "YXZ";
   painter.rotation.y = Math.PI + STANCE.turn;
   root.add(easel, painter);
   scene.add(root);
@@ -620,8 +637,10 @@ export function createArtist(scene, pose = { x: 4.5, z: -6.2, yaw: -2.6 }) {
   const limb = painter.userData.limb;
   let inited = false;
   let lastStroke = 0;
-  let reach = 0.46;
+  let reach = 0.42;
   let jab = 0;
+  let leanX = 0;
+  let leanZ = 0;
 
   function restore(renderer, prevRT, prevAuto, prevAlpha, prevShadow) {
     renderer.shadowMap.enabled = prevShadow;
@@ -676,8 +695,17 @@ export function createArtist(scene, pose = { x: 4.5, z: -6.2, yaw: -2.6 }) {
   }
 
   function aimBrush() {
-    strokeLocal.set((targetUV.x - 0.5) * CANVAS_W, (targetUV.y - 0.5) * CANVAS_H, 0.02);
+    strokeLocal.set((targetUV.x - 0.5) * CANVAS_W, (targetUV.y - 0.5) * CANVAS_H, 0.006);
     canvasMesh.localToWorld(strokeWorld.copy(strokeLocal));
+
+    // Weight shift: he stoops into low strokes and rocks across for wide ones,
+    // which is both alive and worth ~0.12 m of extra reach at the corners.
+    leanX += (LEAN_PITCH * (0.44 - targetUV.y) - leanX) * 0.07;
+    leanZ += (LEAN_ROLL * (targetUV.x - 0.5) - leanZ) * 0.07;
+    painter.rotation.x = leanX;
+    painter.rotation.z = leanZ;
+    painter.updateMatrixWorld(true);
+
     prevQuat.copy(arm.quaternion);
     arm.lookAt(strokeWorld);
     aimQuat.copy(arm.quaternion);

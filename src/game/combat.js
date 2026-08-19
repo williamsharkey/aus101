@@ -17,7 +17,7 @@ import * as THREE from "three";
 
 /* ── swing timing ─────────────────────────────────────────────────────────── */
 const PUNCH_DUR = 0.62; // whole animation, seconds
-const PUNCH_STRIKE = 0.28; // when the fist is out — the only moment a hit can land
+const PUNCH_STRIKE = 0.32; // punchT 0.516 — where t101.js `punchCurve` peaks the extension
 const PUNCH_REACH = 1.55; // metres, fist reach including the step-in
 const PUNCH_SOLID_REACH = 1.15; // inside this and lined up = solid (lethal) hit
 const PUNCH_COS = Math.cos(0.95); // ~54° half-angle arc in front of the player
@@ -26,7 +26,7 @@ const PUNCH_HEIGHT = 1.35; // vertical tolerance between fist and victim chest
 
 /* ── laser timing ─────────────────────────────────────────────────────────── */
 const LASER_DUR = 0.72;
-const LASER_FIRE = 0.34; // eyes discharge here
+const LASER_FIRE = 0.47; // laserT 0.653 — where t101.js peaks the eye charge
 const LASER_RANGE = 60;
 const BEAM_LIFE = 0.24;
 const FLASH_LIFE = 0.3;
@@ -38,7 +38,7 @@ const G = 16;
 const BOUNCE = 0.15;
 const STEP = 1 / 60;
 const DAMP = 0.984;
-const CONSTRAINT_ITERS = 4;
+const CONSTRAINT_ITERS = 7; // a hard blow needs more passes than fights.js to hold together
 const SLEEP_EPS = 0.00035; // per-step squared travel under which a doll settles
 const SLEEP_HOLD = 0.7;
 
@@ -181,8 +181,8 @@ function integrate(parts, dt) {
     p.x += vx;
     p.y += vy + g;
     p.z += vz;
-    p.rx += vz * 10;
-    p.rz -= vx * 10;
+    p.rx += vz * 7;
+    p.rz -= vx * 7;
   }
 }
 
@@ -278,7 +278,12 @@ export function createCombat({ scene, cast, onHarm, play } = {}) {
   const castMeshes = [];
   /** @type {THREE.Intersection[]} */
   const hits = [];
+  /** @type {THREE.Mesh[]} */
+  const world = [];
   const meshToNpc = new Map();
+  const pushMesh = (o) => {
+    if (o.isMesh && o.visible) world.push(o);
+  };
 
   const _origin = new THREE.Vector3();
   const _dir = new THREE.Vector3();
@@ -360,16 +365,17 @@ export function createCombat({ scene, cast, onHarm, play } = {}) {
     const yaw = mesh.rotation.y;
     const groundY = mesh.position.y;
     const built = makeDoll(looksOf(mesh), s);
-    const launch = 2.9 + power * 3.4;
-    const lift = 2.6 + power * 2.2;
+    // Enough to take them off their feet and a metre back — not launch them.
+    const launch = 1.7 + power * 2.1;
+    const lift = 1.7 + power * 1.3;
     for (const p of built.parts) {
       const w = rotY(p.ox, p.oz, yaw);
       p.x = mesh.position.x + w.x;
       p.y = groundY + p.oy;
       p.z = mesh.position.z + w.z;
-      const jx = nx * launch + rand(-1.1, 1.1);
-      const jy = lift + rand(0.2, 1.6);
-      const jz = nz * launch + rand(-1.1, 1.1);
+      const jx = nx * launch + rand(-0.5, 0.5);
+      const jy = lift + rand(0.1, 0.8);
+      const jz = nz * launch + rand(-0.5, 0.5);
       p.px = p.x - jx * STEP;
       p.py = p.y - jy * STEP;
       p.pz = p.z - jz * STEP;
@@ -478,7 +484,7 @@ export function createCombat({ scene, cast, onHarm, play } = {}) {
       best.mesh.position.z - bestNz * 0.18
     );
     dropVictim(best, bestNx, bestNz, lethal ? 1 : 0.5);
-    popFlash(_pt, lethal ? 0.24 : 0.16);
+    popFlash(_pt, lethal ? 0.11 : 0.075);
     say(lethal ? "panic_02" : "interject_oi_01");
     onHarm?.({ kind: "punch", victim: best, lethal, point: _pt.clone() });
     return true;
@@ -505,35 +511,46 @@ export function createCombat({ scene, cast, onHarm, play } = {}) {
   /* ── laser ──────────────────────────────────────────────────────────────── */
 
   function beamShow(from, dir, len) {
-    const r = 0.024 + len * 0.0016;
+    const r = 0.016 + len * 0.0009;
     beamLen = len;
     for (const [m, k] of [
       [beamCore, 1],
-      [beamGlow, 3.2],
+      [beamGlow, 4.2],
     ]) {
       m.scale.set(r * k, len, r * k);
       m.position.copy(from).addScaledVector(dir, len * 0.5);
       m.quaternion.setFromUnitVectors(Y_UP, dir);
-      m.material.opacity = k === 1 ? 1 : 0.55;
+      m.material.opacity = k === 1 ? 1 : 0.4;
       m.visible = true;
     }
     beamT = BEAM_LIFE;
   }
 
-  /** Nearest world surface along the beam, ignoring the player and our own fx. */
+  /**
+   * Nearest world surface along the beam. Collects plain meshes only — sprites
+   * and points need a camera on the raycaster and would throw — and drops the
+   * player's own rig and our fx group.
+   */
+  function collectWorld() {
+    world.length = 0;
+    for (const child of scene.children) {
+      if (child === fx || !child.visible) continue;
+      if (child.isLight || child.isCamera) continue;
+      // The player rig sits exactly on playerPos — never shoot yourself.
+      if (child.position && child.position.distanceToSquared(_player) < 0.25) continue;
+      child.traverse(pushMesh);
+    }
+  }
+
   function worldHit(from, dir) {
     if (!scene) return null;
+    collectWorld();
     ray.set(from, dir);
     ray.far = LASER_RANGE;
     hits.length = 0;
-    ray.intersectObjects(scene.children, true, hits);
+    ray.intersectObjects(world, false, hits);
     for (const h of hits) {
       if (h.distance < 0.9) continue; // inside the player's own rig
-      let root = h.object;
-      while (root.parent && root.parent !== scene) root = root.parent;
-      if (root === fx) continue;
-      // The player rig sits exactly on playerPos — never shoot yourself.
-      if (root.position.distanceToSquared(_player) < 0.25) continue;
       return h;
     }
     return null;
@@ -580,7 +597,7 @@ export function createCombat({ scene, cast, onHarm, play } = {}) {
         if (w.object?.normalMatrix) _n.applyNormalMatrix(w.object.normalMatrix).normalize();
         if (_n.lengthSq() < 1e-6) _n.copy(Y_UP);
         putScorch(_pt, _n);
-        popFlash(_pt, 0.2);
+        popFlash(_pt, 0.11);
       }
       return false;
     }
@@ -593,12 +610,12 @@ export function createCombat({ scene, cast, onHarm, play } = {}) {
       if (w.object?.normalMatrix) _n.applyNormalMatrix(w.object.normalMatrix).normalize();
       if (_n.lengthSq() < 1e-6) _n.copy(Y_UP);
       putScorch(_pt, _n);
-      popFlash(_pt, 0.2);
+      popFlash(_pt, 0.11);
       return false;
     }
 
     beamShow(_origin, _dir, vDist);
-    popFlash(_pt, 0.34);
+    popFlash(_pt, 0.16);
     const d = Math.hypot(_dir.x, _dir.z) || 1;
     const rec = dropVictim(victim, _dir.x / d, _dir.z / d, 0.85);
     burnDoll(rec, _pt);
@@ -681,10 +698,10 @@ export function createCombat({ scene, cast, onHarm, play } = {}) {
         beamGlow.visible = false;
       } else {
         beamCore.material.opacity = k;
-        beamGlow.material.opacity = 0.55 * k * k;
+        beamGlow.material.opacity = 0.4 * k * k;
         const w = 1 + (1 - k) * 0.9;
-        const r = 0.024 + beamLen * 0.0016;
-        beamGlow.scale.set(r * 3.2 * w, beamLen, r * 3.2 * w);
+        const r = 0.016 + beamLen * 0.0009;
+        beamGlow.scale.set(r * 4.2 * w, beamLen, r * 4.2 * w);
       }
     }
 
@@ -694,7 +711,7 @@ export function createCombat({ scene, cast, onHarm, play } = {}) {
       if (flashT <= 0) flash.visible = false;
       else {
         flash.material.opacity = k;
-        flash.scale.multiplyScalar(1 + 2.6 * h);
+        flash.scale.multiplyScalar(1 + 2.0 * h);
       }
     }
 
@@ -741,11 +758,11 @@ export function createCombat({ scene, cast, onHarm, play } = {}) {
     get swinging() {
       return punchTime >= 0 || laserTime >= 0;
     },
-    /** 0..1 punch phase for `poseAus101(rig, { punchT })`. Fist lands at ~0.45. */
+    /** 0..1 punch phase for `poseAus101(rig, { punchT })`. Fist lands at 0.52. */
     get punchT() {
       return punchT;
     },
-    /** 0..1 eye-laser phase for `poseAus101(rig, { laserT })`. Bolt at ~0.47. */
+    /** 0..1 eye-laser phase for `poseAus101(rig, { laserT })`. Bolt at 0.65. */
     get laserT() {
       return laserT;
     },

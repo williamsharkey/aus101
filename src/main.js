@@ -86,10 +86,12 @@ const tapes = createTapeSystem({
   getBoomPos: () => party.musicSpots.find((s) => s.id === "boombox")?.position || { x: 12, z: 8 },
   getDjPos: () => ({ x: -24, z: 7 }),
 });
-for (const spot of party.musicSpots) {
-  if (spot.id.startsWith("guitar") && spot.position) {
-    cast.push({ mesh: { position: spot.position }, kind: "ken", ageBand: "adult" });
-  }
+// The guitar Kens are real bodies in the scene, so register the meshes themselves.
+// Pushing `{ mesh: { position } }` stand-ins here used to crash `ensureCoverageMap`,
+// which reads `mesh.userData` after `isPaintable` waves the stand-in through.
+for (const name of ["ken-guitar-a", "ken-guitar-b"]) {
+  const mesh = scene.getObjectByName(name);
+  if (mesh) cast.push({ mesh, kind: "ken", ageBand: "adult" });
 }
 
 const voice = new VoiceBank();
