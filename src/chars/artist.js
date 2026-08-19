@@ -427,7 +427,8 @@ export function createArtist(scene, pose = { x: 4.5, z: -6.2, yaw: -2.6 }) {
     root,
     pose,
     tick(renderer, scene3, nowMs) {
-      if (nowMs - lastStroke >= STROKE_MS) {
+      const ios = /iP(hone|ad|od)/.test(navigator.userAgent);
+      if (!ios && nowMs - lastStroke >= STROKE_MS) {
         stroke(renderer, scene3);
         lastStroke = nowMs;
       }

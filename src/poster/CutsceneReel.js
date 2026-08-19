@@ -1,11 +1,12 @@
 /** Opening skit: still sequence after the poster tap. Tap skips. */
 
 export const INTRO_STILLS = [
-  { src: "assets/media/cutscene/s1_bunker_bay.jpg", hold: 2200 },
-  { src: "assets/media/cutscene/s2_captured_units.jpg", hold: 2400 },
-  { src: "assets/media/cutscene/s3_what_now.jpg", hold: 2200 },
-  { src: "assets/media/cutscene/s4_i_can_use_them.jpg", hold: 2600 },
-  { src: "assets/media/cutscene/s5_psa_apply.jpg", hold: 2400 },
+  { src: "assets/media/cutscene/s1_bunker_bay.jpg", hold: 2000 },
+  { src: "assets/media/cutscene/intro_divas_strut.jpg", hold: 2600 },
+  { src: "assets/media/cutscene/intro_divas_brief.jpg", hold: 2400 },
+  { src: "assets/media/cutscene/intro_divas_catwalk.jpg", hold: 2400 },
+  { src: "assets/media/cutscene/s4_i_can_use_them.jpg", hold: 2400 },
+  { src: "assets/media/cutscene/s5_psa_apply.jpg", hold: 2200 },
 ];
 
 export class CutsceneReel {
@@ -55,6 +56,10 @@ export class CutsceneReel {
       this.finish();
       return;
     }
+    this.img.onerror = () => {
+      this._i += 1;
+      this.show();
+    };
     this.img.src = shot.src;
     clearTimeout(this._timer);
     this._timer = setTimeout(() => {

@@ -222,18 +222,13 @@ async function beginPlay() {
     carpenter?.start();
     oceanBed?.start();
     if (audioOn) {
-      await voice.preload([
-        "dj_open_01",
+      voice.play("dj_open_01");
+      voice.preload([
         "gold_coast_lad_01",
         "walkby_flirt_01",
-        "walkby_heckle_01",
-        "ken_gossip_steaks_beach",
-        "babe_gossip_botox_map",
         "interject_oi_01",
         "gull_01",
-        "goth_01",
-      ]);
-      await voice.play("dj_open_01").ready;
+      ]).catch(() => {});
     }
   } catch (e) {
     console.warn("audio", e);
@@ -264,13 +259,11 @@ const encounters = createEncounterDirector({
   },
 });
 const poster = new PosterOverlay({
-  onStart: async () => {
-    try {
-      await voice.unlock();
-      if (audioOn) await voice.play("factory_recall_01").ready;
-    } catch {
-      /* ignore */
-    }
+  onStart: () => {
+    // Never await VO before the reel — iOS decode hangs and the intro never plays.
+    voice.unlock().then(() => {
+      if (audioOn) voice.play("factory_recall_01");
+    }).catch(() => {});
     reel.start();
   },
 });
@@ -333,18 +326,17 @@ function frame() {
     const squeezing = !!input.keys.Space;
     if (squeezing) carpenter?.setState("apply");
     else carpenter?.setState("boardwalk");
-    const painted = lotion.canPaint()
-      ? tickApply(cast, player.pos, squeezing, raw || TICK, player.yaw)
-      : null;
+    lotion.tick({ squeezeHeld: squeezing, applying: false, dt: raw || TICK });
+    const painted = tickApply(cast, player.pos, squeezing && lotion.canPaint(), raw || TICK, player.yaw);
     if (painted) {
       bay.track(painted.npc);
       applyUx.show(painted.npc);
+      lotion.tick({ squeezeHeld: false, applying: true, dt: raw || TICK });
     } else {
       applyUx.hide();
     }
     applyUx.tick();
     bay.tick(raw || TICK, painted?.npc);
-    lotion.tick({ squeezeHeld: squeezing, applying: !!painted, dt: raw || TICK });
     tickBottle(aus101, lotion, raw || TICK);
     if (painted && audioOn && !walkby.isTalking(performance.now()) && Math.random() < 0.012) {
       voice.play("rub_pleasure_01", { gain: 1.2 });
