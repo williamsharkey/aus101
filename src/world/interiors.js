@@ -911,7 +911,7 @@ export function spawnInteriors(scene, colliders) {
   const _v = new THREE.Vector3();
   const _chest = new THREE.Vector3();
 
-  /** Inner walkable box, already inset by the player radius. */
+  /** Shell box grown by the player radius, so a body in a doorway counts. */
   function inside(b, x, z) {
     return (
       x > b.B.x0 - PLAYER_R &&
@@ -927,10 +927,6 @@ export function spawnInteriors(scene, colliders) {
     return null;
   }
 
-  /**
-   * Post-process the follow camera so it never sits through a wall or on the
-   * roof. Call AFTER `updateFollowCam(camera, player, dt)`.
-   */
   /**
    * Slab-method ray/AABB: first t in (0,1] at which the segment enters a
    * blocker expanded by the camera probe radius. Returns 1 when nothing is hit.

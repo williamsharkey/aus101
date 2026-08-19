@@ -564,9 +564,9 @@ function makeHandset(kind, tex, skinM, side) {
  * reading as a slab glued to a forearm.
  */
 const POSES = {
-  scroll: { hand: [0.09, -0.22, 0.19], tilt: -1.02, yaw: 0.3, roll: 0.62, head: 0.34 },
+  scroll: { hand: [0.09, -0.2, 0.21], tilt: -0.72, yaw: 0.3, roll: 0.62, head: 0.34 },
   photo: { hand: [0.1, -0.07, 0.24], tilt: -0.24, yaw: 0.05, roll: 0.7, head: 0.05 },
-  tablet: { hand: [0.1, -0.2, 0.2], tilt: -0.88, yaw: 0.2, roll: 0.55, head: 0.3 },
+  tablet: { hand: [0.1, -0.18, 0.21], tilt: -0.62, yaw: 0.2, roll: 0.55, head: 0.3 },
 };
 
 function handTarget(body, side, pose, out) {
@@ -592,7 +592,7 @@ function attachHandset(npc, kind, tex, side, pose) {
     const s = body.scale || 1;
     group.position.set(side * 0.006 * s, -0.05 * s, 0.014 * s);
     hand.add(group);
-    npc.gadgetPose = { side, pose, body, mesh, width };
+    npc.gadgetPose = { side, pose, body, mesh, width, lean: 0 };
   } else {
     const h = body?.shoulderY || 1.36;
     group.position.set(side * 0.16, h - 0.16, 0.2);
@@ -622,7 +622,7 @@ function poseHolder(h, t) {
 
   // Device attitude, expressed in character space then pulled back through the
   // shoulder + elbow so the grip transform lands it exactly there.
-  _eWant.set(spec.tilt, -side * spec.yaw, 0);
+  _eWant.set(spec.tilt + p.lean, -side * spec.yaw, 0);
   _qWant.setFromEuler(_eWant);
   _qChain.copy(rig.arm.quaternion).multiply(rig.hinge.quaternion).invert().multiply(_qWant);
   h.restQuat.copy(_qChain);
@@ -749,6 +749,7 @@ export function attachGadgets(cast, scene) {
     holder.mat = mat;
     holder.restQuat = restQuat;
     holder.pose = npc.gadgetPose || null;
+    if (holder.pose) holder.pose.lean = ((i * 37) % 11) * 0.018 - 0.09;
     holders.push(holder);
     poseHolder(holder, 0);
   });

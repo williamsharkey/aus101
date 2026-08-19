@@ -294,7 +294,7 @@ export function createRecall({ scene, onGameOver, play, onLevel, rng } = {}) {
     scene.add(root);
     const h = {
       root,
-      mode, // 'inbound' | 'station' | 'drop' | 'climb'
+      mode, // 'inbound' → 'station'
       pos: new THREE.Vector3(x, y, z),
       vel: new THREE.Vector3(),
       angle: stationAngle,
@@ -302,10 +302,8 @@ export function createRecall({ scene, onGameOver, play, onLevel, rng } = {}) {
       alt,
       spin: 22 + rand() * 6,
       orbit: 0.34 + rand() * 0.1,
-      pods: [],
       podsAloft: 0,
       deployed: false,
-      arrived: 0,
     };
     helis.push(h);
     return h;
@@ -329,10 +327,7 @@ export function createRecall({ scene, onGameOver, play, onLevel, rng } = {}) {
       if (dist > 0.001) _dir.multiplyScalar(1 / dist);
       h.vel.lerp(_dir.multiplyScalar(v), Math.min(1, dt * 3.2));
       h.pos.addScaledVector(h.vel, dt);
-      if (dist < 2.2) {
-        h.mode = "station";
-        h.arrived = elapsed;
-      }
+      if (dist < 2.2) h.mode = "station";
     } else {
       // On station: orbit the incident, easing altitude toward the current job.
       h.angle += h.orbit * dt;
