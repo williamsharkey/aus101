@@ -17,6 +17,14 @@ const SITES = [
   [-12, 8],
 ];
 
+const VIDEO_URLS = [
+  "assets/media/psa/psa1.mp4",
+  "assets/media/psa/psa2.mp4",
+  "assets/media/psa/psa3.mp4",
+  "assets/media/psa/psa4.mp4",
+  "assets/media/psa/psa5.mp4",
+];
+
 const ASSET_URLS = [
   "assets/media/cutscene/s4_i_can_use_them.jpg",
   "assets/media/ads/billboard_terminate_uv.png",
@@ -150,8 +158,8 @@ function makeKiosk(x, z, seed, slides) {
     roughness: 0.38,
     metalness: 0.05,
   });
-  const screen = new THREE.Mesh(new THREE.PlaneGeometry(0.66, 0.44), screenMat);
-  screen.position.set(0, 1.78, 0.162);
+  const screen = new THREE.Mesh(new THREE.PlaneGeometry(0.42, 0.62), screenMat);
+  screen.position.set(0, 1.82, 0.162);
   g.add(screen);
 
   g.position.set(x, 0, z);
@@ -178,6 +186,18 @@ export function spawnPsaKiosks(scene) {
 
   SITES.forEach(([x, z], i) => {
     const k = makeKiosk(x, z, i, slides);
+    const vid = document.createElement("video");
+    vid.src = VIDEO_URLS[i % VIDEO_URLS.length];
+    vid.loop = true;
+    vid.muted = true;
+    vid.playsInline = true;
+    vid.preload = "metadata";
+    vid.setAttribute("playsinline", "");
+    const vtex = new THREE.VideoTexture(vid);
+    vtex.colorSpace = THREE.SRGBColorSpace;
+    k.video = vid;
+    k.videoTex = vtex;
+    k.stillTex = slides[i % slides.length];
     scene.add(k.group);
     kiosks.push(k);
     spots.push({ position: new THREE.Vector3(x, 0, z), radius: RADIUS });
@@ -188,8 +208,18 @@ export function spawnPsaKiosks(scene) {
 
   return {
     spots,
-    tick(playerPos) {
+    tick(playerPos, audioOn = true) {
       const now = performance.now();
+      let closest = -1;
+      let closestD = RADIUS * RADIUS;
+      for (let i = 0; i < kiosks.length; i++) {
+        const p = spots[i].position;
+        const d = (playerPos.x - p.x) ** 2 + (playerPos.z - p.z) ** 2;
+        if (d < closestD) {
+          closestD = d;
+          closest = i;
+        }
+      }
       for (let i = 0; i < kiosks.length; i++) {
         const k = kiosks[i];
         const p = spots[i].position;
@@ -202,12 +232,21 @@ export function spawnPsaKiosks(scene) {
         screen.color.lerp(near ? liveColor : idleColor, 0.12);
         k.ledMat.emissiveIntensity += ((near ? 1.4 : 0.1) - k.ledMat.emissiveIntensity) * 0.14;
         if (near) {
-          const frame = (Math.floor(now / CYCLE_MS) + i) % slides.length;
-          if (frame !== k.frame) {
-            k.frame = frame;
-            const tex = slides[frame];
-            screen.map = tex;
-            screen.emissiveMap = tex;
+          if (k.videoTex && screen.map !== k.videoTex) {
+            screen.map = k.videoTex;
+            screen.emissiveMap = k.videoTex;
+          }
+          if (k.video && k.video.paused) k.video.play().catch(() => {});
+          if (k.video) {
+            k.video.muted = !audioOn || i !== closest;
+            k.video.volume = 0.45;
+          }
+        } else if (k.video && !k.video.paused) {
+          k.video.pause();
+          k.video.muted = true;
+          if (k.stillTex) {
+            screen.map = k.stillTex;
+            screen.emissiveMap = k.stillTex;
           }
         }
       }

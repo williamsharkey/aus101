@@ -1,12 +1,23 @@
 /**
- * Hold-Space apply: zinc film on the nearest adult paint target.
- * Kids / gulls / clothed SIGMA never receive coverage.
+ * Hold-Space apply: zinc stamps on the facing side of the nearest adult.
+ * Kids / gulls / clothed SIGMA / goth never receive coverage.
  */
-import * as THREE from "three";
+import {
+  applyCoverageToMats,
+  coveragePercent,
+  ensureCoverageMap,
+  hitsCloth,
+  isPaintable,
+  stampCoverage,
+} from "./coverage.js";
 
 const REACH = 2.35;
 const RATE = 0.38;
-const ZINC = new THREE.Color(0xf3efe4);
+const STAMP_R = 0.22;
+const FRONT_U = 0.5;
+const FRONT_V = 0.4;
+/** Vertical rub on the facing meridian. Cloth centers are skipped. */
+const STAMP_V = [0.14, 0.4, 0.68];
 
 function dist2(a, b) {
   const dx = a.x - b.x;
@@ -14,41 +25,70 @@ function dist2(a, b) {
   return dx * dx + dz * dz;
 }
 
-function paintMats(npc, coverage) {
-  const mats = npc.userData.skinMats;
-  const bare = npc.userData.bareColor;
-  if (!mats || !bare) return;
-  const t = Math.min(1, Math.max(0, coverage));
-  for (const m of mats) {
-    m.color.copy(bare).lerp(ZINC, t * 0.72);
-    m.roughness = 0.68 * (1 - t) + 0.26 * t;
-    m.metalness = 0.04 + t * 0.08;
-  }
+function wrapPi(a) {
+  return Math.atan2(Math.sin(a), Math.cos(a));
+}
+
+function wrap01(u) {
+  return u - Math.floor(u);
 }
 
 /**
- * @param {{ mesh: THREE.Object3D, kind: string, ageBand: string }[]} cast
- * @param {THREE.Vector3} playerPos
+ * Fake body UV. Front = (0.5, 0.4). Sides from yaw delta or player azimuth.
+ * @param {{ x: number, z: number }} playerPos
+ * @param {{ position: { x: number, z: number }, rotation: { y: number } }} mesh
+ * @param {number} [playerYaw]
+ */
+export function facingUV(playerPos, mesh, playerYaw) {
+  const npcYaw = mesh.rotation.y || 0;
+  let delta;
+  if (playerYaw != null && Number.isFinite(playerYaw)) {
+    delta = wrapPi(playerYaw - npcYaw);
+  } else if (playerPos) {
+    const dx = playerPos.x - mesh.position.x;
+    const dz = playerPos.z - mesh.position.z;
+    delta = wrapPi(Math.atan2(dx, dz) - npcYaw);
+  } else {
+    delta = 0;
+  }
+  return { u: wrap01(FRONT_U + delta / (Math.PI * 2)), v: FRONT_V };
+}
+
+/**
+ * @param {{ mesh: object, kind: string, ageBand: string }[]} cast
+ * @param {{ x: number, z: number }} playerPos
  * @param {boolean} squeezing
  * @param {number} dt
+ * @param {number} [playerYaw] optional — stamp the look-facing meridian
+ * @returns {{ npc: object, coverage: number } | null}
  */
-export function tickApply(cast, playerPos, squeezing, dt) {
+export function tickApply(cast, playerPos, squeezing, dt, playerYaw) {
   if (!squeezing) return null;
   let best = null;
   let bestD = REACH * REACH;
   for (const npc of cast) {
-    if (npc.ageBand !== "adult") continue;
-    if (npc.mesh.userData.paintTarget === false) continue;
-    if (npc.kind === "sigma_07" || npc.kind === "goth") continue;
-    const d = dist2(playerPos, npc.mesh.position);
+    if (!isPaintable(npc)) continue;
+    const mesh = npc.mesh;
+    if (!mesh) continue;
+    const d = dist2(playerPos, mesh.position);
     if (d < bestD) {
       bestD = d;
       best = npc;
     }
   }
   if (!best) return null;
-  const u = best.mesh.userData;
-  u.coverage = Math.min(1, (u.coverage || 0) + dt * RATE);
-  paintMats(best.mesh, u.coverage);
-  return best;
+
+  ensureCoverageMap(best);
+  const uv = facingUV(playerPos, best.mesh, playerYaw);
+  const amount = Math.min(1, Math.max(0, dt) * RATE);
+  let stamped = false;
+  for (const v of STAMP_V) {
+    if (hitsCloth(best, uv.u, v)) continue;
+    stampCoverage(best, uv.u, v, STAMP_R, amount);
+    stamped = true;
+  }
+  if (stamped) applyCoverageToMats(best);
+  return { npc: best, coverage: coveragePercent(best) };
 }
+
+export { applyCoverageToMats, coveragePercent, ensureCoverageMap, isPaintable, stampCoverage };

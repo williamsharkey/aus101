@@ -26,6 +26,11 @@ import { createAus101, poseAus101 } from "./chars/aus101.js";
 import { spawnBeachCast } from "./chars/npcs.js";
 import { createWalkbyDirector } from "./audio/walkby.js";
 import { tickApply } from "./game/apply.js";
+import { createLotion } from "./game/lotion.js";
+import { bindBottle, tickBottle } from "./view/bottle.js";
+import { createRecall } from "./game/recall.js";
+import { createReticuleBay } from "./hud/reticule.js";
+import { createRadioHud } from "./hud/radio.js";
 import { createArtist } from "./chars/artist.js";
 import { spawnParty } from "./world/party.js";
 import { spawnFights } from "./phys/fights.js";
@@ -81,6 +86,28 @@ const sfx = new SfxBank();
 const lotionFoley = installLotionFoley(sfx, null);
 const steps = createFootstepPlayer(sfx);
 const walkby = createWalkbyDirector(voice, cast);
+const lotion = createLotion();
+bindBottle(aus101);
+const bay = createReticuleBay();
+document.body.appendChild(bay.html);
+
+const recall = createRecall({
+  scene,
+  play: (id) => voice.play(id),
+  onGameOver: () => {
+    playing = false;
+    carpenter?.setState("menu");
+  },
+});
+let radio = null;
+
+window.addEventListener("keydown", (e) => {
+  if (!playing || paused) return;
+  if (e.code === "KeyF") {
+    e.preventDefault();
+    recall.tryFire("laser");
+  }
+});
 
 let carpenter = null;
 let oceanBed = null;
@@ -155,6 +182,11 @@ async function beginPlay() {
       djBed.setMix(0, 0.05);
       const spots = party.musicSpots;
       const find = (id) => spots.find((s) => s.id === id);
+      radio = createRadioHud({
+        carpenter,
+        voice,
+        isTalking: (now) => walkby.isTalking(now ?? performance.now()),
+      });
       music = createMusicDirector({
         carpenter,
         shades,
@@ -235,7 +267,9 @@ function frame() {
     level.update(t);
     party.tick(t);
     fights.tick(raw || TICK);
-    psa.tick(player.pos);
+    psa.tick(player.pos, audioOn);
+    radio?.tick?.();
+    recall.tick(raw || TICK, player.pos);
     const speed = Math.hypot(player.vel.x, player.vel.z);
     aus101.position.set(player.pos.x, player.pos.y, player.pos.z);
     // Rig face is +Z; locomotion forward is −Z at yaw=0 (Coconuts convention).
@@ -251,7 +285,13 @@ function frame() {
     const squeezing = !!input.keys.Space;
     if (squeezing) carpenter?.setState("apply");
     else carpenter?.setState("boardwalk");
-    const painted = tickApply(cast, player.pos, squeezing, raw || TICK);
+    const painted = lotion.canPaint()
+      ? tickApply(cast, player.pos, squeezing, raw || TICK, player.yaw)
+      : null;
+    if (painted) bay.track(painted.npc);
+    bay.tick(raw || TICK, painted?.npc);
+    lotion.tick({ squeezeHeld: squeezing, applying: !!painted, dt: raw || TICK });
+    tickBottle(aus101, lotion, raw || TICK);
     if (painted && audioOn && !walkby.isTalking(performance.now()) && Math.random() < 0.012) {
       voice.play("rub_pleasure_01", { gain: 1.2 });
     }
