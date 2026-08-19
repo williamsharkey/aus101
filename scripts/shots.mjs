@@ -31,7 +31,11 @@ const only = arg("--only", "")
 /** Ad hoc cameras, so a shot does not need a code edit: --custom '[{"name":"x","orbit":{...}}]' */
 const custom = JSON.parse(arg("--custom", "[]"));
 
-/** Camera setups. `orbit` shots sweep the listed angles around a point. */
+/**
+ * Camera setups. `orbit` shots sweep the listed angles around a point.
+ * Keep any shot list in ASCENDING `t` — the harness only steps the sim forward,
+ * so a decreasing `t` renders later state under an earlier label.
+ */
 export const SHOTS = [
   { name: "piano-front", orbit: { at: [7, 1.0, -29], radius: 3.4, height: 1.7, deg: 0, fov: 42 } },
   { name: "piano-side", orbit: { at: [7, 1.0, -29], radius: 3.4, height: 1.5, deg: 90, fov: 42 } },
@@ -51,7 +55,7 @@ export const SHOTS = [
   { name: "aus101", orbit: { at: [0, 1.0, 8], radius: 3.4, height: 1.6, deg: 0, fov: 42 } },
   { name: "aus101-side", orbit: { at: [0, 1.0, 8], radius: 3.4, height: 1.6, deg: 90, fov: 42 } },
   { name: "dj-booth", orbit: { at: [-24, 1.4, 7], radius: 8, height: 3.0, deg: 180, fov: 48 } },
-  { name: "synth-rig", orbit: { at: [-24, 1.2, 12], radius: 5, height: 2.2, deg: 180, fov: 48 } },
+  { name: "synth-rig", orbit: { at: [15.6, 1.2, 4.2], radius: 5, height: 2.2, deg: 180, fov: 48 } },
   { name: "fight-site", orbit: { at: [16, 1.0, 2], radius: 5.5, height: 2.0, deg: 30, fov: 46, t: 9 } },
   { name: "psa-kiosk", orbit: { at: [0, 1.4, 16], radius: 6, height: 2.6, deg: 180, fov: 48 } },
   { name: "overview", shot: { pos: [0, 14, 34], target: [0, 1, -6], fov: 55 } },

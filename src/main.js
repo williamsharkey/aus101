@@ -209,6 +209,9 @@ window.addEventListener("keydown", (e) => {
 async function beginPlay() {
   playing = true;
   paused = false;
+  // Clear any wanted state left over from a previous run's game over.
+  recall.reset();
+  panic.dispose();
   clock.start();
   follow.snap();
   input.tryLock();

@@ -9,5 +9,5 @@ dist-cache/
 tools/voice/.session
 *.sessionid
 .npm-cache/
-shots/
+/shots/
 .shots-build*/
