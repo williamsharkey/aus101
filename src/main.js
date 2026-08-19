@@ -5,6 +5,7 @@
 import * as THREE from "three";
 import { applyDocumentShell, createSafeAreaProbe, sizeRenderer, installEdgeSwipeGuard } from "./shell/viewport.js";
 import { PosterOverlay } from "./poster/PosterOverlay.js";
+import { CutsceneReel } from "./poster/CutsceneReel.js";
 import { VoiceBank } from "./audio/voice.js";
 import { SfxBank, installLotionFoley } from "./audio/sfx.js";
 import { createCarpenterBed } from "./audio/carpenter.js";
@@ -19,10 +20,11 @@ import {
 } from "./input/player.js";
 import { createFollowCam, updateFollowCam } from "./input/thirdPerson.js";
 import { installTouchControls } from "./input/touchControls.js";
-import { buildGoldCoast, setupGoldCoastLights, BOUNDS } from "./world/goldCoast.js";
+import { buildGoldCoast, setupGoldCoastLights, BOUNDS, GC } from "./world/goldCoast.js";
 import { createAus101, poseAus101 } from "./chars/aus101.js";
 import { spawnBeachCast } from "./chars/npcs.js";
 import { createWalkbyDirector } from "./audio/walkby.js";
+import { tickApply } from "./game/apply.js";
 
 const BG = 0x0b1210;
 
@@ -105,30 +107,52 @@ window.addEventListener("keydown", (e) => {
   }
 });
 
+async function beginPlay() {
+  playing = true;
+  paused = false;
+  clock.start();
+  follow.snap();
+  input.tryLock();
+  try {
+    await voice.unlock();
+    await sfx.unlock();
+    const ctx = voice.ctx || sfx.ctx;
+    if (ctx && !carpenter) {
+      carpenter = createCarpenterBed(ctx);
+      oceanBed = initOcean(ctx);
+    }
+    carpenter?.setState("boardwalk");
+    carpenter?.start();
+    oceanBed?.start();
+    if (audioOn) await voice.play("dj_open_01").catch(() => {});
+  } catch (e) {
+    console.warn("audio", e);
+  }
+}
+
+const reel = new CutsceneReel({ onDone: () => beginPlay() });
 const poster = new PosterOverlay({
   onStart: async () => {
-    playing = true;
-    paused = false;
-    clock.start();
-    follow.snap();
-    input.tryLock();
     try {
       await voice.unlock();
-      await sfx.unlock();
-      const ctx = voice.ctx || sfx.ctx;
-      if (ctx && !carpenter) {
-        carpenter = createCarpenterBed(ctx);
-        oceanBed = initOcean(ctx);
-      }
-      carpenter?.setState("boardwalk");
-      carpenter?.start();
-      oceanBed?.start();
-      if (audioOn) await voice.play("dj_open_01").catch(() => {});
-    } catch (e) {
-      console.warn("audio", e);
+      if (audioOn) await voice.play("factory_recall_01").catch(() => {});
+    } catch {
+      /* ignore */
     }
+    reel.start();
   },
 });
+
+const billboardTex = new THREE.TextureLoader().load("assets/media/ads/billboard_terminate_uv.png", (tex) => {
+  tex.colorSpace = THREE.SRGBColorSpace;
+});
+const board = new THREE.Mesh(
+  new THREE.PlaneGeometry(9.2, 5.2),
+  new THREE.MeshBasicMaterial({ map: billboardTex })
+);
+board.position.set(0, 6.4, GC.boardwalkZ - 5.5);
+board.rotation.y = Math.PI;
+scene.add(board);
 
 function frame() {
   requestAnimationFrame(frame);
@@ -154,8 +178,13 @@ function frame() {
       onWood: level.isWood(player.pos.x, player.pos.z),
       dt: raw || TICK,
     });
-    if (input.keys.Space) carpenter?.setState("apply");
+    const squeezing = !!input.keys.Space;
+    if (squeezing) carpenter?.setState("apply");
     else carpenter?.setState("boardwalk");
+    const painted = tickApply(cast, player.pos, squeezing, raw || TICK);
+    if (painted && audioOn && Math.random() < 0.012) {
+      voice.play("rub_pleasure_01", { gain: 1.2 }).catch(() => {});
+    }
     if (audioOn) walkby.tick(performance.now(), player.pos, speed);
   } else if (!playing) {
     camera.position.set(8, 6.5, 22);

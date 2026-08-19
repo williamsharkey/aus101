@@ -305,6 +305,42 @@ export function buildGoldCoast(scene, colliders) {
   infl.position.set(4.5, 0, 11);
   scene.add(infl);
 
+  // Lifeguard high chair
+  const chair = new THREE.Group();
+  const seat = box(1.2, 0.12, 1.1, mat(0xf3e36a));
+  seat.position.y = 2.1;
+  chair.add(seat);
+  for (const [lx, lz] of [
+    [-0.5, -0.45],
+    [0.5, -0.45],
+    [-0.5, 0.45],
+    [0.5, 0.45],
+  ]) {
+    const leg = box(0.1, 2.1, 0.1, mat(0xc8402e));
+    leg.position.set(lx, 1.05, lz);
+    chair.add(leg);
+  }
+  const back = box(1.2, 0.9, 0.08, mat(0xc8402e));
+  back.position.set(0, 2.6, -0.5);
+  chair.add(back);
+  chair.position.set(22.5, 0, GC.boardwalkZ - 6);
+  scene.add(chair);
+
+  // Camcorder tourist kit (tripod + brick camera)
+  const cam = new THREE.Group();
+  const tri = box(0.08, 1.1, 0.08, mat(0x222));
+  tri.position.y = 0.55;
+  cam.add(tri);
+  const bodyCam = box(0.28, 0.18, 0.42, mat(0x1a1a1a));
+  bodyCam.position.set(0, 1.2, 0.05);
+  cam.add(bodyCam);
+  const lens = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.08, 0.16, 10), mat(0x333));
+  lens.rotation.x = Math.PI / 2;
+  lens.position.set(0, 1.2, 0.32);
+  cam.add(lens);
+  cam.position.set(-11.5, 0, 8.5);
+  scene.add(cam);
+
   for (const [bx, bz] of [
     [12.5, GC.boardwalkZ + 3.4],
     [-1.5, GC.boardwalkZ + 3.4],

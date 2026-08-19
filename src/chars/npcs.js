@@ -117,6 +117,10 @@ function buildBiped({
   }
 
   g.userData.body = { head, hairCap, headY, headR, shoulderY, hipY, scale, skinM, hairM };
+  g.userData.skinMats = [skinM];
+  g.userData.bareColor = skinM.color.clone();
+  g.userData.coverage = 0;
+  g.userData.paintTarget = shirt == null; // shirtless adults are the default apply targets
   return g;
 }
 
@@ -150,11 +154,14 @@ function ken({ hair = 0xf4c431, shorts = 0x1f6f78, skin = 0xd4a06a } = {}) {
   quiff.position.set(0, headY + headR * 0.55, 0.02);
   g.add(quiff);
   addSharkTooth(g, g.userData.body.shoulderY + 0.04);
-  const abs = box(0.2, 0.16, 0.04, std(skin, { roughness: 0.55 }));
+  const absM = std(skin, { roughness: 0.55 });
+  const abs = box(0.2, 0.16, 0.04, absM);
   abs.position.set(0, 1.12, 0.09);
   g.add(abs);
+  g.userData.skinMats = [...(g.userData.skinMats || []), absM];
   g.userData.kind = "ken";
   g.userData.ageBand = "adult";
+  g.userData.paintTarget = true;
   g.name = "ken";
   return g;
 }
@@ -188,6 +195,7 @@ function babe({ hair = 0xc9a227, bikini = 0xe23d7a, skin = 0xe0b08a } = {}) {
   g.add(bottoms);
   g.userData.kind = "babe";
   g.userData.ageBand = "adult";
+  g.userData.paintTarget = true;
   g.name = "babe";
   return g;
 }
@@ -222,6 +230,7 @@ function sigma07() {
   }
   g.userData.kind = "sigma_07";
   g.userData.ageBand = "adult";
+  g.userData.paintTarget = false;
   g.name = "SIGMA_07";
   return g;
 }
@@ -255,6 +264,7 @@ function goth() {
   g.add(cig);
   g.userData.kind = "goth";
   g.userData.ageBand = "adult";
+  g.userData.paintTarget = false;
   g.name = "goth";
   return g;
 }
