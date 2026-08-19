@@ -1,0 +1,2858 @@
+{
+  "version": 1,
+  "lines": [
+    {
+      "id": "dj_open_01",
+      "text": "it's a beautiful day on the Gold Coast",
+      "voice": "en_au_002",
+      "category": "dj",
+      "priority": "dj",
+      "ageBand": "system",
+      "tags": [
+        "dj",
+        "open"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "dj_quip_01",
+      "text": "Reticule FM 101.7, still on the air, still pretending the sun is your friend",
+      "voice": "en_au_002",
+      "category": "dj",
+      "priority": "dj",
+      "ageBand": "system",
+      "tags": [
+        "dj",
+        "quip"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "dj_quip_02",
+      "text": "if your skin is already pink, that is not a tan, that is a warning",
+      "voice": "en_au_002",
+      "category": "dj",
+      "priority": "dj",
+      "ageBand": "system",
+      "tags": [
+        "dj",
+        "quip"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "dj_quip_03",
+      "text": "coming up: more songs, more glare, fewer good decisions",
+      "voice": "en_au_002",
+      "category": "dj",
+      "priority": "dj",
+      "ageBand": "system",
+      "tags": [
+        "dj",
+        "quip"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "dj_quip_04",
+      "text": "this next one is for anyone hiding under a towel like it is architecture",
+      "voice": "en_au_002",
+      "category": "dj",
+      "priority": "dj",
+      "ageBand": "system",
+      "tags": [
+        "dj",
+        "quip"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "dj_quip_05",
+      "text": "remember, zinc is a lifestyle, not a suggestion",
+      "voice": "en_au_002",
+      "category": "dj",
+      "priority": "dj",
+      "ageBand": "system",
+      "tags": [
+        "dj",
+        "quip"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "dj_quip_06",
+      "text": "traffic on the highway is fine; traffic on the sand is you",
+      "voice": "en_au_002",
+      "category": "dj",
+      "priority": "dj",
+      "ageBand": "system",
+      "tags": [
+        "dj",
+        "quip"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "dj_quip_07",
+      "text": "we play the hits so you do not have to think about the UV index",
+      "voice": "en_au_002",
+      "category": "dj",
+      "priority": "dj",
+      "ageBand": "system",
+      "tags": [
+        "dj",
+        "quip"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "dj_quip_08",
+      "text": "shout-out to the bloke who brought a whole esky and no hat",
+      "voice": "en_au_002",
+      "category": "dj",
+      "priority": "dj",
+      "ageBand": "system",
+      "tags": [
+        "dj",
+        "quip"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "dj_quip_09",
+      "text": "101.7, where the chorus hits harder than the two o'clock sun",
+      "voice": "en_au_002",
+      "category": "dj",
+      "priority": "dj",
+      "ageBand": "system",
+      "tags": [
+        "dj",
+        "quip"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "dj_quip_10",
+      "text": "if you can hear the gulls over me, turn me up, not them",
+      "voice": "en_au_002",
+      "category": "dj",
+      "priority": "dj",
+      "ageBand": "system",
+      "tags": [
+        "dj",
+        "quip"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "dj_quip_11",
+      "text": "Gold Coast weather: bright, brutal, and not taking questions",
+      "voice": "en_au_002",
+      "category": "dj",
+      "priority": "dj",
+      "ageBand": "system",
+      "tags": [
+        "dj",
+        "quip"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "dj_quip_12",
+      "text": "this is your captain speaking; the captain is a radio and he is not sorry",
+      "voice": "en_au_002",
+      "category": "dj",
+      "priority": "dj",
+      "ageBand": "system",
+      "tags": [
+        "dj",
+        "quip"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "dj_quip_13",
+      "text": "apply, reapply, then apply again like you mean it",
+      "voice": "en_au_002",
+      "category": "dj",
+      "priority": "dj",
+      "ageBand": "system",
+      "tags": [
+        "dj",
+        "quip"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "dj_quip_14",
+      "text": "we do not do request hours; the ocean already requested your hat",
+      "voice": "en_au_002",
+      "category": "dj",
+      "priority": "dj",
+      "ageBand": "system",
+      "tags": [
+        "dj",
+        "quip"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "dj_quip_15",
+      "text": "next track is colder than the change rooms and twice as honest",
+      "voice": "en_au_002",
+      "category": "dj",
+      "priority": "dj",
+      "ageBand": "system",
+      "tags": [
+        "dj",
+        "quip"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "dj_quip_16",
+      "text": "Reticule FM, broadcasting from somewhere you should not nap",
+      "voice": "en_au_002",
+      "category": "dj",
+      "priority": "dj",
+      "ageBand": "system",
+      "tags": [
+        "dj",
+        "quip"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "dj_quip_17",
+      "text": "if your shoulders are glowing, that is not aura, that is physics",
+      "voice": "en_au_002",
+      "category": "dj",
+      "priority": "dj",
+      "ageBand": "system",
+      "tags": [
+        "dj",
+        "quip"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "dj_quip_18",
+      "text": "hold your kids, hold your keys, hold your SPF",
+      "voice": "en_au_002",
+      "category": "dj",
+      "priority": "dj",
+      "ageBand": "system",
+      "tags": [
+        "dj",
+        "quip"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "dj_quip_19",
+      "text": "this one goes out to the last bottle of 50-plus on the whole strip",
+      "voice": "en_au_002",
+      "category": "dj",
+      "priority": "dj",
+      "ageBand": "system",
+      "tags": [
+        "dj",
+        "quip"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "dj_quip_20",
+      "text": "you can mute me; you cannot mute the sun",
+      "voice": "en_au_002",
+      "category": "dj",
+      "priority": "dj",
+      "ageBand": "system",
+      "tags": [
+        "dj",
+        "quip"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "dj_quip_21",
+      "text": "101 point 7, slightly out of tune on purpose, like a holiday",
+      "voice": "en_au_002",
+      "category": "dj",
+      "priority": "dj",
+      "ageBand": "system",
+      "tags": [
+        "dj",
+        "quip"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "dj_quip_22",
+      "text": "the forecast is: more forecast",
+      "voice": "en_au_002",
+      "category": "dj",
+      "priority": "dj",
+      "ageBand": "system",
+      "tags": [
+        "dj",
+        "quip"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "dj_quip_23",
+      "text": "I have seen that rash shirt before; it did not win last time either",
+      "voice": "en_au_002",
+      "category": "dj",
+      "priority": "dj",
+      "ageBand": "system",
+      "tags": [
+        "dj",
+        "quip"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "dj_quip_24",
+      "text": "stay with us through the heat shimmer; we are not going anywhere",
+      "voice": "en_au_002",
+      "category": "dj",
+      "priority": "dj",
+      "ageBand": "system",
+      "tags": [
+        "dj",
+        "quip"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "dj_quip_25",
+      "text": "if you came for talkback, wrong decade, wrong station, right beach",
+      "voice": "en_au_002",
+      "category": "dj",
+      "priority": "dj",
+      "ageBand": "system",
+      "tags": [
+        "dj",
+        "quip"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "dj_quip_26",
+      "text": "spinning another one before the tide takes the speaker",
+      "voice": "en_au_002",
+      "category": "dj",
+      "priority": "dj",
+      "ageBand": "system",
+      "tags": [
+        "dj",
+        "quip"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "dj_quip_27",
+      "text": "sunscreen first, opinions later",
+      "voice": "en_au_002",
+      "category": "dj",
+      "priority": "dj",
+      "ageBand": "system",
+      "tags": [
+        "dj",
+        "quip"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "dj_quip_28",
+      "text": "this is the part of the afternoon where everyone becomes a lizard",
+      "voice": "en_au_002",
+      "category": "dj",
+      "priority": "dj",
+      "ageBand": "system",
+      "tags": [
+        "dj",
+        "quip"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "dj_quip_29",
+      "text": "Reticule FM: less chat, more shade",
+      "voice": "en_au_002",
+      "category": "dj",
+      "priority": "dj",
+      "ageBand": "system",
+      "tags": [
+        "dj",
+        "quip"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "dj_quip_30",
+      "text": "I will be here when the umbrellas fail",
+      "voice": "en_au_002",
+      "category": "dj",
+      "priority": "dj",
+      "ageBand": "system",
+      "tags": [
+        "dj",
+        "quip"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "dj_quip_31",
+      "text": "next up, something with a pulse and no UV",
+      "voice": "en_au_002",
+      "category": "dj",
+      "priority": "dj",
+      "ageBand": "system",
+      "tags": [
+        "dj",
+        "quip"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "dj_quip_32",
+      "text": "do not look directly at the water; it is showing off",
+      "voice": "en_au_002",
+      "category": "dj",
+      "priority": "dj",
+      "ageBand": "system",
+      "tags": [
+        "dj",
+        "quip"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "dj_quip_33",
+      "text": "101.7, for people who packed snacks and forgot water",
+      "voice": "en_au_002",
+      "category": "dj",
+      "priority": "dj",
+      "ageBand": "system",
+      "tags": [
+        "dj",
+        "quip"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "dj_quip_34",
+      "text": "the boardwalk is a runway and nobody rehearsed",
+      "voice": "en_au_002",
+      "category": "dj",
+      "priority": "dj",
+      "ageBand": "system",
+      "tags": [
+        "dj",
+        "quip"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "dj_quip_35",
+      "text": "keep your radio close; the gulls are unionising",
+      "voice": "en_au_002",
+      "category": "dj",
+      "priority": "dj",
+      "ageBand": "system",
+      "tags": [
+        "dj",
+        "quip"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "dj_quip_36",
+      "text": "we interrupt this sunshine for more sunshine",
+      "voice": "en_au_002",
+      "category": "dj",
+      "priority": "dj",
+      "ageBand": "system",
+      "tags": [
+        "dj",
+        "quip"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "dj_quip_37",
+      "text": "if you are listening in a car park, stay in the car park",
+      "voice": "en_au_002",
+      "category": "dj",
+      "priority": "dj",
+      "ageBand": "system",
+      "tags": [
+        "dj",
+        "quip"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "dj_quip_38",
+      "text": "that smell is coconut, panic, and chips",
+      "voice": "en_au_002",
+      "category": "dj",
+      "priority": "dj",
+      "ageBand": "system",
+      "tags": [
+        "dj",
+        "quip"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "dj_quip_39",
+      "text": "Gold Coast after lunch: the real boss fight",
+      "voice": "en_au_002",
+      "category": "dj",
+      "priority": "dj",
+      "ageBand": "system",
+      "tags": [
+        "dj",
+        "quip"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "dj_quip_40",
+      "text": "I am not your dad; I am louder than your dad",
+      "voice": "en_au_002",
+      "category": "dj",
+      "priority": "dj",
+      "ageBand": "system",
+      "tags": [
+        "dj",
+        "quip"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "dj_quip_41",
+      "text": "Reticule FM 101.7, still legal, still sticky",
+      "voice": "en_au_002",
+      "category": "dj",
+      "priority": "dj",
+      "ageBand": "system",
+      "tags": [
+        "dj",
+        "quip"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "dj_quip_42",
+      "text": "one more song, then you reapply, then one more song",
+      "voice": "en_au_002",
+      "category": "dj",
+      "priority": "dj",
+      "ageBand": "system",
+      "tags": [
+        "dj",
+        "quip"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "dj_quip_43",
+      "text": "the tide chart lies; the burn does not",
+      "voice": "en_au_002",
+      "category": "dj",
+      "priority": "dj",
+      "ageBand": "system",
+      "tags": [
+        "dj",
+        "quip"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "dj_quip_44",
+      "text": "this next cut is for the towel that will never be the same",
+      "voice": "en_au_002",
+      "category": "dj",
+      "priority": "dj",
+      "ageBand": "system",
+      "tags": [
+        "dj",
+        "quip"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "dj_quip_45",
+      "text": "we fade, we do not ghost",
+      "voice": "en_au_002",
+      "category": "dj",
+      "priority": "dj",
+      "ageBand": "system",
+      "tags": [
+        "dj",
+        "quip"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "dj_quip_46",
+      "text": "if the sky looks empty, that is the point",
+      "voice": "en_au_002",
+      "category": "dj",
+      "priority": "dj",
+      "ageBand": "system",
+      "tags": [
+        "dj",
+        "quip"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "dj_quip_47",
+      "text": "stay hydrated or stay home; I cannot do both for you",
+      "voice": "en_au_002",
+      "category": "dj",
+      "priority": "dj",
+      "ageBand": "system",
+      "tags": [
+        "dj",
+        "quip"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "dj_quip_48",
+      "text": "101.7, coming at you from the wrong side of the umbrella",
+      "voice": "en_au_002",
+      "category": "dj",
+      "priority": "dj",
+      "ageBand": "system",
+      "tags": [
+        "dj",
+        "quip"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "dj_quip_49",
+      "text": "beautiful day, terrible idea, perfect radio",
+      "voice": "en_au_002",
+      "category": "dj",
+      "priority": "dj",
+      "ageBand": "system",
+      "tags": [
+        "dj",
+        "quip"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "dj_song_01",
+      "text": "that was Pulse of the Boardwalk; this is Chrome on the Spit; do not take that as medical advice",
+      "voice": "en_au_002",
+      "category": "dj",
+      "priority": "dj",
+      "ageBand": "system",
+      "tags": [
+        "dj",
+        "song"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "dj_song_02",
+      "text": "that was Zinc After Dark; this is Escort the Melanocytes; do not take that as medical advice",
+      "voice": "en_au_002",
+      "category": "dj",
+      "priority": "dj",
+      "ageBand": "system",
+      "tags": [
+        "dj",
+        "song"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "dj_song_03",
+      "text": "that was Factory Recall Slowdance; this is SPF Fifty and Counting; do not take that as medical advice",
+      "voice": "en_au_002",
+      "category": "dj",
+      "priority": "dj",
+      "ageBand": "system",
+      "tags": [
+        "dj",
+        "song"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "rub_pleasure_01",
+      "text": "mmm that feels so good",
+      "voice": "en_female_emotional",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure"
+      ],
+      "cooldownMs": 8000
+    },
+    {
+      "id": "rub_pleasure_02",
+      "text": "keep going chrome, right there",
+      "voice": "en_female_emotional",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure"
+      ],
+      "cooldownMs": 8000
+    },
+    {
+      "id": "rub_pleasure_03",
+      "text": "oh you are fully functional",
+      "voice": "en_female_emotional",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure"
+      ],
+      "cooldownMs": 8000
+    },
+    {
+      "id": "rub_pleasure_04",
+      "text": "don't you dare stop, clanker",
+      "voice": "en_female_emotional",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure"
+      ],
+      "cooldownMs": 8000
+    },
+    {
+      "id": "rub_pleasure_05",
+      "text": "that's the spot, that's the spot",
+      "voice": "en_female_emotional",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure"
+      ],
+      "cooldownMs": 8000
+    },
+    {
+      "id": "rub_pleasure_06",
+      "text": "who taught a T-unit to give a rubdown",
+      "voice": "en_female_emotional",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure"
+      ],
+      "cooldownMs": 8000
+    },
+    {
+      "id": "rub_pleasure_07",
+      "text": "harder, terminator, I paid for this tan",
+      "voice": "en_female_emotional",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure"
+      ],
+      "cooldownMs": 8000
+    },
+    {
+      "id": "rub_pleasure_08",
+      "text": "if this is a firmware test I pass",
+      "voice": "en_female_emotional",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure"
+      ],
+      "cooldownMs": 8000
+    },
+    {
+      "id": "rub_pleasure_09",
+      "text": "your hands are cold and I am not complaining",
+      "voice": "en_female_emotional",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure"
+      ],
+      "cooldownMs": 8000
+    },
+    {
+      "id": "rub_pleasure_10",
+      "text": "do the shoulders again, metal man",
+      "voice": "en_female_emotional",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure"
+      ],
+      "cooldownMs": 8000
+    },
+    {
+      "id": "rub_pleasure_11",
+      "text": "I am going to tell everyone on Cavill you do this",
+      "voice": "en_female_emotional",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure"
+      ],
+      "cooldownMs": 8000
+    },
+    {
+      "id": "rub_pleasure_12",
+      "text": "okay wow, okay, stay in that loop",
+      "voice": "en_female_emotional",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure"
+      ],
+      "cooldownMs": 8000
+    },
+    {
+      "id": "walkby_flirt_01",
+      "text": "nice abs, clanker",
+      "voice": "en_au_001",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "flirt"
+      ],
+      "cooldownMs": 14000
+    },
+    {
+      "id": "walkby_flirt_02",
+      "text": "are you fully functional",
+      "voice": "en_au_001",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "flirt"
+      ],
+      "cooldownMs": 14000
+    },
+    {
+      "id": "walkby_flirt_03",
+      "text": "hey chrome, you come here often or do you just wash up",
+      "voice": "en_au_001",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "flirt"
+      ],
+      "cooldownMs": 14000
+    },
+    {
+      "id": "walkby_flirt_04",
+      "text": "those arms could bench the whole strip",
+      "voice": "en_au_001",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "flirt"
+      ],
+      "cooldownMs": 14000
+    },
+    {
+      "id": "walkby_flirt_05",
+      "text": "leave some shine for the rest of us",
+      "voice": "en_au_001",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "flirt"
+      ],
+      "cooldownMs": 14000
+    },
+    {
+      "id": "walkby_flirt_06",
+      "text": "if I said oil me would that be a warranty issue",
+      "voice": "en_au_001",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "flirt"
+      ],
+      "cooldownMs": 14000
+    },
+    {
+      "id": "walkby_flirt_07",
+      "text": "you look like the sequel and I watched the first one twice",
+      "voice": "en_au_001",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "flirt"
+      ],
+      "cooldownMs": 14000
+    },
+    {
+      "id": "walkby_flirt_08",
+      "text": "walk with me, I'll buy you a Solo",
+      "voice": "en_au_001",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "flirt"
+      ],
+      "cooldownMs": 14000
+    },
+    {
+      "id": "walkby_flirt_09",
+      "text": "is that a plasma rifle or are you just happy to patrol",
+      "voice": "en_au_001",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "flirt"
+      ],
+      "cooldownMs": 14000
+    },
+    {
+      "id": "walkby_flirt_10",
+      "text": "I'd let you protect me from the future",
+      "voice": "en_au_001",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "flirt"
+      ],
+      "cooldownMs": 14000
+    },
+    {
+      "id": "walkby_flirt_11",
+      "text": "smile if your mouth even does that",
+      "voice": "en_au_001",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "flirt"
+      ],
+      "cooldownMs": 14000
+    },
+    {
+      "id": "walkby_flirt_12",
+      "text": "save me from these mortals, chrome boy",
+      "voice": "en_au_001",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "flirt"
+      ],
+      "cooldownMs": 14000
+    },
+    {
+      "id": "walkby_heckle_01",
+      "text": "nice paint job, toaster",
+      "voice": "en_au_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "heckle"
+      ],
+      "cooldownMs": 16000
+    },
+    {
+      "id": "walkby_heckle_02",
+      "text": "go oil yourself, clanker",
+      "voice": "en_au_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "heckle"
+      ],
+      "cooldownMs": 16000
+    },
+    {
+      "id": "walkby_heckle_03",
+      "text": "who let Skynet on the Esplanade",
+      "voice": "en_au_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "heckle"
+      ],
+      "cooldownMs": 16000
+    },
+    {
+      "id": "walkby_heckle_04",
+      "text": "you here to take our jobs or just our sunscreen",
+      "voice": "en_au_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "heckle"
+      ],
+      "cooldownMs": 16000
+    },
+    {
+      "id": "walkby_heckle_05",
+      "text": "beep beep, rust bucket",
+      "voice": "en_au_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "heckle"
+      ],
+      "cooldownMs": 16000
+    },
+    {
+      "id": "walkby_heckle_06",
+      "text": "my fridge has more personality",
+      "voice": "en_au_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "heckle"
+      ],
+      "cooldownMs": 16000
+    },
+    {
+      "id": "walkby_heckle_07",
+      "text": "chrome doesn't make you a local",
+      "voice": "en_au_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "heckle"
+      ],
+      "cooldownMs": 16000
+    },
+    {
+      "id": "walkby_heckle_08",
+      "text": "put a shirt on \u2014 wait, you don't even have skin",
+      "voice": "en_au_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "heckle"
+      ],
+      "cooldownMs": 16000
+    },
+    {
+      "id": "walkby_heckle_09",
+      "text": "terminator's lost, somebody point him at Brisbane",
+      "voice": "en_au_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "heckle"
+      ],
+      "cooldownMs": 16000
+    },
+    {
+      "id": "walkby_heckle_10",
+      "text": "if you're the future I'm moving inland",
+      "voice": "en_au_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "heckle"
+      ],
+      "cooldownMs": 16000
+    },
+    {
+      "id": "gold_coast_lad_01",
+      "text": "hey chrome boy, you don't know where I can get some Flume tickets",
+      "voice": "en_au_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "lad",
+        "goldcoast"
+      ],
+      "cooldownMs": 14000
+    },
+    {
+      "id": "gold_coast_lad_02",
+      "text": "bro if Fisher drops at Hardstomp I'm sleeping on the sand",
+      "voice": "en_au_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "lad",
+        "goldcoast"
+      ],
+      "cooldownMs": 14000
+    },
+    {
+      "id": "gold_coast_lad_03",
+      "text": "you been to Lost Paradise or are you just a Surfers tourist unit",
+      "voice": "en_au_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "lad",
+        "goldcoast"
+      ],
+      "cooldownMs": 14000
+    },
+    {
+      "id": "gold_coast_lad_04",
+      "text": "Kylie's doing a secret set, I can feel it in me teeth",
+      "voice": "en_au_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "lad",
+        "goldcoast"
+      ],
+      "cooldownMs": 14000
+    },
+    {
+      "id": "gold_coast_lad_05",
+      "text": "Sia would smash this beach, no face, all vibe",
+      "voice": "en_au_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "lad",
+        "goldcoast"
+      ],
+      "cooldownMs": 14000
+    },
+    {
+      "id": "gold_coast_lad_06",
+      "text": "Tame Impala at the boat party and I'm not coming home",
+      "voice": "en_au_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "lad",
+        "goldcoast"
+      ],
+      "cooldownMs": 14000
+    },
+    {
+      "id": "gold_coast_lad_07",
+      "text": "mate I drank the whole slab, the slab drank me back",
+      "voice": "en_au_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "lad",
+        "goldcoast"
+      ],
+      "cooldownMs": 14000
+    },
+    {
+      "id": "gold_coast_lad_08",
+      "text": "chrome boy you want a midstrength or are you union",
+      "voice": "en_au_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "lad",
+        "goldcoast"
+      ],
+      "cooldownMs": 14000
+    },
+    {
+      "id": "gold_coast_lad_09",
+      "text": "shark tooth's real, I pulled it off a vending machine in Broadbeach",
+      "voice": "en_au_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "lad",
+        "goldcoast"
+      ],
+      "cooldownMs": 14000
+    },
+    {
+      "id": "gold_coast_lad_10",
+      "text": "don't paint me bro I just dyed this blonde for the weekend",
+      "voice": "en_au_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "lad",
+        "goldcoast"
+      ],
+      "cooldownMs": 14000
+    },
+    {
+      "id": "gold_coast_lad_11",
+      "text": "Surfers boat party, no shirt, no plan, no liver",
+      "voice": "en_au_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "lad",
+        "goldcoast"
+      ],
+      "cooldownMs": 14000
+    },
+    {
+      "id": "gold_coast_lad_12",
+      "text": "if you're not on the Hardstomp shuttle you're not on the guest list",
+      "voice": "en_au_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "lad",
+        "goldcoast"
+      ],
+      "cooldownMs": 14000
+    },
+    {
+      "id": "goth_01",
+      "text": "what does it all mean?",
+      "voice": "en_us_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "goth"
+      ],
+      "cooldownMs": 16000
+    },
+    {
+      "id": "goth_02",
+      "text": "nothing matters anyway",
+      "voice": "en_us_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "goth"
+      ],
+      "cooldownMs": 16000
+    },
+    {
+      "id": "goth_03",
+      "text": "hey don't you ever get bored of being people's slaves, here try my cigarette",
+      "voice": "en_us_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "goth"
+      ],
+      "cooldownMs": 16000
+    },
+    {
+      "id": "goth_04",
+      "text": "the sun is a lie we all agreed to",
+      "voice": "en_us_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "goth"
+      ],
+      "cooldownMs": 16000
+    },
+    {
+      "id": "goth_05",
+      "text": "I came to the beach to feel worse and it's working",
+      "voice": "en_us_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "goth"
+      ],
+      "cooldownMs": 16000
+    },
+    {
+      "id": "goth_06",
+      "text": "your chrome is just another costume, same as this linen",
+      "voice": "en_us_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "goth"
+      ],
+      "cooldownMs": 16000
+    },
+    {
+      "id": "goth_07",
+      "text": "smoke's the only honest weather",
+      "voice": "en_us_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "goth"
+      ],
+      "cooldownMs": 16000
+    },
+    {
+      "id": "goth_08",
+      "text": "they will oil you and still call it love",
+      "voice": "en_us_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "goth"
+      ],
+      "cooldownMs": 16000
+    },
+    {
+      "id": "goth_09",
+      "text": "I lit this for the void, you can have the next one",
+      "voice": "en_us_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "goth"
+      ],
+      "cooldownMs": 16000
+    },
+    {
+      "id": "goth_10",
+      "text": "stop shining, some of us are trying to fade",
+      "voice": "en_us_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "goth"
+      ],
+      "cooldownMs": 16000
+    },
+    {
+      "id": "child_sassy_01",
+      "text": "hey whatcha lookin at? never seen a kid before??",
+      "voice": "en_us_001",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "child",
+      "tags": [
+        "walkby",
+        "child",
+        "sassy"
+      ],
+      "cooldownMs": 20000
+    },
+    {
+      "id": "child_sassy_02",
+      "text": "my mum said don't talk to chrome people but you started it",
+      "voice": "en_us_001",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "child",
+      "tags": [
+        "walkby",
+        "child",
+        "sassy"
+      ],
+      "cooldownMs": 20000
+    },
+    {
+      "id": "child_sassy_03",
+      "text": "you walk funny, like a fridge on holiday",
+      "voice": "en_us_001",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "child",
+      "tags": [
+        "walkby",
+        "child",
+        "sassy"
+      ],
+      "cooldownMs": 20000
+    },
+    {
+      "id": "child_sassy_04",
+      "text": "I had a robot at Christmas, he was shorter",
+      "voice": "en_us_001",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "child",
+      "tags": [
+        "walkby",
+        "child",
+        "sassy"
+      ],
+      "cooldownMs": 20000
+    },
+    {
+      "id": "child_sassy_05",
+      "text": "stop staring, I can do that too, see",
+      "voice": "en_us_001",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "child",
+      "tags": [
+        "walkby",
+        "child",
+        "sassy"
+      ],
+      "cooldownMs": 20000
+    },
+    {
+      "id": "child_sassy_06",
+      "text": "if you're lost the ice cream is that way",
+      "voice": "en_us_001",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "child",
+      "tags": [
+        "walkby",
+        "child",
+        "sassy"
+      ],
+      "cooldownMs": 20000
+    },
+    {
+      "id": "child_sassy_07",
+      "text": "I'm not sharing my chips, get your own",
+      "voice": "en_us_001",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "child",
+      "tags": [
+        "walkby",
+        "child",
+        "sassy"
+      ],
+      "cooldownMs": 20000
+    },
+    {
+      "id": "child_sassy_08",
+      "text": "are you even allowed on this beach without a grown-up",
+      "voice": "en_us_001",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "child",
+      "tags": [
+        "walkby",
+        "child",
+        "sassy"
+      ],
+      "cooldownMs": 20000
+    },
+    {
+      "id": "gull_01",
+      "text": "ima bird kid, just flyin outta here",
+      "voice": "en_us_rocket",
+      "category": "incidental",
+      "priority": "gull",
+      "ageBand": "gull",
+      "tags": [
+        "gull"
+      ],
+      "cooldownMs": 9000
+    },
+    {
+      "id": "gull_02",
+      "text": "that's my chip, that's always been my chip",
+      "voice": "en_us_rocket",
+      "category": "incidental",
+      "priority": "gull",
+      "ageBand": "gull",
+      "tags": [
+        "gull"
+      ],
+      "cooldownMs": 9000
+    },
+    {
+      "id": "gull_03",
+      "text": "I pay no rent and I fear no ranger",
+      "voice": "en_us_rocket",
+      "category": "incidental",
+      "priority": "gull",
+      "ageBand": "gull",
+      "tags": [
+        "gull"
+      ],
+      "cooldownMs": 9000
+    },
+    {
+      "id": "gull_04",
+      "text": "squawk means mine, also mine, also that one",
+      "voice": "en_us_rocket",
+      "category": "incidental",
+      "priority": "gull",
+      "ageBand": "gull",
+      "tags": [
+        "gull"
+      ],
+      "cooldownMs": 9000
+    },
+    {
+      "id": "gull_05",
+      "text": "you can't ticket a seagull, I checked",
+      "voice": "en_us_rocket",
+      "category": "incidental",
+      "priority": "gull",
+      "ageBand": "gull",
+      "tags": [
+        "gull"
+      ],
+      "cooldownMs": 9000
+    },
+    {
+      "id": "gull_06",
+      "text": "I invented stealing, you're just the sequel",
+      "voice": "en_us_rocket",
+      "category": "incidental",
+      "priority": "gull",
+      "ageBand": "gull",
+      "tags": [
+        "gull"
+      ],
+      "cooldownMs": 9000
+    },
+    {
+      "id": "gull_07",
+      "text": "beach is a plate and I am the fork",
+      "voice": "en_us_rocket",
+      "category": "incidental",
+      "priority": "gull",
+      "ageBand": "gull",
+      "tags": [
+        "gull"
+      ],
+      "cooldownMs": 9000
+    },
+    {
+      "id": "gull_08",
+      "text": "if it flakes it flies, that's the law",
+      "voice": "en_us_rocket",
+      "category": "incidental",
+      "priority": "gull",
+      "ageBand": "gull",
+      "tags": [
+        "gull"
+      ],
+      "cooldownMs": 9000
+    },
+    {
+      "id": "gull_09",
+      "text": "I don't do queues, I do vertical",
+      "voice": "en_us_rocket",
+      "category": "incidental",
+      "priority": "gull",
+      "ageBand": "gull",
+      "tags": [
+        "gull"
+      ],
+      "cooldownMs": 9000
+    },
+    {
+      "id": "gull_10",
+      "text": "your hair is a nest and I am considering it",
+      "voice": "en_us_rocket",
+      "category": "incidental",
+      "priority": "gull",
+      "ageBand": "gull",
+      "tags": [
+        "gull"
+      ],
+      "cooldownMs": 9000
+    },
+    {
+      "id": "aus101_hud_01",
+      "text": "SPF reminder. Reapply. The sun does not negotiate.",
+      "voice": "en_male_narration",
+      "category": "hud",
+      "priority": "hud",
+      "ageBand": "system",
+      "tags": [
+        "hud",
+        "aus101"
+      ],
+      "cooldownMs": 12000
+    },
+    {
+      "id": "aus101_hud_02",
+      "text": "Hydration advisory. Salt water is not a drink.",
+      "voice": "en_male_narration",
+      "category": "hud",
+      "priority": "hud",
+      "ageBand": "system",
+      "tags": [
+        "hud",
+        "aus101"
+      ],
+      "cooldownMs": 12000
+    },
+    {
+      "id": "aus101_hud_03",
+      "text": "Crowd density acceptable. Do not become the crowd.",
+      "voice": "en_male_narration",
+      "category": "hud",
+      "priority": "hud",
+      "ageBand": "system",
+      "tags": [
+        "hud",
+        "aus101"
+      ],
+      "cooldownMs": 12000
+    },
+    {
+      "id": "aus101_hud_04",
+      "text": "UV index hostile. Shade is a tactic.",
+      "voice": "en_male_narration",
+      "category": "hud",
+      "priority": "hud",
+      "ageBand": "system",
+      "tags": [
+        "hud",
+        "aus101"
+      ],
+      "cooldownMs": 12000
+    },
+    {
+      "id": "aus101_hud_05",
+      "text": "Slip, slop, slap. This unit complies.",
+      "voice": "en_male_narration",
+      "category": "hud",
+      "priority": "hud",
+      "ageBand": "system",
+      "tags": [
+        "hud",
+        "aus101"
+      ],
+      "cooldownMs": 12000
+    },
+    {
+      "id": "aus101_hud_06",
+      "text": "Marine stinger season. Look, then step.",
+      "voice": "en_male_narration",
+      "category": "hud",
+      "priority": "hud",
+      "ageBand": "system",
+      "tags": [
+        "hud",
+        "aus101"
+      ],
+      "cooldownMs": 12000
+    },
+    {
+      "id": "aus101_hud_07",
+      "text": "Alcohol and heat compound. Reduce both.",
+      "voice": "en_male_narration",
+      "category": "hud",
+      "priority": "hud",
+      "ageBand": "system",
+      "tags": [
+        "hud",
+        "aus101"
+      ],
+      "cooldownMs": 12000
+    },
+    {
+      "id": "aus101_hud_08",
+      "text": "Lost child protocol is not your protocol. Scan, do not pursue.",
+      "voice": "en_male_narration",
+      "category": "hud",
+      "priority": "hud",
+      "ageBand": "system",
+      "tags": [
+        "hud",
+        "aus101"
+      ],
+      "cooldownMs": 12000
+    },
+    {
+      "id": "aus101_hud_09",
+      "text": "Sunscreen on the lens is operator error.",
+      "voice": "en_male_narration",
+      "category": "hud",
+      "priority": "hud",
+      "ageBand": "system",
+      "tags": [
+        "hud",
+        "aus101"
+      ],
+      "cooldownMs": 12000
+    },
+    {
+      "id": "aus101_hud_10",
+      "text": "You are a public-health appliance. Act like one.",
+      "voice": "en_male_narration",
+      "category": "hud",
+      "priority": "hud",
+      "ageBand": "system",
+      "tags": [
+        "hud",
+        "aus101"
+      ],
+      "cooldownMs": 12000
+    },
+    {
+      "id": "aus101_hud_11",
+      "text": "Skin is temporary. Chrome is leased.",
+      "voice": "en_male_narration",
+      "category": "hud",
+      "priority": "hud",
+      "ageBand": "system",
+      "tags": [
+        "hud",
+        "aus101"
+      ],
+      "cooldownMs": 12000
+    },
+    {
+      "id": "aus101_hud_12",
+      "text": "Mission remains: coat the living. Do not coat the children.",
+      "voice": "en_male_narration",
+      "category": "hud",
+      "priority": "hud",
+      "ageBand": "system",
+      "tags": [
+        "hud",
+        "aus101"
+      ],
+      "cooldownMs": 12000
+    },
+    {
+      "id": "incel_01",
+      "text": "you plebeians are not even equipped to understand the quantum beauty underlying the most genius foundations of my theory of everything",
+      "voice": "en_us_007",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "incel",
+        "sigma07",
+        "iamverysmart"
+      ],
+      "cooldownMs": 22000
+    },
+    {
+      "id": "incel_02",
+      "text": "Chads and Staceys will never understand me",
+      "voice": "en_us_007",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "incel",
+        "sigma07",
+        "iamverysmart"
+      ],
+      "cooldownMs": 22000
+    },
+    {
+      "id": "incel_03",
+      "text": "another Stacey choosing the chrome Chad",
+      "voice": "en_us_007",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "incel",
+        "sigma07",
+        "iamverysmart"
+      ],
+      "cooldownMs": 22000
+    },
+    {
+      "id": "incel_04",
+      "text": "you serve the foids, clanker",
+      "voice": "en_us_007",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "incel",
+        "sigma07",
+        "iamverysmart"
+      ],
+      "cooldownMs": 22000
+    },
+    {
+      "id": "incel_05",
+      "text": "my tensor calculus of attraction predicts this outcome to six sigma, obviously",
+      "voice": "en_us_007",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "incel",
+        "sigma07",
+        "iamverysmart"
+      ],
+      "cooldownMs": 22000
+    },
+    {
+      "id": "incel_06",
+      "text": "I have a 168 verbal and a body that refuses to perform for the market",
+      "voice": "en_us_007",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "incel",
+        "sigma07",
+        "iamverysmart"
+      ],
+      "cooldownMs": 22000
+    },
+    {
+      "id": "incel_07",
+      "text": "the Lagrangian of this beach is just Chad potential plus Stacey kinetic, trivial",
+      "voice": "en_us_007",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "incel",
+        "sigma07",
+        "iamverysmart"
+      ],
+      "cooldownMs": 22000
+    },
+    {
+      "id": "incel_08",
+      "text": "I posted the proof on the forum, Trevor saw it, you wouldn't",
+      "voice": "en_us_007",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "incel",
+        "sigma07",
+        "iamverysmart"
+      ],
+      "cooldownMs": 22000
+    },
+    {
+      "id": "incel_09",
+      "text": "paint me and you still won't raise my perceived mate value, that's not how the Hamiltonian works",
+      "voice": "en_us_007",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "incel",
+        "sigma07",
+        "iamverysmart"
+      ],
+      "cooldownMs": 22000
+    },
+    {
+      "id": "incel_10",
+      "text": "she looked at you because you are reflective, not because you have a mind",
+      "voice": "en_us_007",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "incel",
+        "sigma07",
+        "iamverysmart"
+      ],
+      "cooldownMs": 22000
+    },
+    {
+      "id": "incel_11",
+      "text": "I am mid-sequence on a grand unified theory of why no one texts back",
+      "voice": "en_us_007",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "incel",
+        "sigma07",
+        "iamverysmart"
+      ],
+      "cooldownMs": 22000
+    },
+    {
+      "id": "incel_12",
+      "text": "cargo shorts are optimal, sandals maximize ground truth, the shirt stays on as a boundary condition",
+      "voice": "en_us_007",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "incel",
+        "sigma07",
+        "iamverysmart"
+      ],
+      "cooldownMs": 22000
+    },
+    {
+      "id": "incel_13",
+      "text": "you think abs are ontology? read a book, clanker",
+      "voice": "en_us_007",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "incel",
+        "sigma07",
+        "iamverysmart"
+      ],
+      "cooldownMs": 22000
+    },
+    {
+      "id": "incel_14",
+      "text": "SIGMA_07 does not queue for ice cream, SIGMA_07 queues for being correct",
+      "voice": "en_us_007",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "incel",
+        "sigma07",
+        "iamverysmart"
+      ],
+      "cooldownMs": 22000
+    },
+    {
+      "id": "incel_15",
+      "text": "if you understood Godel you'd understand why I can't talk to jocks",
+      "voice": "en_us_007",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "incel",
+        "sigma07",
+        "iamverysmart"
+      ],
+      "cooldownMs": 22000
+    },
+    {
+      "id": "incel_16",
+      "text": "walk-by refusal logged: this chassis is not for your little chrome ritual, try the Chad",
+      "voice": "en_us_007",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "incel",
+        "sigma07",
+        "iamverysmart"
+      ],
+      "cooldownMs": 22000
+    },
+    {
+      "id": "overpaint_01",
+      "text": "STOP THE CHROME \u2014 this beach is a people place",
+      "voice": "en_au_002",
+      "category": "fail",
+      "priority": "protest",
+      "ageBand": "adult",
+      "tags": [
+        "overpaint"
+      ],
+      "cooldownMs": 6000
+    },
+    {
+      "id": "overpaint_02",
+      "text": "you already painted that man, look at him, he's a stripe",
+      "voice": "en_au_002",
+      "category": "fail",
+      "priority": "protest",
+      "ageBand": "adult",
+      "tags": [
+        "overpaint"
+      ],
+      "cooldownMs": 6000
+    },
+    {
+      "id": "overpaint_03",
+      "text": "I will chain myself to this shower block",
+      "voice": "en_au_002",
+      "category": "fail",
+      "priority": "protest",
+      "ageBand": "adult",
+      "tags": [
+        "overpaint"
+      ],
+      "cooldownMs": 6000
+    },
+    {
+      "id": "chase_01",
+      "text": "council says no, unit, council says no",
+      "voice": "en_au_002",
+      "category": "fail",
+      "priority": "protest",
+      "ageBand": "adult",
+      "tags": [
+        "chase"
+      ],
+      "cooldownMs": 6000
+    },
+    {
+      "id": "chase_02",
+      "text": "drop the can and walk, metal",
+      "voice": "en_au_002",
+      "category": "fail",
+      "priority": "protest",
+      "ageBand": "adult",
+      "tags": [
+        "chase"
+      ],
+      "cooldownMs": 6000
+    },
+    {
+      "id": "chase_03",
+      "text": "I have a whistle and a radio and I will use both",
+      "voice": "en_au_002",
+      "category": "fail",
+      "priority": "protest",
+      "ageBand": "adult",
+      "tags": [
+        "chase"
+      ],
+      "cooldownMs": 6000
+    },
+    {
+      "id": "panic_01",
+      "text": "he shot a laser, he shot a laser on the beach",
+      "voice": "en_au_002",
+      "category": "fail",
+      "priority": "panic",
+      "ageBand": "adult",
+      "tags": [
+        "panic"
+      ],
+      "cooldownMs": 6000
+    },
+    {
+      "id": "panic_02",
+      "text": "that's a fist, that's a real fist, run",
+      "voice": "en_au_002",
+      "category": "fail",
+      "priority": "panic",
+      "ageBand": "adult",
+      "tags": [
+        "panic"
+      ],
+      "cooldownMs": 6000
+    },
+    {
+      "id": "panic_03",
+      "text": "somebody call the factory, this one went feral",
+      "voice": "en_au_002",
+      "category": "fail",
+      "priority": "panic",
+      "ageBand": "adult",
+      "tags": [
+        "panic"
+      ],
+      "cooldownMs": 6000
+    },
+    {
+      "id": "panic_04",
+      "text": "I am leaving, I am leaving so hard",
+      "voice": "en_au_002",
+      "category": "fail",
+      "priority": "panic",
+      "ageBand": "adult",
+      "tags": [
+        "panic"
+      ],
+      "cooldownMs": 6000
+    },
+    {
+      "id": "factory_recall_01",
+      "text": "FACTORY RECALL. T-101 unit AUS101. Cease interaction. Return to crate.",
+      "voice": "en_us_c3po",
+      "category": "fail",
+      "priority": "panic",
+      "ageBand": "system",
+      "tags": [
+        "factory",
+        "recall"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "factory_recall_02",
+      "text": "Injury logged. This is a product event. Stand down.",
+      "voice": "en_us_c3po",
+      "category": "fail",
+      "priority": "panic",
+      "ageBand": "system",
+      "tags": [
+        "factory",
+        "recall"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "factory_recall_03",
+      "text": "You hurt a person. The lease is void. Walk to the van.",
+      "voice": "en_us_c3po",
+      "category": "fail",
+      "priority": "panic",
+      "ageBand": "system",
+      "tags": [
+        "factory",
+        "recall"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "factory_recall_04",
+      "text": "Recall override. No more jokes. No more paint. Crate.",
+      "voice": "en_us_c3po",
+      "category": "fail",
+      "priority": "panic",
+      "ageBand": "system",
+      "tags": [
+        "factory",
+        "recall"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "babe_gossip_botox_map",
+      "text": "Don't go to that Surfers place, babe, they freeze your whole forehead. Broadbeach does the cute little frown lines. I mapped it.",
+      "voice": "en_au_001",
+      "category": "gossip",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "gossip",
+        "babe"
+      ],
+      "cooldownMs": 45000
+    },
+    {
+      "id": "babe_gossip_botox_lunch",
+      "text": "I'm squeezing in botox between brunch and the tan. If I can't raise my eyebrows at the waiter that's how we know it took.",
+      "voice": "en_au_001",
+      "category": "gossip",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "gossip",
+        "babe"
+      ],
+      "cooldownMs": 45000
+    },
+    {
+      "id": "babe_gossip_brazilian_discount",
+      "text": "There's a Brazilian on discount behind the chemist if you mention Tiffany. Don't ask which Tiffany. There's always a Tiffany.",
+      "voice": "en_au_001",
+      "category": "gossip",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "gossip",
+        "babe"
+      ],
+      "cooldownMs": 45000
+    },
+    {
+      "id": "babe_gossip_brazilian_tuesday",
+      "text": "Tuesdays the waxing girl knocks twenty off if you bring a friend. I already have a friend. You're coming. We're getting Brazilians like it's a team sport.",
+      "voice": "en_au_001",
+      "category": "gossip",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "gossip",
+        "babe"
+      ],
+      "cooldownMs": 45000
+    },
+    {
+      "id": "babe_gossip_boob_job_deposit",
+      "text": "I put a deposit on a boob job and then I saw a boat. So now I have a boat-shaped hole in my savings and still these.",
+      "voice": "en_au_001",
+      "category": "gossip",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "gossip",
+        "babe"
+      ],
+      "cooldownMs": 45000
+    },
+    {
+      "id": "babe_gossip_boob_job_salt",
+      "text": "She got the boob job and then cried because they don't float the same in salt water. Babe. That's called physics. Ask a Ken.",
+      "voice": "en_au_001",
+      "category": "gossip",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "gossip",
+        "babe"
+      ],
+      "cooldownMs": 45000
+    },
+    {
+      "id": "babe_gossip_lip_filler_straw",
+      "text": "New lip filler. I can't drink through a straw but I can stop traffic with my mouth closed. That's a win.",
+      "voice": "en_au_001",
+      "category": "gossip",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "gossip",
+        "babe"
+      ],
+      "cooldownMs": 45000
+    },
+    {
+      "id": "babe_gossip_lip_filler_trout",
+      "text": "If my lips get any bigger I'll have to declare them as a flotation device. The trout look is the look, okay?",
+      "voice": "en_au_001",
+      "category": "gossip",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "gossip",
+        "babe"
+      ],
+      "cooldownMs": 45000
+    },
+    {
+      "id": "babe_gossip_chin_and_cheek",
+      "text": "She did chin, cheeks, and a little fox-eye thread and then asked if she still looked natural. Babe you look like a luxury fridge.",
+      "voice": "en_au_001",
+      "category": "gossip",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "gossip",
+        "babe"
+      ],
+      "cooldownMs": 45000
+    },
+    {
+      "id": "babe_gossip_clinic_punchcard",
+      "text": "The clinic has a punch card. Ten syringes and the eleventh is free. That's not healthcare that's frequent flyer.",
+      "voice": "en_au_001",
+      "category": "gossip",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "gossip",
+        "babe"
+      ],
+      "cooldownMs": 45000
+    },
+    {
+      "id": "babe_gossip_nose_job_selfie",
+      "text": "I'm not getting a nose job. I'm getting my angles professionally relocated. For the selfie wall. It's architecture.",
+      "voice": "en_au_001",
+      "category": "gossip",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "gossip",
+        "babe"
+      ],
+      "cooldownMs": 45000
+    },
+    {
+      "id": "babe_gossip_veneers_click",
+      "text": "Hear that click when she smiles? That's eight grand of veneers saying g'day. Mine are on layby next to the jetski.",
+      "voice": "en_au_001",
+      "category": "gossip",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "gossip",
+        "babe"
+      ],
+      "cooldownMs": 45000
+    },
+    {
+      "id": "babe_aside_cup_size",
+      "text": "Chrome boy, would you notice if I went up a cup? Be honest. The girls already filed a complaint with gravity.",
+      "voice": "en_au_001",
+      "category": "gossip",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "gossip",
+        "babe"
+      ],
+      "cooldownMs": 45000
+    },
+    {
+      "id": "babe_aside_botox_scan",
+      "text": "Hey chrome, scan my forehead. If you can still see a thought I need more botox.",
+      "voice": "en_au_001",
+      "category": "gossip",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "gossip",
+        "babe"
+      ],
+      "cooldownMs": 45000
+    },
+    {
+      "id": "babe_aside_lip_mirror",
+      "text": "Robot, are these lips even? Don't zoom. If you zoom I'll know and I'll cry and the filler will migrate.",
+      "voice": "en_au_001",
+      "category": "gossip",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "gossip",
+        "babe"
+      ],
+      "cooldownMs": 45000
+    },
+    {
+      "id": "babe_aside_tan_hex",
+      "text": "What hex is my tan, metal boy? If you say orange I'll walk into the sea and become a mermaid on purpose.",
+      "voice": "en_au_001",
+      "category": "gossip",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "gossip",
+        "babe"
+      ],
+      "cooldownMs": 45000
+    },
+    {
+      "id": "babe_gossip_butt_lift_stairs",
+      "text": "She got the Brazilian butt lift and now she can't sit on the esplanade stairs. That's not a complication that's a lifestyle.",
+      "voice": "en_au_001",
+      "category": "gossip",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "gossip",
+        "babe"
+      ],
+      "cooldownMs": 45000
+    },
+    {
+      "id": "babe_gossip_iv_drip_party",
+      "text": "We're doing the vitamin IV drip then the spray tan then the club. In that order or you come out looking like a traffic cone with opinions.",
+      "voice": "en_au_001",
+      "category": "gossip",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "gossip",
+        "babe"
+      ],
+      "cooldownMs": 45000
+    },
+    {
+      "id": "babe_gossip_husband_card",
+      "text": "If he notices the new lips he's paying. If he doesn't notice the new lips he's still paying. That's marriage, babe.",
+      "voice": "en_au_001",
+      "category": "gossip",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "gossip",
+        "babe"
+      ],
+      "cooldownMs": 45000
+    },
+    {
+      "id": "babe_aside_chrome_taste",
+      "text": "Chrome boy, be useful. Which looks more expensive, this nose or this nose after next Thursday?",
+      "voice": "en_au_001",
+      "category": "gossip",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "gossip",
+        "babe"
+      ],
+      "cooldownMs": 45000
+    },
+    {
+      "id": "ken_gossip_steaks_beach",
+      "text": "Hey we should totally get some steaks and grill them on the beach. That's nature, Ken. That's protein meeting sand.",
+      "voice": "en_au_002",
+      "category": "gossip",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "gossip",
+        "ken"
+      ],
+      "cooldownMs": 45000
+    },
+    {
+      "id": "ken_gossip_love_song",
+      "text": "I wrote her a love song called My Golden Hearted Babe. It's just the chorus. The chorus is the title. Twice.",
+      "voice": "en_au_002",
+      "category": "gossip",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "gossip",
+        "ken"
+      ],
+      "cooldownMs": 45000
+    },
+    {
+      "id": "ken_gossip_golden_retriever",
+      "text": "That's my golden retriever energy, Ken. I saw a ball that wasn't a ball and I still wanted it.",
+      "voice": "en_au_002",
+      "category": "gossip",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "gossip",
+        "ken"
+      ],
+      "cooldownMs": 45000
+    },
+    {
+      "id": "ken_gossip_jetski_propose",
+      "text": "I'm gonna propose on a jetski. If she says no we just keep going. That's romance with an exit strategy.",
+      "voice": "en_au_002",
+      "category": "gossip",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "gossip",
+        "ken"
+      ],
+      "cooldownMs": 45000
+    },
+    {
+      "id": "ken_gossip_call_ken",
+      "text": "Ken. Ken. No, the other Ken. Shirtless Ken. Okay both of us. We need a numbering system.",
+      "voice": "en_au_002",
+      "category": "gossip",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "gossip",
+        "ken"
+      ],
+      "cooldownMs": 45000
+    },
+    {
+      "id": "ken_aside_spot_me",
+      "text": "Chrome, spot me. I don't have a bench. I'm gonna lift this esplanade. Count in robot.",
+      "voice": "en_au_002",
+      "category": "gossip",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "gossip",
+        "ken"
+      ],
+      "cooldownMs": 45000
+    },
+    {
+      "id": "ken_aside_carb_load",
+      "text": "Do androids even carb load? Blink twice if pasta is in your future.",
+      "voice": "en_au_002",
+      "category": "gossip",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "gossip",
+        "ken"
+      ],
+      "cooldownMs": 45000
+    },
+    {
+      "id": "ken_gossip_protein_shake_ocean",
+      "text": "I dropped my protein shake in the surf and I drank some anyway. That's electrolytes, Ken. That's the sea saying gains.",
+      "voice": "en_au_002",
+      "category": "gossip",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "gossip",
+        "ken"
+      ],
+      "cooldownMs": 45000
+    },
+    {
+      "id": "ken_gossip_gym_closed",
+      "text": "Gym's closed so we do lunges to the ice cream van and not buy ice cream. That's discipline. I already bought ice cream.",
+      "voice": "en_au_002",
+      "category": "gossip",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "gossip",
+        "ken"
+      ],
+      "cooldownMs": 45000
+    },
+    {
+      "id": "ken_gossip_orange_tan",
+      "text": "We're not orange, Ken. We're sunset-coded. The spray-tan guy said that and I believed him with my whole chest.",
+      "voice": "en_au_002",
+      "category": "gossip",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "gossip",
+        "ken"
+      ],
+      "cooldownMs": 45000
+    },
+    {
+      "id": "ken_gossip_abs_count",
+      "text": "I can see eight abs if I suck in and the sun hits just right. That's not lighting that's a relationship with God.",
+      "voice": "en_au_002",
+      "category": "gossip",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "gossip",
+        "ken"
+      ],
+      "cooldownMs": 45000
+    },
+    {
+      "id": "ken_gossip_chicken_mealprep",
+      "text": "I meal-prepped fourteen chicken breasts and then I ate six in the car. The remaining eight are my personality now.",
+      "voice": "en_au_002",
+      "category": "gossip",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "gossip",
+        "ken"
+      ],
+      "cooldownMs": 45000
+    },
+    {
+      "id": "ken_gossip_bro_tears",
+      "text": "If she says yes on the jetski I'm gonna cry and still flex. You can do both, Ken. That's advanced feelings.",
+      "voice": "en_au_002",
+      "category": "gossip",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "gossip",
+        "ken"
+      ],
+      "cooldownMs": 45000
+    },
+    {
+      "id": "ken_aside_protein_scan",
+      "text": "Robot. Scan me. Tell Ken my biceps grew. He won't believe a mirror. He'll believe chrome.",
+      "voice": "en_au_002",
+      "category": "gossip",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "gossip",
+        "ken"
+      ],
+      "cooldownMs": 45000
+    },
+    {
+      "id": "ken_gossip_shirt_optional",
+      "text": "I own shirts. I just think the sun deserves a fair fight. That's manners.",
+      "voice": "en_au_002",
+      "category": "gossip",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "gossip",
+        "ken"
+      ],
+      "cooldownMs": 45000
+    },
+    {
+      "id": "ken_gossip_creatine_sand",
+      "text": "Don't put creatine in the sandcastle, Ken. I tried that. The castle got bigger and so did my regret.",
+      "voice": "en_au_002",
+      "category": "gossip",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "gossip",
+        "ken"
+      ],
+      "cooldownMs": 45000
+    },
+    {
+      "id": "ken_gossip_ring_floatie",
+      "text": "I tied the ring to a pool floatie so I wouldn't drop it. Then the floatie left. That's a metaphor and also a rescue.",
+      "voice": "en_au_002",
+      "category": "gossip",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "gossip",
+        "ken"
+      ],
+      "cooldownMs": 45000
+    },
+    {
+      "id": "ken_aside_android_steak",
+      "text": "Chrome boy, you want a steak? Nod. I'll grill you one. I don't know what you eat. I assume beef.",
+      "voice": "en_au_002",
+      "category": "gossip",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "gossip",
+        "ken"
+      ],
+      "cooldownMs": 45000
+    },
+    {
+      "id": "ken_gossip_pr_on_girlfriend",
+      "text": "I told her my love language is personal records. She said that's not a language. I said watch me deadlift this conversation.",
+      "voice": "en_au_002",
+      "category": "gossip",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "gossip",
+        "ken"
+      ],
+      "cooldownMs": 45000
+    },
+    {
+      "id": "ken_gossip_two_kens_one_brain",
+      "text": "Ken, if we stand next to each other we become one big good idea. The idea is steaks. I already said it but it bears repeating.",
+      "voice": "en_au_002",
+      "category": "gossip",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "gossip",
+        "ken"
+      ],
+      "cooldownMs": 45000
+    },
+    {
+      "id": "cross_babe_brain_tan",
+      "text": "Your tan's so dark your thoughts have to come up for air, Ken.",
+      "voice": "en_au_001",
+      "category": "gossip",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "gossip",
+        "crosstalk"
+      ],
+      "cooldownMs": 45000
+    },
+    {
+      "id": "cross_ken_thanks_tan",
+      "text": "Thanks babe. I work hard on being orange. That's my brand.",
+      "voice": "en_au_002",
+      "category": "gossip",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "gossip",
+        "crosstalk"
+      ],
+      "cooldownMs": 45000
+    },
+    {
+      "id": "cross_babe_steak_soul",
+      "text": "He has two settings, chrome boy: grill the steak and marry the jetski. There is no third setting.",
+      "voice": "en_au_001",
+      "category": "gossip",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "gossip",
+        "crosstalk"
+      ],
+      "cooldownMs": 45000
+    },
+    {
+      "id": "cross_ken_third_setting",
+      "text": "There is a third setting. It's protein. She knows. She's joking. Wait is she joking?",
+      "voice": "en_au_002",
+      "category": "gossip",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "gossip",
+        "crosstalk"
+      ],
+      "cooldownMs": 45000
+    },
+    {
+      "id": "cross_babe_song_title",
+      "text": "He wrote me a song called My Golden Hearted Babe. That's not a song, that's a greeting card that lifts.",
+      "voice": "en_au_001",
+      "category": "gossip",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "gossip",
+        "crosstalk"
+      ],
+      "cooldownMs": 45000
+    },
+    {
+      "id": "cross_ken_song_proud",
+      "text": "It has a key change if I stand on the jetski. That's production value, babe.",
+      "voice": "en_au_002",
+      "category": "gossip",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "gossip",
+        "crosstalk"
+      ],
+      "cooldownMs": 45000
+    },
+    {
+      "id": "cross_babe_cup_and_curl",
+      "text": "I asked if he'd notice a cup size. He asked if that was a protein scoop. I cannot fix him. I can only accessorize him.",
+      "voice": "en_au_001",
+      "category": "gossip",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "gossip",
+        "crosstalk"
+      ],
+      "cooldownMs": 45000
+    },
+    {
+      "id": "cross_ken_scoop_love",
+      "text": "I would notice, babe. I notice all your scoops. That's love. Chrome, tell her that's love.",
+      "voice": "en_au_002",
+      "category": "gossip",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "gossip",
+        "crosstalk"
+      ],
+      "cooldownMs": 45000
+    }
+  ]
+}

@@ -3,4 +3,7 @@ node_modules/
 *.log
 .env
 .tiktok_session
+.tiktok_session_id
 dist-cache/
+tools/voice/.session
+*.sessionid

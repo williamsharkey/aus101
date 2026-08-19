@@ -8,7 +8,7 @@ Design document: [`docs/DESIGN.md`](docs/DESIGN.md)
 
 ## Status
 
-Design draft in progress. Implementation PRs are sequenced in the design doc.
+Design approved (`docs/DESIGN.md`). Voice line sheet (217 lines) + bake tooling landed. **34 macOS `say` placeholder MP3s** are in `assets/voice/` for wiring; swap to TikTok with `TIKTOK_SESSION_ID` (see `tools/voice/README.md`).
 
 ## Credits
 

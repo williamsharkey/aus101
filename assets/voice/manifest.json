@@ -1,0 +1,592 @@
+{
+  "version": 1,
+  "generatedAt": "2026-08-19T04:44:39Z",
+  "count": 34,
+  "placeholder": true,
+  "note": "macOS say() stand-ins. Replace with TikTok bake via tools/voice/bake.py when TIKTOK_SESSION_ID is set.",
+  "lines": [
+    {
+      "id": "dj_open_01",
+      "file": "dj_open_01.mp3",
+      "voice": "en_au_002",
+      "category": "dj",
+      "priority": "dj",
+      "ageBand": "system",
+      "tags": [
+        "dj",
+        "open",
+        "placeholder_say"
+      ],
+      "cooldownMs": 0,
+      "text": "it's a beautiful day on the Gold Coast",
+      "placeholder": true,
+      "placeholderEngine": "macos-say"
+    },
+    {
+      "id": "dj_quip_01",
+      "file": "dj_quip_01.mp3",
+      "voice": "en_au_002",
+      "category": "dj",
+      "priority": "dj",
+      "ageBand": "system",
+      "tags": [
+        "dj",
+        "quip",
+        "placeholder_say"
+      ],
+      "cooldownMs": 0,
+      "text": "Reticule FM 101.7, still on the air, still pretending the sun is your friend",
+      "placeholder": true,
+      "placeholderEngine": "macos-say"
+    },
+    {
+      "id": "dj_quip_05",
+      "file": "dj_quip_05.mp3",
+      "voice": "en_au_002",
+      "category": "dj",
+      "priority": "dj",
+      "ageBand": "system",
+      "tags": [
+        "dj",
+        "quip",
+        "placeholder_say"
+      ],
+      "cooldownMs": 0,
+      "text": "remember, zinc is a lifestyle, not a suggestion",
+      "placeholder": true,
+      "placeholderEngine": "macos-say"
+    },
+    {
+      "id": "dj_quip_27",
+      "file": "dj_quip_27.mp3",
+      "voice": "en_au_002",
+      "category": "dj",
+      "priority": "dj",
+      "ageBand": "system",
+      "tags": [
+        "dj",
+        "quip",
+        "placeholder_say"
+      ],
+      "cooldownMs": 0,
+      "text": "sunscreen first, opinions later",
+      "placeholder": true,
+      "placeholderEngine": "macos-say"
+    },
+    {
+      "id": "dj_quip_49",
+      "file": "dj_quip_49.mp3",
+      "voice": "en_au_002",
+      "category": "dj",
+      "priority": "dj",
+      "ageBand": "system",
+      "tags": [
+        "dj",
+        "quip",
+        "placeholder_say"
+      ],
+      "cooldownMs": 0,
+      "text": "beautiful day, terrible idea, perfect radio",
+      "placeholder": true,
+      "placeholderEngine": "macos-say"
+    },
+    {
+      "id": "dj_song_01",
+      "file": "dj_song_01.mp3",
+      "voice": "en_au_002",
+      "category": "dj",
+      "priority": "dj",
+      "ageBand": "system",
+      "tags": [
+        "dj",
+        "song",
+        "placeholder_say"
+      ],
+      "cooldownMs": 0,
+      "text": "that was Pulse of the Boardwalk; this is Chrome on the Spit; do not take that as medical advice",
+      "placeholder": true,
+      "placeholderEngine": "macos-say"
+    },
+    {
+      "id": "dj_song_02",
+      "file": "dj_song_02.mp3",
+      "voice": "en_au_002",
+      "category": "dj",
+      "priority": "dj",
+      "ageBand": "system",
+      "tags": [
+        "dj",
+        "song",
+        "placeholder_say"
+      ],
+      "cooldownMs": 0,
+      "text": "that was Zinc After Dark; this is Escort the Melanocytes; do not take that as medical advice",
+      "placeholder": true,
+      "placeholderEngine": "macos-say"
+    },
+    {
+      "id": "dj_song_03",
+      "file": "dj_song_03.mp3",
+      "voice": "en_au_002",
+      "category": "dj",
+      "priority": "dj",
+      "ageBand": "system",
+      "tags": [
+        "dj",
+        "song",
+        "placeholder_say"
+      ],
+      "cooldownMs": 0,
+      "text": "that was Factory Recall Slowdance; this is SPF Fifty and Counting; do not take that as medical advice",
+      "placeholder": true,
+      "placeholderEngine": "macos-say"
+    },
+    {
+      "id": "rub_pleasure_01",
+      "file": "rub_pleasure_01.mp3",
+      "voice": "en_female_emotional",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure",
+        "placeholder_say"
+      ],
+      "cooldownMs": 8000,
+      "text": "mmm that feels so good",
+      "placeholder": true,
+      "placeholderEngine": "macos-say"
+    },
+    {
+      "id": "rub_pleasure_03",
+      "file": "rub_pleasure_03.mp3",
+      "voice": "en_female_emotional",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure",
+        "placeholder_say"
+      ],
+      "cooldownMs": 8000,
+      "text": "oh you are fully functional",
+      "placeholder": true,
+      "placeholderEngine": "macos-say"
+    },
+    {
+      "id": "walkby_flirt_01",
+      "file": "walkby_flirt_01.mp3",
+      "voice": "en_au_001",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "flirt",
+        "placeholder_say"
+      ],
+      "cooldownMs": 14000,
+      "text": "nice abs, clanker",
+      "placeholder": true,
+      "placeholderEngine": "macos-say"
+    },
+    {
+      "id": "walkby_flirt_02",
+      "file": "walkby_flirt_02.mp3",
+      "voice": "en_au_001",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "flirt",
+        "placeholder_say"
+      ],
+      "cooldownMs": 14000,
+      "text": "are you fully functional",
+      "placeholder": true,
+      "placeholderEngine": "macos-say"
+    },
+    {
+      "id": "walkby_heckle_01",
+      "file": "walkby_heckle_01.mp3",
+      "voice": "en_au_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "heckle",
+        "placeholder_say"
+      ],
+      "cooldownMs": 16000,
+      "text": "nice paint job, toaster",
+      "placeholder": true,
+      "placeholderEngine": "macos-say"
+    },
+    {
+      "id": "gold_coast_lad_01",
+      "file": "gold_coast_lad_01.mp3",
+      "voice": "en_au_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "lad",
+        "goldcoast",
+        "placeholder_say"
+      ],
+      "cooldownMs": 14000,
+      "text": "hey chrome boy, you don't know where I can get some Flume tickets",
+      "placeholder": true,
+      "placeholderEngine": "macos-say"
+    },
+    {
+      "id": "gold_coast_lad_02",
+      "file": "gold_coast_lad_02.mp3",
+      "voice": "en_au_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "lad",
+        "goldcoast",
+        "placeholder_say"
+      ],
+      "cooldownMs": 14000,
+      "text": "bro if Fisher drops at Hardstomp I'm sleeping on the sand",
+      "placeholder": true,
+      "placeholderEngine": "macos-say"
+    },
+    {
+      "id": "goth_01",
+      "file": "goth_01.mp3",
+      "voice": "en_us_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "goth",
+        "placeholder_say"
+      ],
+      "cooldownMs": 16000,
+      "text": "what does it all mean?",
+      "placeholder": true,
+      "placeholderEngine": "macos-say"
+    },
+    {
+      "id": "goth_03",
+      "file": "goth_03.mp3",
+      "voice": "en_us_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "goth",
+        "placeholder_say"
+      ],
+      "cooldownMs": 16000,
+      "text": "hey don't you ever get bored of being people's slaves, here try my cigarette",
+      "placeholder": true,
+      "placeholderEngine": "macos-say"
+    },
+    {
+      "id": "child_sassy_01",
+      "file": "child_sassy_01.mp3",
+      "voice": "en_us_001",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "child",
+      "tags": [
+        "walkby",
+        "child",
+        "sassy",
+        "placeholder_say"
+      ],
+      "cooldownMs": 20000,
+      "text": "hey whatcha lookin at? never seen a kid before??",
+      "placeholder": true,
+      "placeholderEngine": "macos-say"
+    },
+    {
+      "id": "gull_01",
+      "file": "gull_01.mp3",
+      "voice": "en_us_rocket",
+      "category": "incidental",
+      "priority": "gull",
+      "ageBand": "gull",
+      "tags": [
+        "gull",
+        "placeholder_say"
+      ],
+      "cooldownMs": 9000,
+      "text": "ima bird kid, just flyin outta here",
+      "placeholder": true,
+      "placeholderEngine": "macos-say"
+    },
+    {
+      "id": "gull_02",
+      "file": "gull_02.mp3",
+      "voice": "en_us_rocket",
+      "category": "incidental",
+      "priority": "gull",
+      "ageBand": "gull",
+      "tags": [
+        "gull",
+        "placeholder_say"
+      ],
+      "cooldownMs": 9000,
+      "text": "that's my chip, that's always been my chip",
+      "placeholder": true,
+      "placeholderEngine": "macos-say"
+    },
+    {
+      "id": "aus101_hud_01",
+      "file": "aus101_hud_01.mp3",
+      "voice": "en_male_narration",
+      "category": "hud",
+      "priority": "hud",
+      "ageBand": "system",
+      "tags": [
+        "hud",
+        "aus101",
+        "placeholder_say"
+      ],
+      "cooldownMs": 12000,
+      "text": "SPF reminder. Reapply. The sun does not negotiate.",
+      "placeholder": true,
+      "placeholderEngine": "macos-say"
+    },
+    {
+      "id": "aus101_hud_12",
+      "file": "aus101_hud_12.mp3",
+      "voice": "en_male_narration",
+      "category": "hud",
+      "priority": "hud",
+      "ageBand": "system",
+      "tags": [
+        "hud",
+        "aus101",
+        "placeholder_say"
+      ],
+      "cooldownMs": 12000,
+      "text": "Mission remains: coat the living. Do not coat the children.",
+      "placeholder": true,
+      "placeholderEngine": "macos-say"
+    },
+    {
+      "id": "incel_01",
+      "file": "incel_01.mp3",
+      "voice": "en_us_007",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "incel",
+        "sigma07",
+        "iamverysmart",
+        "placeholder_say"
+      ],
+      "cooldownMs": 22000,
+      "text": "you plebeians are not even equipped to understand the quantum beauty underlying the most genius foundations of my theory of everything",
+      "placeholder": true,
+      "placeholderEngine": "macos-say"
+    },
+    {
+      "id": "incel_02",
+      "file": "incel_02.mp3",
+      "voice": "en_us_007",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "incel",
+        "sigma07",
+        "iamverysmart",
+        "placeholder_say"
+      ],
+      "cooldownMs": 22000,
+      "text": "Chads and Staceys will never understand me",
+      "placeholder": true,
+      "placeholderEngine": "macos-say"
+    },
+    {
+      "id": "incel_04",
+      "file": "incel_04.mp3",
+      "voice": "en_us_007",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "walkby",
+        "incel",
+        "sigma07",
+        "iamverysmart",
+        "placeholder_say"
+      ],
+      "cooldownMs": 22000,
+      "text": "you serve the foids, clanker",
+      "placeholder": true,
+      "placeholderEngine": "macos-say"
+    },
+    {
+      "id": "overpaint_01",
+      "file": "overpaint_01.mp3",
+      "voice": "en_au_002",
+      "category": "fail",
+      "priority": "protest",
+      "ageBand": "adult",
+      "tags": [
+        "overpaint",
+        "placeholder_say"
+      ],
+      "cooldownMs": 6000,
+      "text": "STOP THE CHROME \u2014 this beach is a people place",
+      "placeholder": true,
+      "placeholderEngine": "macos-say"
+    },
+    {
+      "id": "panic_01",
+      "file": "panic_01.mp3",
+      "voice": "en_au_002",
+      "category": "fail",
+      "priority": "panic",
+      "ageBand": "adult",
+      "tags": [
+        "panic",
+        "placeholder_say"
+      ],
+      "cooldownMs": 6000,
+      "text": "he shot a laser, he shot a laser on the beach",
+      "placeholder": true,
+      "placeholderEngine": "macos-say"
+    },
+    {
+      "id": "factory_recall_01",
+      "file": "factory_recall_01.mp3",
+      "voice": "en_us_c3po",
+      "category": "fail",
+      "priority": "panic",
+      "ageBand": "system",
+      "tags": [
+        "factory",
+        "recall",
+        "placeholder_say"
+      ],
+      "cooldownMs": 0,
+      "text": "FACTORY RECALL. T-101 unit AUS101. Cease interaction. Return to crate.",
+      "placeholder": true,
+      "placeholderEngine": "macos-say"
+    },
+    {
+      "id": "babe_gossip_botox_map",
+      "file": "babe_gossip_botox_map.mp3",
+      "voice": "en_au_001",
+      "category": "gossip",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "gossip",
+        "babe",
+        "placeholder_say"
+      ],
+      "cooldownMs": 45000,
+      "text": "Don't go to that Surfers place, babe, they freeze your whole forehead. Broadbeach does the cute little frown lines. I mapped it.",
+      "placeholder": true,
+      "placeholderEngine": "macos-say"
+    },
+    {
+      "id": "babe_gossip_brazilian_discount",
+      "file": "babe_gossip_brazilian_discount.mp3",
+      "voice": "en_au_001",
+      "category": "gossip",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "gossip",
+        "babe",
+        "placeholder_say"
+      ],
+      "cooldownMs": 45000,
+      "text": "There's a Brazilian on discount behind the chemist if you mention Tiffany. Don't ask which Tiffany. There's always a Tiffany.",
+      "placeholder": true,
+      "placeholderEngine": "macos-say"
+    },
+    {
+      "id": "ken_gossip_steaks_beach",
+      "file": "ken_gossip_steaks_beach.mp3",
+      "voice": "en_au_002",
+      "category": "gossip",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "gossip",
+        "ken",
+        "placeholder_say"
+      ],
+      "cooldownMs": 45000,
+      "text": "Hey we should totally get some steaks and grill them on the beach. That's nature, Ken. That's protein meeting sand.",
+      "placeholder": true,
+      "placeholderEngine": "macos-say"
+    },
+    {
+      "id": "ken_gossip_love_song",
+      "file": "ken_gossip_love_song.mp3",
+      "voice": "en_au_002",
+      "category": "gossip",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "gossip",
+        "ken",
+        "placeholder_say"
+      ],
+      "cooldownMs": 45000,
+      "text": "I wrote her a love song called My Golden Hearted Babe. It's just the chorus. The chorus is the title. Twice.",
+      "placeholder": true,
+      "placeholderEngine": "macos-say"
+    },
+    {
+      "id": "cross_babe_brain_tan",
+      "file": "cross_babe_brain_tan.mp3",
+      "voice": "en_au_001",
+      "category": "gossip",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "gossip",
+        "crosstalk",
+        "placeholder_say"
+      ],
+      "cooldownMs": 45000,
+      "text": "Your tan's so dark your thoughts have to come up for air, Ken.",
+      "placeholder": true,
+      "placeholderEngine": "macos-say"
+    },
+    {
+      "id": "cross_ken_scoop_love",
+      "file": "cross_ken_scoop_love.mp3",
+      "voice": "en_au_002",
+      "category": "gossip",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "gossip",
+        "crosstalk",
+        "placeholder_say"
+      ],
+      "cooldownMs": 45000,
+      "text": "I would notice, babe. I notice all your scoops. That's love. Chrome, tell her that's love.",
+      "placeholder": true,
+      "placeholderEngine": "macos-say"
+    }
+  ]
+}
