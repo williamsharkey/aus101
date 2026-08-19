@@ -31,8 +31,8 @@ function ir(ctx) {
   return b;
 }
 
-/** Last strike, for goldCoast key animation. */
-export const pianoPulse = { at: 0, midi: NOTES[0] };
+/** Last strike + mix, for goldCoast key animation / proximity fallback. */
+export const pianoPulse = { at: 0, midi: NOTES[0], mix: 0 };
 
 /**
  * One sine+triangle piano strike. Peak 0.35. Caller owns mix/destination.
@@ -150,6 +150,7 @@ export function createShadesBed(ctx, dest) {
       const next = Math.max(0, Math.min(1, v));
       const rose = mix < 0.1 && next >= 0.1;
       mix = next;
+      pianoPulse.mix = mix;
       const t = ctx.currentTime;
       out.gain.cancelScheduledValues(t);
       out.gain.setValueAtTime(out.gain.value, t);

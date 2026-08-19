@@ -7,9 +7,10 @@ import * as coverage from "../game/coverage.js";
 const CSS_ID = "aus101-apply-mg-css";
 const ZINC = { r: 243, g: 239, b: 228 };
 const BARE = { r: 58, g: 36, b: 24 };
-const STAMP_R = 0.2;
-const TAP_AMT = 0.2;
-const HOLD_AMT_S = 0.42;
+const STAMP_R = 0.22;
+const TAP_AMT = 0.45;
+const HOLD_AMT_S = 3.6;
+const LOOK_SENS = 1.15;
 
 /** stampCoverage UV: head 0.5,0.15 / torso 0.5,0.4 / arms 0.2|0.8 / legs 0.35|0.65. */
 const UV = {
@@ -158,7 +159,7 @@ function installCss() {
 #aus101-apply-mg{
   position:fixed;
   inset:0;
-  z-index:14;
+  z-index:16;
   display:none;
   pointer-events:none;
   box-sizing:border-box;
@@ -173,17 +174,17 @@ function installCss() {
 #aus101-apply-mg.is-on{display:block;}
 #aus101-apply-mg .aus101-apply-card{
   position:absolute;
-  left:0;
+  left:8px;
   top:8px;
-  width:min(168px, 28vw);
-  height:min(300px, calc(100% - 152px));
+  width:min(280px, 38vw);
+  height:min(520px, calc(100% - 88px));
   pointer-events:auto;
   touch-action:none;
   box-sizing:border-box;
-  background:linear-gradient(180deg, rgba(42,30,16,0.86), rgba(10,12,10,0.9));
-  border:1px solid rgba(196,160,80,0.5);
-  box-shadow:inset 0 0 0 1px rgba(12,10,8,0.72), 0 0 0 1px rgba(255,180,80,0.12), 0 12px 28px rgba(0,0,0,0.35);
-  border-radius:6px;
+  background:linear-gradient(180deg, rgba(42,30,16,0.92), rgba(10,12,10,0.94));
+  border:1px solid rgba(224,184,88,0.7);
+  box-shadow:inset 0 0 0 1px rgba(12,10,8,0.72), 0 0 0 1px rgba(255,180,80,0.18), 0 16px 36px rgba(0,0,0,0.45);
+  border-radius:8px;
   overflow:hidden;
 }
 @media (orientation:portrait){
@@ -192,15 +193,15 @@ function installCss() {
     top:auto;
     bottom:8px;
     transform:translateX(-50%);
-    width:min(176px, 48vw);
-    height:min(300px, 48vh);
+    width:min(260px, 72vw);
+    height:min(460px, 62vh);
   }
 }
 #aus101-apply-mg canvas{
   display:block;
   width:100%;
   height:100%;
-  cursor:pointer;
+  cursor:crosshair;
   touch-action:none;
 }
 `.trim();
@@ -234,6 +235,7 @@ export function createApplyMinigame({ onStamp } = {}) {
   let bufH = 0;
   let hover = null;
   const pointer = { down: false, id: -1, region: null, lastT: 0 };
+  const brush = { x: 0, y: 0, on: false };
 
   function sizeCanvas() {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -250,6 +252,10 @@ export function createApplyMinigame({ onStamp } = {}) {
       parts = makeParts(w, h);
       bufW = w;
       bufH = h;
+      if (!brush.on) {
+        brush.x = w * 0.5;
+        brush.y = h * 0.4;
+      }
     }
     return { w, h };
   }
@@ -311,6 +317,17 @@ export function createApplyMinigame({ onStamp } = {}) {
       ctx.lineWidth = Math.max(1.5, w / 110);
       ctx.stroke(parts[ring]);
     }
+
+    if (brush.on) {
+      const r = Math.max(7, w * 0.035);
+      ctx.beginPath();
+      ctx.arc(brush.x, brush.y, r, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(243,239,228,0.88)";
+      ctx.fill();
+      ctx.strokeStyle = "rgba(224,176,64,0.95)";
+      ctx.lineWidth = Math.max(1.5, w / 140);
+      ctx.stroke();
+    }
   }
 
   function applyStamp(region, amount) {
@@ -327,19 +344,26 @@ export function createApplyMinigame({ onStamp } = {}) {
     onStamp?.({ npc, u: uv.u, v: uv.v, radius: STAMP_R, amount, region });
   }
 
-  function stampAtEvent(e, amount) {
-    const p = localXY(e);
-    const region = hitRegion(p.x, p.y);
+  function stampAt(x, y, amount) {
+    const region = hitRegion(x, y);
     pointer.region = region;
     hover = region;
     if (region) applyStamp(region, amount);
+    return region;
+  }
+
+  function stampAtEvent(e, amount) {
+    const p = localXY(e);
+    stampAt(p.x, p.y, amount);
     paint();
   }
 
   function holdStamp() {
-    if (!pointer.down || !pointer.region) return;
+    if (!pointer.region) return;
+    if (!pointer.down && !brush.on) return;
     const now = performance.now();
-    const dt = Math.min(0.05, Math.max(0, (now - pointer.lastT) / 1000));
+    const prev = pointer.lastT || now;
+    const dt = Math.min(0.05, Math.max(0, (now - prev) / 1000));
     pointer.lastT = now;
     if (dt > 0) applyStamp(pointer.region, HOLD_AMT_S * dt);
   }
@@ -364,11 +388,16 @@ export function createApplyMinigame({ onStamp } = {}) {
     if (!visible) return;
     const p = localXY(e);
     const region = hitRegion(p.x, p.y);
-    if (pointer.down && e.pointerId === pointer.id) {
+    if (pointer.down && (pointer.id === -1 || e.pointerId === pointer.id)) {
       e.preventDefault();
       e.stopPropagation();
+      const prev = pointer.region;
       pointer.region = region;
       hover = region;
+      brush.x = p.x;
+      brush.y = p.y;
+      brush.on = true;
+      if (region && region !== prev) applyStamp(region, TAP_AMT);
       holdStamp();
       paint();
       return;
@@ -392,12 +421,41 @@ export function createApplyMinigame({ onStamp } = {}) {
     }
   }
 
+  function onLookMove(e) {
+    if (!visible || !npc) return;
+    if (typeof document === "undefined" || !document.pointerLockElement) return;
+    if (!bufW || !bufH) sizeCanvas();
+    brush.x = Math.max(0, Math.min(bufW, brush.x + e.movementX * LOOK_SENS));
+    brush.y = Math.max(0, Math.min(bufH, brush.y + e.movementY * LOOK_SENS));
+    brush.on = true;
+    const prev = pointer.region;
+    const region = hitRegion(brush.x, brush.y);
+    pointer.region = region;
+    hover = region;
+    if (!pointer.lastT) pointer.lastT = performance.now();
+    if (region && region !== prev) applyStamp(region, TAP_AMT);
+    holdStamp();
+    paint();
+  }
+
+  function stopCardMouse(e) {
+    e.stopPropagation();
+  }
+
   canvas.addEventListener("pointerdown", onDown);
   canvas.addEventListener("pointermove", onMove);
   canvas.addEventListener("pointerup", onUp);
   canvas.addEventListener("pointercancel", onUp);
   canvas.addEventListener("lostpointercapture", onUp);
   canvas.addEventListener("contextmenu", (e) => e.preventDefault());
+  card.addEventListener("mousedown", stopCardMouse);
+  card.addEventListener("pointerdown", stopCardMouse);
+  window.addEventListener("pointermove", (e) => {
+    if (pointer.down) onMove(e);
+  });
+  window.addEventListener("pointerup", onUp);
+  window.addEventListener("pointercancel", onUp);
+  document.addEventListener("mousemove", onLookMove);
   window.addEventListener("resize", () => {
     if (visible) paint();
   });
@@ -411,6 +469,15 @@ export function createApplyMinigame({ onStamp } = {}) {
     visible = true;
     root.classList.add("is-on");
     root.setAttribute("aria-hidden", "false");
+    sizeCanvas();
+    if (!brush.on) {
+      brush.x = bufW * 0.5;
+      brush.y = bufH * 0.4;
+    }
+    brush.on = true;
+    pointer.region = hitRegion(brush.x, brush.y);
+    hover = pointer.region;
+    if (!pointer.lastT) pointer.lastT = performance.now();
     paint();
     requestAnimationFrame(paint);
   }
@@ -419,9 +486,11 @@ export function createApplyMinigame({ onStamp } = {}) {
     npc = null;
     visible = false;
     hover = null;
+    brush.on = false;
     pointer.down = false;
     pointer.id = -1;
     pointer.region = null;
+    pointer.lastT = 0;
     root.classList.remove("is-on");
     root.setAttribute("aria-hidden", "true");
   }

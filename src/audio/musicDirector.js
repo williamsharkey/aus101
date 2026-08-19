@@ -22,8 +22,8 @@ export function createMusicDirector({ carpenter, shades, locals = [] } = {}) {
   }
 
   function radiusOf(l) {
-    if (l.radius != null) return l.radius;
     if (l.id === "piano" || (shades && l.bed === shades)) return Math.max(l.radius ?? 0, 14);
+    if (l.radius != null) return l.radius;
     return 0;
   }
 

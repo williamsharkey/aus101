@@ -218,6 +218,8 @@ function mountUi(onToggle, onSave, onTake, onOpen) {
 
   pad = el("div", null, document.body);
   pad.id = "aus101-seq-pad";
+  pad.title = "KeyE — open sequencer";
+  pad.setAttribute("aria-label", "KeyE — open sequencer");
   pad.addEventListener("pointerup", (e) => {
     e.preventDefault();
     e.stopPropagation();

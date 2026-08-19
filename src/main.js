@@ -25,8 +25,8 @@ import { buildGoldCoast, setupGoldCoastLights, BOUNDS, GC } from "./world/goldCo
 import { createAus101, poseAus101 } from "./chars/aus101.js";
 import { spawnBeachCast } from "./chars/npcs.js";
 import { createWalkbyDirector } from "./audio/walkby.js";
-import { tickApply } from "./game/apply.js";
 import { createLotion } from "./game/lotion.js";
+import { runApplyFrame } from "./game/applyFlow.js";
 import { bindBottle, tickBottle } from "./view/bottle.js";
 import { createRecall } from "./game/recall.js";
 import { createReticuleBay } from "./hud/reticule.js";
@@ -326,17 +326,16 @@ function frame() {
     const squeezing = !!input.keys.Space;
     if (squeezing) carpenter?.setState("apply");
     else carpenter?.setState("boardwalk");
-    lotion.tick({ squeezeHeld: squeezing, applying: false, dt: raw || TICK });
-    const painted = tickApply(cast, player.pos, squeezing && lotion.canPaint(), raw || TICK, player.yaw);
-    if (painted) {
-      bay.track(painted.npc);
-      applyUx.show(painted.npc);
-      lotion.tick({ squeezeHeld: false, applying: true, dt: raw || TICK });
-    } else {
-      applyUx.hide();
-    }
-    applyUx.tick();
-    bay.tick(raw || TICK, painted?.npc);
+    const painted = runApplyFrame({
+      lotion,
+      cast,
+      playerPos: player.pos,
+      playerYaw: player.yaw,
+      squeezing,
+      dt: raw || TICK,
+      applyUx,
+      bay,
+    });
     tickBottle(aus101, lotion, raw || TICK);
     if (painted && audioOn && !walkby.isTalking(performance.now()) && Math.random() < 0.012) {
       voice.play("rub_pleasure_01", { gain: 1.2 });

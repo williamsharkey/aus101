@@ -26,7 +26,8 @@ import {
   signTex,
   metalRoofTex,
 } from "./coconutsHelpers.js";
-import { pianoPulse } from "../audio/shades.js";
+import { pianoPulse, playPianoPluck } from "../audio/shades.js";
+import { acquireCtx } from "../audio/tapeDeck.js";
 import { ken, babe } from "../chars/npcs.js";
 
 export const GC = {
@@ -761,15 +762,25 @@ function buildPianoMan() {
   const bench = box(0.5, 0.08, 0.22, black);
   bench.position.set(0, 0.62, 0);
   g.add(bench);
+  let lastLocal = 0;
   g.userData.tick = (t) => {
     const age = pianoPulse.at ? (performance.now() - pianoPulse.at) / 1000 : 99;
     const hit = age < 0.22 ? 1 - age / 0.22 : 0;
-    const idle = Math.abs(Math.sin(t * 6)) * 0.35;
-    const pulse = Math.max(hit, idle);
+    const idle = Math.abs(Math.sin(t * 6));
+    const pulse = Math.max(hit, idle * (pianoPulse.mix > 0.08 ? 0.35 : 1));
     armL.rotation.x = -1.12 + pulse * 0.05;
-    armR.rotation.x = -1.16 + Math.max(hit, Math.abs(Math.sin(t * 6 + 0.8)) * 0.35) * 0.05;
+    armR.rotation.x = -1.16 + Math.max(hit, Math.abs(Math.sin(t * 6 + 0.8)) * 0.45) * 0.05;
     keys.position.y = 0.89 + pulse * 0.012;
     g.position.y = 0.12 + Math.sin(t * 0.7) * 0.06;
+    if (pianoPulse.mix > 0.08) return;
+    if (idle < 0.92 || t - lastLocal < 0.8) return;
+    const player = g.parent?.getObjectByName?.("AUS101");
+    if (!player) return;
+    const d = Math.hypot(player.position.x - g.position.x, player.position.z - g.position.z);
+    if (d > 14) return;
+    lastLocal = t;
+    const ctx = acquireCtx();
+    if (ctx) playPianoPluck(ctx, ctx.destination, ctx.currentTime + 0.02);
   };
   return g;
 }
