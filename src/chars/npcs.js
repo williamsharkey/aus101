@@ -10,6 +10,9 @@ const TAU = Math.PI * 2;
 
 const GEO = {
   box: new THREE.BoxGeometry(1, 1, 1),
+  // sphereLo is for anything thumb-sized — eyes, ankles, ab cells — where the
+  // extra rings of `sphere` are pure cost.
+  sphereLo: new THREE.SphereGeometry(1, 8, 6),
   sphere: new THREE.SphereGeometry(1, 10, 8),
   sphereHi: new THREE.SphereGeometry(1, 12, 10),
   // Heads are read at arm's length in dialogue shots — the extra rings pay for themselves.
@@ -140,7 +143,7 @@ function buildBiped({
   const neck = part(GEO.cyl12, skinM, 0.052 * s, neckTop - neckBot, 0.05 * s);
   neck.position.y = (neckTop + neckBot) * 0.5;
   g.add(neck);
-  const trap = part(GEO.sphere, torsoMat, 0.1 * s, 0.055 * s, 0.075 * s);
+  const trap = part(GEO.sphereLo, torsoMat, 0.1 * s, 0.055 * s, 0.075 * s);
   trap.position.y = shoulderY + 0.005 * s;
   g.add(trap);
 
@@ -153,10 +156,10 @@ function buildBiped({
   jaw.position.set(0, -headR * 0.58, headR * 0.3);
   head.add(jaw);
   for (const side of [-1, 1]) {
-    const eye = part(GEO.sphere, MAT.eye, 0.016 * s);
+    const eye = part(GEO.sphereLo, MAT.eye, 0.016 * s);
     eye.position.set(side * 0.038 * s, 0.012 * s, headR * 0.8);
     head.add(eye);
-    const ear = part(GEO.sphere, skinM, 0.014 * s, 0.03 * s, 0.018 * s);
+    const ear = part(GEO.sphereLo, skinM, 0.014 * s, 0.03 * s, 0.018 * s);
     ear.position.set(side * headR * 0.92, -0.004 * s, -0.01 * s);
     head.add(ear);
   }
@@ -184,7 +187,7 @@ function buildBiped({
     upper.position.y = -upperLen * 0.5;
     arm.add(upper);
 
-    const elbow = part(GEO.sphere, sleeveM, aR * 0.94);
+    const elbow = part(GEO.sphereLo, sleeveM, aR * 0.94);
     elbow.position.y = -upperLen;
     arm.add(elbow);
 
@@ -228,7 +231,7 @@ function buildBiped({
     thigh.position.y = -thighH * 0.5;
     leg.add(thigh);
 
-    const knee = part(GEO.sphere, shinCover, lR * 0.92);
+    const knee = part(GEO.sphereLo, shinCover, lR * 0.92);
     knee.position.y = -thighH;
     leg.add(knee);
 
@@ -236,7 +239,7 @@ function buildBiped({
     shin.position.y = -thighH - shinH * 0.5;
     leg.add(shin);
 
-    const ankle = part(GEO.sphere, footCover, lR * 0.62);
+    const ankle = part(GEO.sphereLo, footCover, lR * 0.62);
     ankle.position.y = -thighH - shinH;
     leg.add(ankle);
 
@@ -250,10 +253,10 @@ function buildBiped({
     const sole = part(GEO.box, footCover, soleW, soleH, soleL);
     sole.position.set(0, -footH + soleH * 0.5, 0.062 * s);
     foot.add(sole);
-    const instep = part(GEO.sphere, footCover, soleW * 0.5, footH * 0.78, 0.085 * s);
+    const instep = part(GEO.sphereLo, footCover, soleW * 0.5, footH * 0.78, 0.085 * s);
     instep.position.set(0, -footH * 0.34, 0.028 * s);
     foot.add(instep);
-    const heel = part(GEO.sphere, footCover, soleW * 0.48, footH * 0.62, 0.038 * s);
+    const heel = part(GEO.sphereLo, footCover, soleW * 0.48, footH * 0.62, 0.038 * s);
     heel.position.set(0, -footH * 0.42, -0.052 * s);
     foot.add(heel);
     if (footwear === "shoe") {
@@ -421,7 +424,7 @@ function ken({ hair = 0xf4c431, shorts = 0x1f6f78, skin = 0xd4a06a } = {}) {
   for (let row = 0; row < 3; row++) {
     for (const side of [-1, 1]) {
       // Domed cells, mostly buried — they catch light instead of sitting on the chest as panels.
-      const cell = part(GEO.sphere, absM, 0.052 * s, 0.031 * s, 0.046 * s);
+      const cell = part(GEO.sphereLo, absM, 0.052 * s, 0.031 * s, 0.046 * s);
       cell.position.set(side * 0.05 * s, hipY + 0.28 * s - row * 0.066 * s, chestD * 0.5 - 0.032 * s);
       g.add(cell);
     }
@@ -656,11 +659,11 @@ function seagull() {
   bill.rotation.x = Math.PI / 2 + 0.06;
   bill.position.set(0, 0.286, 0.168);
   g.add(bill);
-  const gonys = part(GEO.sphere, MAT.beakSpot, 0.0055);
+  const gonys = part(GEO.sphereLo, MAT.beakSpot, 0.0055);
   gonys.position.set(0, 0.2805, 0.176);
   g.add(gonys);
   for (const side of [-1, 1]) {
-    const eye = part(GEO.sphere, MAT.eye, 0.008);
+    const eye = part(GEO.sphereLo, MAT.eye, 0.008);
     eye.position.set(side * 0.026, 0.3, 0.139);
     g.add(eye);
   }
@@ -689,7 +692,7 @@ function seagull() {
     const leg = part(GEO.cyl, orange, 0.009, 0.08, 0.009);
     leg.position.set(side * 0.03, 0.052, 0.02);
     g.add(leg);
-    const hock = part(GEO.sphere, orange, 0.013, 0.014, 0.013);
+    const hock = part(GEO.sphereLo, orange, 0.013, 0.014, 0.013);
     hock.position.set(side * 0.03, 0.013, 0.022);
     g.add(hock);
     const web = part(GEO.cone4, orange, 0.046, 0.06, 0.011);

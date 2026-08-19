@@ -40,7 +40,7 @@ const GTR = {
   bridge: new THREE.BoxGeometry(0.096, 0.026, 0.014),
   saddle: new THREE.BoxGeometry(0.086, 0.006, 0.005),
   string: new THREE.BoxGeometry(0.0022, 0.79, 0.0022),
-  strap: new THREE.BoxGeometry(0.03, 0.5, 0.006),
+  strap: new THREE.BoxGeometry(0.038, 0.008, 1),
 };
 
 const GTR_MAT = {
@@ -118,12 +118,20 @@ function makeGuitar() {
     g.add(str);
   }
 
-  const strap = new THREE.Mesh(GTR.strap, GTR_MAT.strap);
-  strap.position.set(-0.02, 0.24, -0.03);
-  strap.rotation.set(0.1, 0, 0.42);
-  g.add(strap);
-
   return g;
+}
+
+const _a = new THREE.Vector3();
+const _b = new THREE.Vector3();
+
+/** Unit-Z bar stretched between two points — straps, patch leads, guy wires. */
+function strut(from, to, geo, mat, twist = 0) {
+  const m = shadow(new THREE.Mesh(geo, mat));
+  m.position.copy(from).lerp(to, 0.5);
+  m.lookAt(to);
+  m.rotateZ(twist);
+  m.scale.z = from.distanceTo(to);
+  return m;
 }
 
 /* ------------------------------------------------------------------ boombox */
@@ -230,6 +238,11 @@ function placeGuitarKen(opts, x, y, z, yaw) {
   guitar.updateMatrix();
   mesh.add(guitar);
 
+  // Strap from the upper horn across the chest to the far shoulder.
+  _a.set(0.13, 0.17, -0.045).applyMatrix4(guitar.matrix);
+  _b.set(-b.chestW * 0.42, b.shoulderY + 0.02, -0.02);
+  mesh.add(strut(_a, _b, GTR.strap, GTR_MAT.strap));
+
   return { mesh, guitar, yaw, body: b };
 }
 
@@ -239,12 +252,12 @@ function poseGuitarist(k, t, i) {
   k.guitar.rotation.z = 1.0 + swing * 0.02;
   k.guitar.updateMatrix();
 
-  // Strumming hand sweeps across the strings just off the soundboard.
-  _hand.set(-0.02, -0.05 + swing * 0.075, 0.13).applyMatrix4(k.guitar.matrix);
-  armIK(k.mesh, 1, _hand, 1.15);
-  // Fretting hand behind the neck, walking up and down it.
-  _hand.set(-0.015, 0.36 + Math.sin(t * 1.7 + i) * 0.05, -0.02).applyMatrix4(k.guitar.matrix);
-  armIK(k.mesh, -1, _hand, -0.7);
+  // Wrists sit back along the forearm by a hand's length, so the hand itself
+  // lands on the strings / wraps the neck instead of the wrist doing it.
+  _hand.set(0.03, 0.06 + swing * 0.07, 0.15).applyMatrix4(k.guitar.matrix);
+  armIK(k.mesh, 1, _hand, 1.25);
+  _hand.set(-0.03, 0.25 + Math.sin(t * 1.7 + i) * 0.05, -0.03).applyMatrix4(k.guitar.matrix);
+  armIK(k.mesh, -1, _hand, -0.55);
 
   if (k.body.head) {
     k.body.head.rotation.x = 0.16;
@@ -283,7 +296,7 @@ function poseDancer(d, t) {
   // Symmetric knee bounce with a small differential, so the pelvis can drop by
   // exactly what the bend takes out of the standing leg and no sole leaves the sand.
   let stand = 0;
-  const dipBase = 0.16 + 0.26 * (0.5 + 0.5 * s);
+  const dipBase = 0.12 + 0.34 * (0.5 + 0.5 * s);
   for (const L of d.legs) {
     const dip = dipBase + L.side * sway * 0.06;
     L.leg.rotation.set(-dip, L.side * sway * 0.1, L.side * (0.06 + sway * 0.05));
@@ -294,13 +307,13 @@ function poseDancer(d, t) {
   d.mesh.position.y = -b.thighH * (1 - stand);
 
   // Hands pump in opposition, elbows out.
-  const reach = 0.3;
+  const reach = 0.25;
   for (const side of [-1, 1]) {
     const ph = beat + (side > 0 ? Math.PI : 0);
     _reach.set(
       side * (reach + Math.cos(ph) * 0.05),
-      b.shoulderY + 0.14 + Math.sin(ph) * 0.22,
-      0.08 + Math.cos(ph) * 0.08
+      b.shoulderY + 0.16 + Math.sin(ph) * 0.2,
+      0.13 + Math.cos(ph) * 0.07
     );
     armIK(d.mesh, side, _reach, side * 0.5);
   }

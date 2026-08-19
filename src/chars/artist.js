@@ -283,7 +283,7 @@ function makeBrush(skinM) {
 
 function makePainter() {
   const g = new THREE.Group();
-  const { headR, neckH, shoulderW, chestW, chestD, hipW, armR, legR, footH } = BODY;
+  const { headR, shoulderW, chestW, chestD, hipW, armR, legR, footH } = BODY;
   const { headY, shoulderY, hipY, torsoH, thighH, shinH } = BODY;
 
   const skin = std(0xc9a07a, { roughness: 0.62 });

@@ -76,7 +76,7 @@ const GEO = {
   skidLeg: new THREE.BoxGeometry(0.055, 0.26, 0.055),
   beam: new THREE.CylinderGeometry(0.028, 0.01, 1, 5),
   rope: new THREE.CylinderGeometry(0.018, 0.018, 1, 4),
-  dust: new THREE.RingGeometry(0.28, 0.62, 14),
+  dust: new THREE.RingGeometry(0.5, 0.68, 18),
 };
 
 const MAT = {
@@ -91,7 +91,7 @@ const MAT = {
   dust: new THREE.MeshBasicMaterial({
     color: 0xefe3c6,
     transparent: true,
-    opacity: 0.55,
+    opacity: 0.5,
     side: THREE.DoubleSide,
     depthWrite: false,
   }),
@@ -586,8 +586,8 @@ export function createRecall({ scene, onGameOver, play, onLevel, rng } = {}) {
     if (u.dustT > 0) {
       u.dustT -= dt;
       const k = 1 - Math.max(0, u.dustT) / 0.7;
-      u.dust.scale.setScalar(0.5 + k * 3.2);
-      u.dust.material.opacity = 0.75 * (1 - k) * (1 - k);
+      u.dust.scale.setScalar(0.55 + k * 3.6);
+      u.dust.material.opacity = 0.5 * (1 - k) * (1 - k);
       if (u.dustT <= 0) u.dust.visible = false;
     }
 

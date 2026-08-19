@@ -422,9 +422,9 @@ function poseLeg(hip, knee, foot, th, g, rest, side) {
   } else {
     // swing: big knee flex for clearance, foot stays near level
     const u = (t2 - Math.PI) / Math.PI;
-    kneeRot = (0.06 + 1.02 * Math.sin(Math.PI * Math.pow(u, 0.7))) * g;
+    kneeRot = (0.06 + 0.88 * Math.sin(Math.PI * Math.pow(u, 0.7))) * g;
     roll = 0.66 * Math.max(0, 1 - u / 0.28) - 0.24 * Math.min(1, u / 0.28);
-    comp = 0.62;
+    comp = 0.76;
   }
   kneeRot += rest * 0.06;
   const footRot = clamp(-(hipRot + kneeRot) * comp + roll * g - rest * 0.05, -0.62, 0.82);
@@ -505,8 +505,8 @@ export function poseT101(rig, state = {}) {
   r.chest.rotation.z = -0.03 * g * sinP;
 
   /* ---- arms: contralateral swing ---- */
-  const swingL = -0.5 * g * cph;
-  const swingR = 0.5 * g * cph;
+  const swingL = -0.55 * g * cph;
+  const swingR = 0.55 * g * cph;
   r.shoulderL.rotation.x = swingL + rest * 0.06;
   r.shoulderR.rotation.x = swingR + rest * 0.06;
   r.shoulderL.rotation.z = -(0.115 + 0.05 * g);

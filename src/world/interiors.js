@@ -70,7 +70,7 @@ function mats() {
   const K = kit();
   MATS = {
     // Exterior render walls — cream fibro, same family as the SLS tower.
-    wallOut: mat(0xefe7d6, { roughness: 0.95 }),
+    wallOut: mat(0xdfd2b6, { roughness: 0.95 }),
     // Interior face: slightly emissive so a shadowed room never goes to black.
     wallIn: mat(0xe7ddc8, { roughness: 0.96, emissive: 0x2a1f14, emissiveIntensity: 1 }),
     ceiling: mat(0xd8cdb6, { roughness: 0.98, emissive: 0x241a12, emissiveIntensity: 1 }),
@@ -93,6 +93,8 @@ function mats() {
     counterFront: new THREE.MeshStandardMaterial({ map: cloneMap(K.barMap, 5, 1), roughness: 0.7 }),
     timber: mat(0x6b4326, { roughness: 0.9 }),
     trim: mat(0xc8402e, { roughness: 0.7 }),
+    bandRed: mat(0x9e3325, { roughness: 0.8 }),
+    bandTeal: mat(0x2c6f6a, { roughness: 0.85 }),
     trimY: mat(0xf3e36a, { roughness: 0.8 }),
     steel: mat(0xc4c9cd, { metalness: 0.6, roughness: 0.4 }),
     dark: mat(0x2b2f33, { roughness: 0.6 }),
@@ -135,6 +137,19 @@ function runs(a, b, doors) {
 }
 
 /**
+ * Painted skirt + fascia proud of one wall run. Two small boxes turn a flat
+ * cream field into something that reads as a building from 20 m away.
+ */
+function bands(g, w, d, cx, cz, B, band) {
+  const skirt = fx(w + 0.06, 0.5, d + 0.06, band);
+  skirt.position.set(cx, B.floorY + 0.25, cz);
+  g.add(skirt);
+  const fascia = fx(w + 0.06, 0.2, d + 0.06, band);
+  fascia.position.set(cx, B.floorY + B.h - 0.1, cz);
+  g.add(fascia);
+}
+
+/**
  * Closed shell with walk-through openings.
  * @param {object} B
  * @param {number} B.x0 inner west face
@@ -149,6 +164,7 @@ function shell(g, reg, B) {
   const M = mats();
   const { x0, x1, z0, z1, h, doors } = B;
   const hy = B.floorY + h / 2;
+  const band = B.band === "teal" ? M.bandTeal : M.bandRed;
 
   const put = (mesh, minX, maxX, minZ, maxZ) => {
     g.add(mesh);
@@ -182,6 +198,7 @@ function shell(g, reg, B) {
       m.position.set((a + b) / 2, hy, (zA + zB) / 2);
       put(m, a, b, zA, zB);
       skin(a, b, (a + b) / 2, inner, ry);
+      bands(g, b - a, T, (a + b) / 2, (zA + zB) / 2, B, band);
     }
     for (const d of ds) lintel(g, d.at, (zA + zB) / 2, d.w, h, B.floorY, "x");
   }
@@ -196,6 +213,7 @@ function shell(g, reg, B) {
       const m = bx(T, h, b - a, M.wallOut);
       m.position.set((xA + xB) / 2, hy, (a + b) / 2);
       put(m, xA, xB, a, b);
+      bands(g, T, b - a, (xA + xB) / 2, (a + b) / 2, B, band);
       const ca = Math.max(a, z0);
       const cb = Math.min(b, z1);
       if (cb > ca) skin(ca, cb, inner, (ca + cb) / 2, ry);
@@ -328,8 +346,12 @@ function buildSurfClub(reg) {
     z1: 16.7,
     h: 3.15,
     floorY: 0.05,
-    doors: [{ side: "n", at: -18, w: 1.9 }],
+    band: "teal",
+    // Door is deliberately OFF-CENTRE: goldCoast.js puts a lamppost at
+    // (−18, 19.2), dead in front of the building's midline.
+    doors: [{ side: "n", at: -20.0, w: 1.9 }],
   };
+  const dx = B.doors[0].at;
   const cx = (B.x0 + B.x1) / 2;
   const cz = (B.z0 + B.z1) / 2;
   const info = shell(g, reg, B);
@@ -341,7 +363,8 @@ function buildSurfClub(reg) {
   const deck = fx(B.x1 - B.x0 + 1.2, 0.12, 1.9, M.floorWood);
   deck.position.set(cx, B.floorY - 0.06, vz);
   g.add(deck);
-  for (const px of [B.x0 + 0.2, cx - 2.6, cx + 2.6, B.x1 - 0.2]) {
+  // Post spacing dodges both the doorway and the lamppost at x = −18.
+  for (const px of [B.x0 + 0.15, -16.8, B.x1 - 0.15]) {
     const post = fx(0.16, 2.9, 0.16, M.timber);
     post.position.set(px, B.floorY + 1.45, vz + 0.8);
     g.add(post);
@@ -355,9 +378,12 @@ function buildSurfClub(reg) {
   g.add(awn);
 
   // --- exterior signage ---------------------------------------------
-  sign(g, signTex("SURF CLUB", "MEMBERS · VISITORS · THE UNZINCED"), 4.8, 1.2, cx, B.floorY + 2.62, B.z1 + T + 0.03, 0);
-  sign(g, awningTex("NO HAT", "NO PLAY"), 1.6, 0.5, cx - 3.1, B.floorY + 2.3, B.z1 + T + 0.03, 0);
-  sign(g, awningTex("ZINC UP", "OR ZIP IT"), 1.6, 0.5, cx + 3.1, B.floorY + 2.3, B.z1 + T + 0.03, 0);
+  const fz = B.z1 + T + 0.03;
+  sign(g, signTex("SURF CLUB", "MEMBERS · VISITORS · THE UNZINCED"), 4.4, 0.9, cx, B.floorY + 2.72, fz, 0);
+  sign(g, awningTex("ENTRY", "MIND THE GLARE"), 1.5, 0.42, dx, B.floorY + 2.4, fz, 0);
+  sign(g, awningTex("NO HAT", "NO PLAY"), 1.2, 0.42, B.x0 + 0.68, B.floorY + 1.5, fz, 0);
+  sign(g, awningTex("ZINC UP", "OR ZIP IT"), 1.2, 0.42, -17.5, B.floorY + 1.5, fz, 0);
+  sign(g, signTex("PATROL 0600", "UV 14 BY 0900 · SEEK SHADE"), 1.7, 0.85, -15.0, B.floorY + 1.62, fz, 0);
   const roofSign = makeSignPlane(signTex("SPF 50+", "SINCE THE OZONE WENT"), 3.4, 0.85);
   roofSign.position.set(cx, B.floorY + B.h + 0.95, B.z1 + T + 0.35);
   roofSign.rotation.x = -0.16;
@@ -468,7 +494,7 @@ function buildSurfClub(reg) {
     lampBase: 16,
     fan,
     fluoro: null,
-    door: { x: -18, z: B.z1 + T / 2 },
+    door: { x: dx, z: B.z1 + T / 2 },
   };
 }
 
@@ -484,6 +510,7 @@ function buildShadeShack(reg) {
     z1: 27.6,
     h: 3.0,
     floorY: 0.05,
+    band: "red",
     doors: [{ side: "s", at: 13.0, w: 2.2 }],
   };
   const cx = (B.x0 + B.x1) / 2;
@@ -605,6 +632,7 @@ function buildChangeRooms(reg) {
     h: 2.85,
     floorY: 0.05,
     tileFloor: true,
+    band: "teal",
     doors: [
       { side: "s", at: -28.2, w: 1.6 },
       { side: "s", at: -24.8, w: 1.6 },

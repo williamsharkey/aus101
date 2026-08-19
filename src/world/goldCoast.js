@@ -311,7 +311,7 @@ export function buildGoldCoast(scene, colliders) {
   const oceanGeo = new THREE.PlaneGeometry(GC.width + 50, 36, 40, 10);
   const ocean = new THREE.Mesh(
     oceanGeo,
-    new THREE.MeshStandardMaterial({ color: 0x17a2b8, roughness: 0.22, metalness: 0.2 })
+    new THREE.MeshStandardMaterial({ color: 0x17a2b8, roughness: 0.62, metalness: 0.05 })
   );
   ocean.rotation.x = -Math.PI / 2;
   ocean.position.set(0, 0.06, GC.oceanZ - 10);
