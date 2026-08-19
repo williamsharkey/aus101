@@ -7,17 +7,22 @@
 | **Date** | 2026-08-19 |
 | **Status** | Draft |
 | **Repo** | `/Users/wm/Desktop/repo/sunscreen` (greenfield) |
-| **Artefact** | Committed playable `dist/index.html` — vendored Three.js, no server, no CDN, no runtime network |
+| **Artefact** | Committed `dist/` from `npm run build` (esbuild): `index.html` + bundled `game.js` (Three inlined); relative `assets/` for voice/SFX. Served from a **static HTTPS / same-origin host** (laserbarf.com or local static server). No CDN, no game server, no runtime network beyond that origin. |
+| **Canonical path** | **`docs/DESIGN.md`** in repo `/Users/wm/Desktop/repo/sunscreen` ([williamsharkey/aus101](https://github.com/williamsharkey/aus101)). README points here. Temp/review copies must be synced into this path before BUILD0 — the workspace file is the source of truth for implementers. |
+| **Author** | TBD |
+| **Upstream** | Patterns ported from [Coconuts](https://github.com/a-better-internet/coconuts) by **Steve** ([a-better-internet](https://github.com/a-better-internet)) — see README / CREDITS |
 
 ---
 
 ## 1. Title & Metadata
 
-This document is the unified design for AUS101. It merges systems, world (Coconuts extract), audio (Reticule FM / Carpenter / Juno), NPC dialog (including SIGMA_07 satire, babe gossip, Ken jocks), incidental SFX, and the movie-poster first frame for laserbarf.com thumbnails.
+This document is the unified design for AUS101. It merges systems, world (Coconuts pattern port), audio (Reticule FM / Carpenter / Juno), NPC dialog (including SIGMA_07 satire, babe gossip, Ken jocks), incidental SFX, and the movie-poster first frame for laserbarf.com thumbnails.
 
 **Comedy rule:** Everyone is mocked. Adult vanity / Ken humor is `ageBand: adult` only. Children are ambient, not paint targets. Gulls are birds (`ageBand: gull`), not children.
 
 **Satire rule (SIGMA_07):** Name is `SIGMA_07` / "Trevor from the forum". Never a real killer name. Never manifesto text. Shirt stays on.
+
+**Attribution:** Control, collision, procedural Web Audio unlock, viewmodel overlay, prop-factory *patterns*, and canvas-texture helpers are adapted from Coconuts by **Steve**. Thank you Steve. Keep that credit in README.md and CREDITS.md (already present at https://github.com/williamsharkey/aus101 / this repo).
 
 ---
 
@@ -25,17 +30,17 @@ This document is the unified design for AUS101. It merges systems, world (Coconu
 
 AUS101 is a single-page Three.js walkaround / apply-lotion sim on a Gold Coast beach. The player is T-101: a chrome-and-flesh SPF applicator. The mission is to coat twelve UV-tracked subjects before they burn. Score is coverage. Punch and laser are always legal and always fatal — they summon a helicopter swarm and end the run.
 
-The **first loaded frame** is a full-scale movie poster (live Three.js cast tableau + huge 2D `AUS101` logo), not a dark click-start menu — so laserbarf.com / Open Graph thumbnails sell the game at ~160–400px. Tap anywhere (or a giant PLAY glyph) unlocks audio and fades into play.
+**Ship contract (normative):** Play from a **static same-origin host** (laserbarf.com production, or `python3 -m http.server` / any static file server in dev). `npm run build` (esbuild) emits `dist/index.html` + `dist/game.js` with Three **bundled**. Voice and SFX remain separate files under `assets/` and load via same-origin `fetch` + `decodeAudioData`. **`file://` is not a supported playable goal** — Chromium/Safari block sibling `fetch` under `file://` in common configs; do not promise VO/SFX there. Zero *cross-origin* runtime network.
 
-The playable ship is a static `dist/index.html` plus `dist/game.js`, with assets under `assets/`. Nothing phones home at play time. TikTok TTS is a **build-machine** tool only. Voice MP3s and SFX are committed.
+**Thumbnails vs humans:** laserbarf’s screenshot API does not wait for WebGL. v1 **requires** a committed static poster WebP/PNG (Option B) as the OG/thumbnail asset. Humans who load the page get Option A (live Three.js tableau + huge 2D `AUS101` logo) after assets stream; tap anywhere / giant PLAY unlocks audio and fades into play. Not a dark click-start menu.
 
-Reuse is surgical: extract mover, procedural ocean, foam-settle math, viewmodel, and prop factories from [a-better-internet/coconuts](https://github.com/a-better-internet/coconuts). Drop Ocean City meshes, Maryland flags, bar drinks, foam gun, and the r128 CDN. Vendor Three (r160 or current r1xx) at `vendor/three/`.
+Reuse is a **pattern port**, not a module extract: Coconuts is one ~160 KB IIFE (Three r128 CDN). Port mover / ocean / foam-settle / viewmodel / prop *ideas* into new ES modules under `src/`; delete Ocean City meshes, Maryland flags, bar drinks, foam gun, and the CDN. Pin **Three r160** at `vendor/three/` (or npm `three@0.160`, bundled by esbuild) — see Build §5.6.
 
 ---
 
 ## 3. Background & Motivation
 
-Coconuts Beach Bar (Ocean City MD) proved a self-contained ~160 KB Three walkaround with pointer lock, AABB floors, and procedural sound. AUS101 keeps that engineering and swaps the joke: Australian noon UV, zinc white-cast, finite 200 ml bottles, and an 80s film-culture boardwalk.
+Coconuts Beach Bar (Ocean City MD), by **Steve** ([a-better-internet/coconuts](https://github.com/a-better-internet/coconuts)), proved a self-contained ~160 KB Three walkaround with pointer lock, AABB floors, and procedural sound. AUS101 ports those patterns into a modular tree and swaps the joke: Australian noon UV, zinc white-cast, finite 200 ml bottles, and an 80s film-culture boardwalk.
 
 The gag is systemic, not overlay copy:
 
@@ -52,26 +57,28 @@ Radio (Reticule FM 101.7) and a John Carpenter–adjacent D-minor bed (original 
 
 ### Goals
 
-1. Playable offline from `file://` or a static host; zero runtime network.
-2. **First paint is a thumbnail-readable movie poster** for laserbarf.com / OG captures (~160–400px): huge `AUS101`, silhouette cast, tap-anywhere or giant PLAY — not a dark instruction menu.
+1. Playable from a **static same-origin host** (laserbarf.com or local static server); zero cross-origin runtime network; `npm run build` produces the committed `dist/`.
+2. **laserbarf v1 OG thumbnail = committed static poster WebP/PNG** (Option B), silhouette-readable at ~160–400px. **Human first paint** = live tableau (Option A) + huge `AUS101` + tap-anywhere / giant PLAY — not a dark instruction menu.
 3. iPhone Safari landscape-primary first-class; desktop same CSS contract.
 4. Win by mean coverage ≥ 0.92, no patch < 0.40, twelve subjects.
-5. Finite lotion physics (200 ml bottle, 4–6 ml hand).
-6. Extract Coconuts mover / audio unlock / drip pool / prop factories; new Gold Coast world.
-7. Bake and commit ~200 NPC lines + 50 DJ quips; Carpenter sequencer ships day one.
-8. Age-band CI: adult tropes never attach to children; SIGMA_07 satire constraints enforced.
-9. Incidental Foley bank ≤ 2.5 MB under `assets/sfx/`, CC0/CC-BY preferred.
+5. Finite lotion physics (200 ml bottle, 4–6 ml hand); bottle viewmodel before lotion FSM.
+6. **Port Coconuts patterns** (mover, audio unlock, drip settle, prop builders) into ES modules; credit Steve; new Gold Coast world.
+7. Bake and commit ~200 NPC lines + DJ bank (`dj_open_01` + 49 quips + 3 song announces = **53** DJ MP3s); Carpenter sequencer ships day one.
+8. Age-band CI **and** runtime kid-proximity director fixtures; SIGMA_07 satire constraints enforced.
+9. Incidental Foley bank ≤ 2.5 MB under `assets/sfx/`, following `docs/parts/grok-design-part-sfx-3641153d.md` first-checkout table.
 
 ### Non-Goals
 
 1. Multiplayer, accounts, analytics, or any game server.
 2. Runtime TikTok / any TTS API.
-3. Reskinning Ocean City as Australia (extract functions; delete the OC level).
+3. Reskinning Ocean City as Australia, or claiming clean “extract modules” from the Coconuts IIFE (port patterns; rewrite into `src/`).
 4. Real brands, real SLSA marks, real killer names, manifesto quotes.
 5. Kids as paint targets or sexualized content involving minors.
 6. Carpenter score rips or YouTube stems.
 7. Perfect sand-footstep fidelity; gravel/mud stand-ins are acceptable.
-8. **Instruction-heavy dark start menu as the first paint** (small Start / Options / Credits row, control lists, paragraph “click to start” microcopy). Poster is the brand frame; gameplay HUD appears only after unlock.
+8. **Instruction-heavy dark start menu as the first paint** (small Start / Options / Credits row, control lists, paragraph “click to start” microcopy).
+9. **`file://` as a supported full-game contract** (VO/SFX via `fetch` will fail in common browsers). Dev may open HTML for canvas smoke only; ship/checklist requires a static host.
+10. Relying on laserbarf screenshotapi to wait for WebGL / live tableau (it does not).
 
 ---
 
@@ -79,9 +86,16 @@ Radio (Reticule FM 101.7) and a John Carpenter–adjacent D-minor bed (original 
 
 ### 5.0 Title Poster / First Frame (boot)
 
-The first loaded frame of laserbarf.com is cover art, not a menu. Social crawlers and Open Graph screenshotters capture whatever paints first. A dark instruction screen with a small Start button fails the thumbnail: it reads as UI chrome, not a game. Boot paints a full-scale movie-poster tableau — huge `AUS101` lettering, lineup silhouettes, Gold Coast Carpenter grade — then a single-gesture unlock into gameplay.
+The public face of AUS101 is cover art, not a menu. A dark instruction screen with a small Start button fails the thumbnail: it reads as UI chrome, not a game.
 
-**Prefer Option A:** live Three.js posed tableau + 2D CSS/canvas logo overlay. Same character meshes as gameplay (zero art fork); slight life (wind on hair/cloth, red-eye pulse, slow camera push-in); logo stays sharp at any DPR because type is not baked into a 3D texture. **Option B** (baked PNG/WebP) is fallback only if first-paint budget or mesh-load latency misses the OG screenshot window.
+**Two surfaces (normative):**
+
+| Surface | Asset | Consumer |
+|---|---|---|
+| **Option B — required for laserbarf v1 OG** | Committed **`assets/poster/og.webp` at 400×400** (laserbarf square thumbnail composition). Plus human-QA width strips 160/240/400 in `docs/fixtures/poster/`. Title + four silhouettes inside the square center crop. | laserbarf config pins **400×400**; `screenshots.php` → screenshotapi.com (`url/width/height/fresh` only — **no delay/wait/WebGL hook**). Thumbnail must not depend on live GL. |
+| **Option A — human first paint** | Live Three.js `PosterScene` + 2D CSS/canvas `AUS101` overlay after CHAR0 meshes exist | Players on static host. Same character meshes as gameplay (zero art fork); wind, red-eye pulse, slow push-in. |
+
+POSTER0 ships Option B + logo/PLAY overlay immediately. POSTER1 (live tableau) lands **after CHAR0**. Do not mark POSTER1 done without shared meshes.
 
 #### Boot → poster → play
 
@@ -160,15 +174,32 @@ ASCII (~200–400px mental model):
 #### Implementation
 
 1. Set clear / CSS background `#0b1210`.
-2. Show poster shell (logo + gradient/placeholder beach) in first paint.
-3. Stream meshes into `PosterScene` (or boot-mode flag); fixed poses + idle wind / eye pulse / ~2–4% camera dolly over 8–12s; swap placeholders without flashing black. Lights: hard key (sun), teal fill, orange rim on chrome.
-4. On first pointerdown: `AudioContext` resume, 400ms opacity fade of poster root, handoff to gameplay. Keep poster remountable for Esc → pause (brand frame).
-5. Fallback Option B: fullscreen WebP/PNG still + same CSS logo/PLAY overlay if mesh time-to-poster exceeds OG capture SLA. Live tableau remains the target.
+2. **First paint:** CSS/canvas logo + committed Option B WebP (or solid beach gradient until WebP decodes). Never black void. Never instruction menu.
+3. After CHAR0: stream meshes into `PosterScene` on the **same** `WebGLRenderer` / scene graph (swap cameras; do not recreate GL; do not double-resident twelve gameplay bodies — poster uses the four cast instances, gameplay subjects stay inactive or culled while poster is up). Fixed poses + idle wind / eye pulse / ~2–4% camera dolly over 8–12s.
+4. On first pointerdown: `AudioContext` resume, 400ms opacity fade of poster root, handoff to gameplay.
+5. Generate/update `og.webp` offline or in CI from an approved live still; laserbarf continues to screenshot the served URL, but the page’s LCP/`og:image` (and in-page first paint) prefer the static file so captures without WebGL wait still show cast+title.
+
+#### Esc / pause table
+
+When Esc returns to poster (or veil), apply this freeze (mirror Coconuts veil intent: tick/gain/lock stop):
+
+| System | On pause (poster up) | On resume (tap/PLAY) |
+|---|---|---|
+| Sim clock / UV dose / lotion FSM | **Frozen** (`dt = 0`) | Continue |
+| Chase agents / wanted & swarm timers | **Frozen** | Continue from remaining lock time |
+| Carpenter / radio / ocean buses | **Paused** (suspend clock; do not tear down) | Resume |
+| ApplyMode | **Force-exit**; release apply leash | Re-enter only on new squeeze/rub |
+| Pointer lock | **Released** | Re-acquire on next gameplay gesture |
+| Input (punch/laser/move) | **Ignored** except tap/PLAY and Key M | Restored |
+| DOM | Poster overlay above HUD; HUD hidden | Poster faded; HUD shown |
+| WebGL | Same renderer; poster camera active | Gameplay camera active |
 
 #### Silhouette checks
 
-- Screenshot at 160 / 240 / 400px widths. Pass only if `AUS101` letters are legible and four primary archetypes remain distinct without color reliance (robot block vs orange Ken vs bikini vs sleeved vertical).
-- Logo bounding box ⊆ center 80% of viewport. No FPS, mute icon, hamburger, or “tap to start” paragraph in the capture.
+- **laserbarf normative crop: 400×400** (`SCREENSHOT_WIDTH`/`HEIGHT` = 400 in laserbarf `includes/config.php`). Compose `og.webp` and the primary fixture so title + four silhouettes sit inside the **square center crop** — do not rely on landscape-only safe margins that square capture will clip.
+- Also commit human-QA width strips at **160 / 240 / 400px** under `docs/fixtures/poster/` (plus `og-400x400.webp` matching ship). Pass only if `AUS101` letters are legible and four primary archetypes remain distinct without color reliance.
+- Logo bounding box ⊆ center 80% of the **400×400** frame. No FPS, mute icon, hamburger, or “tap to start” paragraph in the capture.
+- POSTER0 acceptance includes Option B **400×400** fixtures; POSTER1 acceptance requires CHAR0 meshes.
 
 ---
 
@@ -180,7 +211,7 @@ Comedy is the state machine, not overlay copy.
 - **T-101.** Chrome-and-flesh applicator. Does not tan or burn. It paints. 14 voice one-shots, event-triggered (`bottleEmpty`, `subjectComplete`, `overpaintChase`, `laserLock`). No joke timer.
 - **Twelve subjects.** Each slot = mesh + `CoverageMap` + `ClothMask` + mood FSM (`idle → wary → chase | complete`). They sunbake until covered, then leave the bay.
 - **Overpaint swimwear.** `ClothMask == 1` increments `overpaintMl`. 8 ml: he notices. 12 ml: `chase`. He path-follows T-101; camera stays in apply-mode until finish or grab.
-- **Punch / laser.** Always legal, always fatal. Sets `world.wanted = true`, spawns a T-101 helicopter swarm (12 hulls, instance count = live subjects + 4). Game over after 2.4 s lock-on.
+- **Punch / laser.** Always legal, always fatal. Sets `world.wanted = true`, spawns a T-101 helicopter swarm. **Cap:** `min(8, liveSubjects + 2)` instanced hulls (not a hard 12 — see perf). Game over after 2.4 s lock-on.
 
 Constants in `src/sim/rules.js`:
 
@@ -192,6 +223,7 @@ export const RULES = Object.freeze({
   overpaintChaseMl: 12,
   punchToSwarmS: 0.0,
   swarmLockS: 2.4,
+  swarmHullCap: 8,
   bottleMl: 200,
   handMinMl: 4,
   handMaxMl: 6,
@@ -271,25 +303,29 @@ Enter Apply when `squeeze || rub` and a center ray hits a subject within 1.8 m. 
 
 Coverage is a UV-space mesh paint pass, not a screen decal. Turning the body must not smear lotion into the sand.
 
-**Maps per subject** (all `THREE.FramebufferTexture` or raw `WebGLRenderTarget`):
+**Normative target API:** persistent `THREE.WebGLRenderTarget` with `UnsignedByteType` + `RedFormat` (`gl.R8`). If `RedFormat` is unavailable, fall back to `RGBAFormat` and write coverage in `.r` only (shader `#define` from a one-time capability probe). **`THREE.FramebufferTexture` is non-normative** — it is a snapshot helper, not the paint store.
+
+**Maps per subject:**
 
 | Map | Size | Format | Role |
 |---|---|---|---|
-| `CoverageMap` | 256×256 | `R8` (`gl.R8`, fallback `RGB`) | 0–1 fraction of skin with film |
-| `ThicknessMap` | 256×256 | `R8` | film thickness, 0–1 ≡ 0–0.08 mm |
-| `ClothMask` | 256×256 | `R8` | 0 = skin, 1 = swimwear / hair / eyes |
-| `UvDoseMap` | 256×256 | `R8` | accumulated UV, feeds erythema |
+| `CoverageMap` | 256×256 | R8 → RGBA fallback | 0–1 fraction of skin with film |
+| `ThicknessMap` | 256×256 | R8 → RGBA fallback | film thickness, 0–1 ≡ 0–0.08 mm |
+| `ClothMask` | 256×256 | R8 → RGBA fallback | 0 = skin, 1 = swimwear / hair / eyes |
+| `UvDoseMap` | 256×256 | R8 → RGBA fallback | accumulated UV, feeds erythema |
+
+**Resident GPU maps:** full 256 R8 (or RGBA) targets for the **`applying` subject only**. Other tracked subjects keep CPU-side 64×64 coverage/uvDose summaries (or 128 RTT if memory allows); promote to 256 on apply lock. Quality-drop may paint at 128.
 
 Paint pass (`src/sim/paintPass.js`):
 
-1. Bind a UV-unwrap framebuffer: vertex shader outputs `vec4(uv * 2.0 - 1.0, 0, 1)`. Same index buffer as the body.
+1. Bind UV-unwrap RTT: vertex shader outputs `vec4(uv * 2.0 - 1.0, 0, 1)`. Same index buffer as the body.
 2. Fragment: if `ClothMask == 1`, write to an overpaint accumulator (CPU-read 8×8 downsample each 250 ms), do **not** raise `CoverageMap`.
 3. Else: `coverage = max(coverage, step(0.02, thickness))`; `thickness = clamp(thickness + deposit, 0, 1)`.
-4. Deposit is a 2D anisotropic kernel in UV, warped by a precomputed `UvMetric` texture (texel area in m², 128×128 `RG16F`) so a chest texel and an ear texel get the same ml/m².
+4. Deposit is a 2D anisotropic kernel in UV, warped by `UvMetric`. Prefer 128×128 `RG16F` texel-area texture; **feature-detect** half-float RT. If unavailable, use a constant texel-area uniform (no RG16F) — ear/chest ml/m² will be approximate.
 
 Brush stamp: 24 px radius at 256, falloff `pow(1 - r, 1.6)`. One stamp per 2.5 mm of surface travel (arc length from last hit, not UV distance).
 
-Readback for score: once per 200 ms, `gl.readPixels` a 64×64 blit of `CoverageMap`. Mean of skin texels (where `ClothMask == 0`) is `subject.coverage`. Patch min is the 5th percentile of that blit.
+Readback for score: once per 200 ms, `gl.readPixels` a 64×64 blit of `CoverageMap` for the applying subject only. Expect **0.4–2.0 ms** stall on iPhone — budget and PERF0 measure wall time; if >2 ms median, drop to 32×32 blit or 400 ms interval. Mean of skin texels (`ClothMask == 0`) is `subject.coverage`. Patch min is the 5th percentile of that blit.
 
 #### Squeeze-then-rub finite lotion physics
 
@@ -334,7 +370,24 @@ One `MeshPhysicalMaterial` subclass (`src/mat/skin.js`). Maps drive it. No secon
 
 White-cast is the gag and the readout: painted chest = zinc stripe, not wet look. Unpainted skin goes red. Miss is a color, not a number.
 
-Sun: one `DirectionalLight` (2.4 lx, `0xffe2b0`) + hemisphere (`0x87b8ff` / `0xc2a070`). No shadows on paint targets. 512-px sand shadow map covers T-101 and the swarm only.
+**Lighting ownership:** single table in `src/world/lights.js` (World owns; Systems consumes). Normative noon defaults:
+
+```js
+export const LIGHTS = Object.freeze({
+  sunColor: 0xfff1c2,
+  sunIntensity: 1.85,          // not a second 2.4 path
+  sunPosition: [18, 42, -8],
+  hemiSky: 0x7ec8ff,
+  hemiGround: 0xc4a574,
+  hemiIntensity: 0.55,
+  fog: { color: 0xc9dbe8, density: 0.012 },
+  shadowMapSize: 1024,         // default; quality-drop → 512; never 2048 on iPhone
+  shadowsOnPaintTargets: false,
+  shadowCasters: ['player', 'swarm'],
+});
+```
+
+Do not fork a second sun color/intensity in the skin section. Skin clearcoat reads under this light.
 
 #### Twelve-slot reticule bay
 
@@ -371,31 +424,41 @@ Tapping a pip yaws the camera at that subject (0.3 s), no teleport. UV-track mar
 | `sunburn` | any slot `uvDose ≥ 1` for 3 s | that subject leaves angry; slot `gone`; if 3 gone this way, lose | no |
 | `overpaint-chase` | `overpaintMl ≥ 12` | guy chases; grab on contact (`dist < 0.55 m` for 0.4 s) | yes, if you finish other 11 and never get grabbed |
 | `grabbed` | chase contact | game over, 1.2 s hold, then restart prompt | no |
-| `punch` | `input.punch` | `wanted = true`, swarm in 0 s | no |
+| `punch` | `input.punch` | `wanted = true`, swarm arm in 0 s | no |
 | `laser` | `input.laser` | same as punch, red beam first | no |
-| `swarm-lock` | `wanted` for 2.4 s | 12 helicopters, game over card | no |
+| `swarm-lock` | `wanted` for 2.4 s | ≤8 heli instances, game over card | no |
 | `bottle-dry` | `bottleMl == 0` and mean coverage < 0.92 | lose (text: “200 ml. That’s the joke.”) | no |
 | `drown-drip` | 40 ml dripped to sand | warning only; not a lose | — |
 
-Restart = sim reset, not a WebGL recreate. `glClear` the maps. Same canvas.
+**Wanted → swarm sequence (2.4 s):**
+
+1. On punch/laser: force-exit ApplyMode; lock move/punch/laser input; keep look.
+2. Fire `PANIC` VO immediately; if anyone is hurt / laser hit registered, **FACTORY_RECALL** preempts per director priority (cuts DJ/NPC).
+3. Duck radio −6 dB (same as apply duck); play `world.heli` on sfx bus (spatial pan L→R); optional red “WANTED” HUD pip — not the poster.
+4. At 2.4 s: spawn ≤`swarmHullCap` instanced hulls; game-over card (separate from poster; restart CTA). Restart = sim reset + optional return to poster brand frame; **not** a WebGL recreate. `glClear` the maps. Same canvas.
 
 #### Performance budget
 
-iPhone 13-class, 60 Hz when the URL bar is hidden, 30 Hz floor.
+iPhone 13-class, 60 Hz when the URL bar is hidden, 30 Hz floor. **PERF0** lands after P3 (readback + one physical skin) — do not wait for end-of-plan PERF.
 
 | Resource | Budget | Note |
 |---|---|---|
 | triangles, world | 90 k | beach 20 k, T-101 18 k, 12 bodies × 4 k, FX 4 k |
 | triangles, apply-mode | +0 | same meshes; paint is UV pass |
-| textures | 48 MB | 12 × 4 × 256 R8 = 3 MB maps; 2 k sand; 1 k sky; skin atlases 2 k |
+| GPU paint RTTs | 1 subject × 4 × 256 | others CPU/64 summaries; see UV section |
+| textures | ≤ 48 MB | maps + sand + sky + skin atlases |
+| shadow map | 1024 default / 512 drop | not 2048 on mobile |
 | draw calls | 45 | bodies instanced in idle, unique when `applying` or `chase` |
 | paint pass | 1.2 ms | one subject / frame, the `applying` one |
-| readback | 0.4 ms / 200 ms | 64×64 R8 |
+| readback | **measure**; target <2 ms / 200 ms | 64×64; sync cost is real on iOS |
 | JS sim | 2.0 ms | lotion + FSM + chase |
 | DPR | ≤ 2 | see viewport |
-| audio voices | 8 | one-shots, no music stream |
+| audio voices | 8 | one-shots |
+| decoded AudioBuffer LRU | 16 buffers; ≤ ~8 MB decoded | voiceCache eviction |
+| swarm hulls | ≤ 8 | instanced; quality-drop → 4 |
+| poster vs gameplay | one renderer; poster cast ≠ 12 live subjects | Esc must not double-resident |
 
-If `dt > 28 ms` for 20 frames: drop sand shadows, paint at 128, freeze idle bodies beyond 12 m. Never drop the canvas.
+If `dt > 28 ms` for 20 frames: drop sand shadows (or 512→off), paint at 128, freeze idle bodies beyond 12 m, swarm 4, skip tracker. Prefer `MeshStandardMaterial` world props; reserve `MeshPhysicalMaterial` (clearcoat) for paintable skin only — if PERF0 shows clearcoat too hot, fall back to Standard + white-cast albedo hack. Never drop the canvas.
 
 #### Systems Mermaid
 
@@ -475,11 +538,11 @@ stateDiagram-v2
 
 ---
 
-### 5.2 World — Gold Coast extract from Coconuts
+### 5.2 World — Gold Coast port from Coconuts patterns
 
-AUS101 is a greenfield walkaround. The playable artefact is a committed `dist/index.html`: vendored Three.js, no server, no CDN, no runtime fetch.
+AUS101 is a greenfield walkaround. Ship artefact: `npm run build` → committed `dist/` on a static host (see §5.6 Build).
 
-Coconuts is a single ~160 KB Three r128 file of Coconuts Beach Bar, Ocean City MD. Extract code, not place. Hotel, castle, bar interior, Maryland flags, drinks, intoxication, foam gun, and the r128 CDN stay behind. Keep the mover, procedural sound, first-person overlay, foam-settle math (lotion only), and prop factories.
+Coconuts ([a-better-internet/coconuts](https://github.com/a-better-internet/coconuts) by **Steve**) is a single ~160 KB **IIFE** (`index.html`, Three **r128 CDN**). There are **no** clean exportable `umbrella` / `gull` / `palm` modules — builders are inline (`chairStack`, seagull block, etc.). **Port patterns; rewrite into ES modules.** Do not claim “extract functions.” Hotel, castle, bar interior, Maryland flags, drinks, intoxication, foam gun, and the r128 CDN stay behind. Port: mover / `COL[]` / `addCollider`, procedural ocean+crowd unlock, `vmScene` overlay, foam-settle (`settled` / foam surf math → lotion drips), Shift 3.4→6.4, `KeyM` mute, canvas-texture helpers. Credit Steve in README and CREDITS.md.
 
 The new majority is an ~80 × 50 m Gold Coast beach, a 12 m timber boardwalk, a nearer shore-break whose foam dies on wet sand, an SPF kiosk, a lifeguard tower, and film-culture set dressing. Those props do not fire, cut, or apply to other players.
 
@@ -503,19 +566,22 @@ Three bands, no heightmap:
 
 No dunes, rocks, or hotels. Sky is a hard dome plus a distant island billboard (Stradbroke-ish, not OC skyline).
 
-**Noon default.** Keep Coconuts’ day/night toggle (`KeyN`) but boot harsh AU noon: directional `0xfff1c2` intensity 1.85 at `(18, 42, −8)`; hemisphere sky `0x7ec8ff` / ground `0xc4a574` at 0.55; `FogExp2(0xc9dbe8, 0.012)`; PCFSoft 2048, sun only. Night reuses existing moon + lamp/torch. Do not author a new lighting model.
+**Noon default.** Boot and stay at harsh AU noon via `src/world/lights.js` (`LIGHTS` table above). Optional leftover: port Coconuts’ **continuous** `dayTime` cycle with **`KeyT` fast-forward** (there is no KeyN toggle upstream). Night may reuse moon + lamp/torch if the cycle is enabled; noon remains the product default. Shadow map size = `LIGHTS.shadowMapSize` (1024 / 512 drop), PCFSoft, sun only.
 
-#### Reuse from Coconuts
+#### Port from Coconuts (patterns → ES modules)
 
-Vendor the original file at `vendor/coconuts/`. Split reusable functions into `src/`. Copy the math; drop OC meshes and strings.
+Vendor an unmodified snapshot at `vendor/coconuts/` (+ NOTICE). **Rewrite** into `src/`; W0 acceptance lists symbols **copied as reference** vs **rewritten**.
 
-- **`src/player.js`** — WASD / arrows; Shift 3.4 → 6.4; pointer-lock look, drag fallback, touch-drag + stick; `COL[]` AABB (player 0.5 × 1.7 × 0.5 box); 60 Hz tick; head bob; veil pause. Spawn `(0, 1.7, 4)` facing +Z. Floor Y from AABBs.
-- **`src/audio.js`** — unlock on first pointer/key/touch. Ocean: filtered noise + LFO, retuned brighter/closer (dump at Z ≈ 36). Crowd node stays, gain down. `KeyM` mute + on-screen `M`. No ice-machine, clink, or foam-gun hiss.
-- **`src/vm.js`** — keep `vmScene`, swap meshes. Right hand: SPF bottle (cylinder + pump + label canvas), idle bob. World-space palm sprig. World exposes `vm.drip()`.
-- **`src/drips.js`** — foam-settle only. Disc + streaks, opaque white-yellow, ~1.8 s. No spray cone, hose, or knockback.
-- **Prop factories** — `umbrella`, `chair`, `lounger`, `palm`, `gull`, `surfboard`, `beachBall`, `lamp`, `torch`, `cup`, plus `canvasTex`, `mat`, `box`, `addCollider`. Recolour for Gold Coast. Cups are empty slushies. Every solid goes through `addCollider`.
+| Area | Coconuts reality | AUS101 module |
+|---|---|---|
+| Mover / look / `COL[]` / bob / veil | Real in IIFE | `src/player.js` — WASD/arrows; Shift 3.4→6.4; pointer-lock; spawn `(0, 1.7, 4)` +Z |
+| Audio unlock / ocean / crowd / `KeyM` | Real | `src/audio.js` + later `src/audio/*` — retune dump Z≈36; no ice-machine/clink/foam-gun hiss |
+| `vmScene` | Real | `src/vm.js` — SPF bottle + palm; `vm.drip()` |
+| Foam settle | `settled` + foam surf | `src/drips.js` — lotion settle discs only |
+| Prop builders | Inline, not modules | `src/props/core.js` + `beach.js` — rewrite `canvasTex`/`mat`/`box`/`addCollider` and beach props; Gold Coast recolour |
+| Day / night | Continuous `dayTime`; **`KeyT` fast-forward** (not KeyN) | Optional: port continuous cycle + `KeyT`; **boot noon and stay noon by default**. No KeyN. |
 
-**Do not reuse as setting:** hotel / castle / bar; Maryland flags; drinks / intox; foam-gun mesh; Three r128 from CDN. Vendor Three at `vendor/three/`.
+**Do not reuse as setting:** hotel / castle / bar; Maryland flags; drinks / intox; foam-gun mesh; Three r128 from CDN. **Three r160** vendored/bundled (see §5.6).
 
 #### New terrain
 
@@ -583,25 +649,26 @@ flowchart LR
   TW --- SD
 ```
 
-#### Reuse vs new Mermaid
+#### Port vs new Mermaid
 
 ```mermaid
 flowchart TB
-  subgraph reuse ["Reuse from vendor/coconuts"]
+  subgraph port ["Port patterns from vendor/coconuts IIFE — rewrite ES modules"]
     P[player mover look COL bob veil]
     A[audio unlock ocean crowd KeyM]
     V[vmScene bottle plus palm]
     D[drips foam-settle retinted]
-    F[prop factories canvasTex addCollider]
-    N[optional day/night unused default]
+    F[prop builders canvasTex addCollider]
+    N[optional continuous dayTime plus KeyT]
   end
-  subgraph neu ["New in this part"]
-    L[80x50 Gold Coast bands plus noon]
+  subgraph neu ["New"]
+    L[80x50 Gold Coast bands plus noon LIGHTS]
     W[nearer shore-break wet-sand foam death]
     B[12 m boardwalk plus stairs]
     K2[SPF kiosk bar-builder]
     T2[lifeguard tower loft pattern]
     C[vape cig lighter radio tourist inflatable tent]
+    CH[src/chars shared meshes CHAR0]
   end
   P --> L
   F --> B
@@ -611,25 +678,28 @@ flowchart TB
   D --> W
   A --> W
   V -.-> K2
+  CH --> C
 ```
 
-#### World build shape
+#### Repo / dist shape
 
 ```
 sunscreen/
-  vendor/coconuts/     # unmodified snapshot + NOTICE
-  vendor/three/        # three.module.js, not r128 CDN
+  vendor/coconuts/     # unmodified snapshot + NOTICE (Steve)
+  vendor/three/        # r160 three.module.js — bundled into dist/game.js
   src/
-    main.js
+    main.js            # esbuild entry
+    chars/             # CHAR0 shared body primitives
     player.js
-    audio.js
     vm.js
     drips.js
     world.js
+    world/lights.js    # LIGHTS single source
     props/core.js
     props/beach.js
     props/film.js
     shell/viewport.js
+    shell/poster.js
     sim/rules.js
     sim/paintPass.js
     mat/skin.js
@@ -639,15 +709,22 @@ sunscreen/
     audio/voiceCache.js
     audio/radio.js
     audio/mix.js
+    audio/director.js
   tools/voice/bake.mjs
-  tools/voice/lines.json
+  tools/voice/lines.json   # SOURCE OF TRUTH for all barks + DJ
   assets/voice/*.mp3
+  assets/voice/manifest.json  # build-emitted id→path from lines.json
+  assets/poster/og.webp       # Option B required for laserbarf v1
   assets/synth/*.wav
   assets/sfx/
   assets/mods/         # optional
+  docs/parts/grok-design-part-sfx-3641153d.md  # authoritative SFX shopping list
+  docs/fixtures/poster/
   dist/index.html
-  dist/game.js
-  CREDITS.md
+  dist/game.js         # esbuild bundle — no tools/voice in graph
+  package.json         # "build": "node scripts/build.mjs"
+  CREDITS.md           # Steve + SFX + synth
+  README.md
 ```
 
 ---
@@ -660,18 +737,22 @@ Self-contained client. All sound is files on disk plus Web Audio. Nothing phones
 
 Voice lines come from [oscie57/tiktok-voice](https://github.com/oscie57/tiktok-voice). **Build machine only.** The shipped game never imports that client, never holds a sessionid, never hits `tiktokv.com`.
 
+**Source of truth:** `tools/voice/lines.json` only. Build emits `assets/voice/manifest.json` (id → relative path, ageBand, tags). Runtime loads the manifest + MP3s — **do not** keep a second divergent `src/audio/lines.json`. Schema validation and CI missing-MP3 checks read the tools sheet / manifest.
+
 Pipeline:
 
-1. Author `tools/voice/lines.json` — id, text, voice, category, priority.
-2. `node tools/voice/bake.mjs` reads the sheet, POSTs TikTok, writes `assets/voice/<id>.mp3`.
-3. Commit the MP3s. CI fails if a line id is referenced and the file is missing.
-4. Runtime loads `assets/voice/<id>.mp3` through `fetch` + `decodeAudioData`.
+1. Author `tools/voice/lines.json` — id, text, voice, category, priority, ageBand, tags.
+2. `node tools/voice/bake.mjs` reads the sheet, POSTs TikTok (build machine; `sessionid` from env / secret store — **never commit**), writes `assets/voice/<id>.mp3`.
+3. Commit the MP3s + regenerated manifest. CI fails if a line id is referenced and the file is missing.
+4. Runtime (on **static same-origin host**): `fetch` relative `assets/voice/<id>.mp3` + `decodeAudioData`. Not supported under `file://`.
 
 Allowed bake voices (exact TikTok keys): `en_au_001`, `en_au_002` (Gold Coast / DJ); `en_us_*` tourists; `en_uk_*` Poms; `c3po`, `stormtrooper`, `rocket`, `stitch` spice; `en_male_funny`; `en_female_emotional`; `en_male_narration` alt DJ.
 
 DJ voice: `en_au_002` first. Fallback bake: `en_male_narration` then one-pole AM chain at bake time. Do not run that EQ live.
 
-Budget: ~200 NPC lines + 50 DJ quips. Encode **32 kbps mono MP3**. Target folder ≤ 4 MB. Runtime LRU cache of **16** decoded `AudioBuffer`s. 3D: `PannerNode` HRTF, `refDistance` 4 m, `rolloffFactor` 1.2, max 28 m. DJ and music are 2D.
+**TikTok ToS / redistribution risk:** unofficial session API. Treat bake as best-effort; document secret handling; confirm committed MP3s may ship under the game license (Open Question / Risk). Fallback: alternate offline TTS or re-record if TikTok bake breaks — runtime never calls TikTok.
+
+Budget: ~200 NPC lines + **53 DJ files** (`dj_open_01` + `dj_quip_01`…`49` + `dj_song_01`…`03`). Encode **32 kbps mono MP3**. Target folder ≤ 4 MB. Runtime LRU cache of **16** decoded `AudioBuffer`s (≤ ~8 MB decoded). 3D: `PannerNode` HRTF, `refDistance` 4 m, `rolloffFactor` 1.2, max 28 m. DJ and music are 2D.
 
 Priority: `panic > protest > rub > walkby > DJ > gull`. Gulls never steal.
 
@@ -688,9 +769,9 @@ Brand: **Reticule FM 101.7**. Subline: “Gold Coast / after dark.”
 
 Cold open after first unmute: *“it’s a beautiful day on the Gold Coast.”* (`dj_open_01`). Announce every song change. Between tracks, pull from the 50-line catalog. No repeat until the bag is empty.
 
-#### Catalog — 50 DJ lines (commit as MP3s)
+#### Catalog — DJ lines (53 committed MP3s)
 
-Bake voice `en_au_002`. Prefix `dj_`. Copy is locked.
+Bake voice `en_au_002`. Prefix `dj_`. Copy is locked. **Count:** 1 open + 49 quips (`dj_quip_01`…`49`) + 3 baked song announces (`dj_song_01`…`03`) = **53 files**. Prose “50 DJ quips” means the quip bag + open; A5 done-when uses the 53-id set. Template `dj_song_fmt` is bake-time only (not a runtime file).
 
 1. `dj_open_01` — it’s a beautiful day on the Gold Coast
 2. `dj_quip_01` — Reticule FM 101.7, still on the air, still pretending the sun is your friend
@@ -844,7 +925,7 @@ Schema, age-band lock, archetypes, catalogs, two-channel director. INCEL is sati
 
 #### Line schema
 
-`src/audio/lines.json` (runtime catalog; bake sheet may live at `tools/voice/lines.json`) is a flat array. One object per bark. No runtime concat.
+`tools/voice/lines.json` is the flat-array source of truth. Build emits `assets/voice/manifest.json` for runtime. No second hand-edited runtime catalog. No runtime string concat.
 
 ```json
 {
@@ -1145,6 +1226,12 @@ Everyone is mocked. Adult-only. Do not fire when a child speaker or listener is 
 
 Kids never Intimate. Contact rejects `KID`. SIGMA_07 almost never Intimate (cloth).
 
+**Runtime kid-proximity (merge gate):** deterministic director fixture required for P4.5 / P4.5b — same severity as banned-name for P4.7:
+
+1. Place `KID` within babe-gossip radius (≤6 m of babes, player ≤8 m) → assert `gossip` / `babe_to_babe` / `ken_to_ken` / `cross_talk` / `rub_pleasure` / `walkby_flirt` **do not fire**.
+2. Paint ray on `KID` collider → ApplyPick **rejects**.
+3. Schema CI remains: `child` + trope tags fail.
+
 ```mermaid
 flowchart TD
   R[FACTORY_RECALL] --> P[PANIC punch / laser]
@@ -1169,11 +1256,38 @@ flowchart TD
 
 SFX sit on a separate bus from VO. Commit encoded MP3s under `assets/sfx/`. Target folder **1.5–2.5 MB**. Prefer CC0; Mixkit/Pixabay only as End Product assets inside the game. Reject NC / personal-only / no-redistribution. Do not pull Sonniss GB dumps. Do not rip YouTube.
 
-**Hooks:** ocean / shore loops; gull cries + flaps; rain/storm; sand M/F + wet + boardwalk + chrome + chase + kids_run (non-vocal) footsteps; punch / shove / laser; lotion squeeze / rub / bottle; lighter / vape exhale; helicopter recall flyover; radio static / UI ticks / station whoosh; splash / wave crash; wind palms; crowd boardwalk.
+**Authoritative shopping list (not TBD):** [`docs/sfx-catalog.md`](docs/sfx-catalog.md) (synced from the SFX design part; parts copy may also live under `docs/parts/`). SFX1 **must** follow that file’s license policy, encode table, folder layout, and **Suggested first checkout** (30 files ≈ 1.0–1.4 MB). Paste its CREDITS.md block when landing. Do not re-shop from scratch.
 
-**Starter packs:** Kenney Interface / Impact / Sci-fi / Digital / RPG (CC0); BigSoundBank Joseph Sardin CC0 singles; OpenGameArt Solo Seagulls + metal/wood; Mixkit End Product picks. Encode: loops 32–48 kbps mono 22.05 kHz; one-shots 48–96 kbps. Cap concurrent one-shots at 8. Duck SFX −6 dB under VO.
+**Hooks:** ocean / shore loops; gull cries + flaps; rain/storm; sand M/F + wet + boardwalk + chrome + chase + kids_run (non-vocal) footsteps; punch / shove / laser; lotion squeeze / rub / bottle; lighter / vape exhale; helicopter recall flyover (`world.heli`); radio static / UI ticks / station whoosh; splash / wave crash; wind palms; crowd boardwalk.
 
-Full shopping list, page URLs, first-checkout table (30 files ≈ 1.0–1.4 MB encoded), and `CREDITS.md` block live in the SFX part file and must be followed when landing the bank. Catalog TBD from freesound / kenney / opengameart / bigsoundbank as licensed; keep `CREDITS.md` current.
+Encode: loops 32–48 kbps mono 22.05 kHz; one-shots 48–96 kbps. Cap concurrent one-shots at 8. Duck SFX −6 dB under VO.
+
+### 5.6 Build (esbuild)
+
+| Item | Contract |
+|---|---|
+| Bundler | **esbuild** via `scripts/build.mjs` |
+| Entrypoint | `src/main.js` |
+| Output | `dist/game.js` (IIFE or ESM single file) + `dist/index.html` (script tag / relative module) |
+| Three | **r160** from `vendor/three/` **bundled into** `dist/game.js` (no CDN, no bare `importmap` to unpkg) |
+| Assets | Copy/sync `assets/**` next to `dist/` (or `dist/assets/`); runtime URLs relative to the HTML origin |
+| npm scripts | `"build": "node scripts/build.mjs"`, `"bake": "node tools/voice/bake.mjs"` (bake **not** invoked by `build`) |
+| Bake isolation CI | Fail if `dist/game.js` matches `tiktokv.com`, `tools/voice/bake`, or `sessionid`. Grep paths: `dist/game.js`, `src/**` (src must not import bake). |
+| lines transform | `build.mjs` (or small `scripts/emit-voice-manifest.mjs`) reads `tools/voice/lines.json` → writes `assets/voice/manifest.json` |
+| Dev serve | Static host required for audio: e.g. `npx serve dist` or `python3 -m http.server` from repo root with correct asset paths |
+| `file://` | Unsupported for full play (Goal Non-Goal #9) |
+
+```mermaid
+flowchart LR
+  SRC[src/main.js] --> ESB[esbuild]
+  V3[vendor/three r160] --> ESB
+  ESB --> DJ[dist/game.js]
+  HTML[dist/index.html] --> DJ
+  LINES[tools/voice/lines.json] --> MAN[assets/voice/manifest.json]
+  MP3[assets/voice + sfx] --> HOST[static origin]
+  DJ --> HOST
+  BAKE[tools/voice/bake.mjs] -.->|build machine only| MP3
+```
 
 Folder layout:
 
@@ -1195,18 +1309,22 @@ Greenfield — no public API. Internal module contracts:
 
 | Module | Export surface |
 |---|---|
+| `scripts/build.mjs` | esbuild `src/main.js` → `dist/game.js`; emit voice manifest; copy assets |
 | `src/shell/viewport.js` | `onResize()`, `probeRects()`, never `new WebGLRenderer` after boot |
-| `src/sim/rules.js` | frozen `RULES` |
-| `src/sim/paintPass.js` | `paint(subject, stamp)`, readback `subject.coverage` |
-| `src/player.js` | mover tick, `COL[]`, veil |
-| `src/vm.js` | `vm.drip()`, bottle mesh |
+| `src/shell/poster.js` | Option B image + Option A tableau camera; Esc pause table |
+| `src/world/lights.js` | frozen `LIGHTS` |
+| `src/chars/*` | shared body primitives for poster + subjects (CHAR0) |
+| `src/sim/rules.js` | frozen `RULES` (includes `swarmHullCap`) |
+| `src/sim/paintPass.js` | WebGLRenderTarget paint; `paint(subject, stamp)`; readback |
+| `src/player.js` | mover tick, `COL[]`, veil/pause |
+| `src/vm.js` | `vm.drip()`, bottle mesh (before lotion PR) |
 | `src/audio/radio.js` | Prev `[` / Pause `P` / Next `]` + mobile buttons |
-| `src/audio/mix.js` | bus gains, apply duck, Key M |
+| `src/audio/mix.js` | bus gains, apply/wanted duck, Key M |
 | `src/audio/voiceCache.js` | LRU 16 decode |
-| Director | distance gates, priority steal, ageBand filter |
+| `src/audio/director.js` | distance gates, priority steal, ageBand + kid-proximity |
 | Paint pick | excludes `KID`; ClothMask drives overpaint |
 
-HUD chrome: 12-slot reticule bay; Reticule FM 101.7 transport; mute glyph; tap-to-hear before first gesture.
+HUD chrome: 12-slot reticule bay; Reticule FM 101.7 transport; mute glyph; poster PLAY; tap-to-hear before first gesture.
 
 ---
 
@@ -1214,27 +1332,27 @@ HUD chrome: 12-slot reticule bay; Reticule FM 101.7 transport; mute glyph; tap-t
 
 ### Sim
 
-- `RULES` constants (win thresholds, overpaint ml, bottle/hand ml, swarm timing).
-- Per-subject: `CoverageMap`, `ThicknessMap`, `ClothMask`, `UvDoseMap`, FSM state, `overpaintMl`.
+- `RULES` constants (win thresholds, overpaint ml, bottle/hand ml, swarm timing/cap).
+- Per-subject: maps (GPU for applying; CPU summaries otherwise), FSM state, `overpaintMl`.
 - `Lotion`: `bottleMl`, `handMl`, rates.
 - `world.wanted`, swarm lock timer.
 - Reticule slots 0–11.
+- Pause flags per Esc table.
 
 ### Dialog
 
-Flat `lines.json` array. Fields: `id`, `text`, `voice`, `speaker`, `ageBand`, `tags[]`, `cooldownMs`, `gain`. Catalogs are tags, not separate files.
+- **Source:** `tools/voice/lines.json`.
+- **Runtime:** `assets/voice/manifest.json` + MP3s.
+- Fields: `id`, `text`, `voice`, `speaker`, `ageBand`, `tags[]`, `cooldownMs`, `gain`. Catalogs are tags.
 
-### Audio assets
+### Audio / poster assets
 
-- `assets/voice/<id>.mp3` — baked TTS.
-- `assets/synth/*.wav` — Juno multisamples.
-- `assets/sfx/**/*.mp3` — Foley.
-- `assets/mods/*` — optional trackers.
+- `assets/voice/<id>.mp3`, `assets/poster/og.webp`, `assets/synth/*.wav`, `assets/sfx/**/*.mp3`, optional `assets/mods/*`.
 - `localStorage['aus101.mute']`.
 
 ### World
 
-`COL[]` AABBs; band floor Y; prop instance list; shore-break ribbon state.
+`COL[]` AABBs; band floor Y; prop instance list; shore-break ribbon state; `LIGHTS`.
 
 ---
 
@@ -1242,7 +1360,7 @@ Flat `lines.json` array. Fields: `id`, `text`, `voice`, `speaker`, `ageBand`, `t
 
 ### A. Reskin Coconuts Ocean City as Australia
 
-**Rejected.** Keep OC hotel/bar meshes and swap textures. Faster first screenshot, but the joke and the mover floor model fight each other (hotel loft vs tower), Maryland set dressing leaks, and r128 CDN remains. Decision: extract functions; delete the OC level.
+**Rejected.** Keep OC hotel/bar meshes and swap textures. Faster first screenshot, but the joke and the mover floor model fight each other (hotel loft vs tower), Maryland set dressing leaks, and r128 CDN remains. Decision: **port patterns from the Coconuts IIFE; rewrite into ES modules**; delete the OC level.
 
 ### B. Screen-space lotion decals
 
@@ -1250,7 +1368,7 @@ Flat `lines.json` array. Fields: `id`, `text`, `voice`, `speaker`, `ageBand`, `t
 
 ### C. Runtime TikTok / cloud TTS
 
-**Rejected.** Legal (session cookie), latency, and offline `file://` contract all die. Bake at build; commit MP3s.
+**Rejected.** Legal (session cookie), latency, and static-host offline contract all die. Bake at build; commit MP3s. (Committed-MP3 ToS risk remains — see §9 / Open Questions.)
 
 ### D. Licensed Carpenter score or YouTube bed
 
@@ -1266,18 +1384,28 @@ Flat `lines.json` array. Fields: `id`, `text`, `voice`, `speaker`, `ageBand`, `t
 
 ### G. Dark instruction / click-start menu as first paint
 
-**Rejected.** Small Start buttons and control paragraphs fail laserbarf.com / OG thumbnails (~160–400px). Poster-first boot (live tableau + huge `AUS101`) is the brand surface; anywhere-click or giant PLAY unlocks.
+**Rejected.** Small Start buttons and control paragraphs fail laserbarf.com / OG thumbnails (~160–400px). Poster-first boot is the brand surface; anywhere-click or giant PLAY unlocks.
+
+### H. Static poster (Option B) as primary thumbnail; live tableau secondary — **accepted for v1**
+
+**Accepted.** laserbarf `screenshots.php` → screenshotapi.com has no delay/WebGL wait; capture is **400×400**. Relying on live Option A for OG races `#0b1210`+placeholder. Trade-off: maintain committed `og.webp` **400×400** (CI/offline still from live tableau, composed for square center crop) while humans still get breathing Option A after CHAR0. Cost: art freeze discipline; Benefit: reliable thumbnails.
+
+### I. Lower-fidelity coverage (vertex colors / single map) instead of UV R8 stack
+
+**Deferred escape hatch, not v1 default.** Full UV R8 is the comedy truth (Key Decision: turning cannot fake a win). If PERF0 fails after material/readback mitigations (applying-only 256 RTT, 128 paint, Standard+albedo white-cast), allow a documented fallback: fewer maps or 128-only — still UV-space, not screen decals. Alternative of pure vertex tint rejected for the same smear reason as screen decals.
 
 ---
 
 ## 9. Security & Privacy
 
-1. **No runtime network.** No analytics, no accounts, no TTS API, no CDN scripts.
-2. **Bake isolation.** `tools/voice/bake.mjs` must not be reachable from the game bundle. CI greps for `tiktokv.com` / bake imports in `src/` and `dist/`.
-3. **Content safety.** CI: `child` + trope tags = fail. Banned-string test for real killer names / manifesto fragments on SIGMA_07 lines. No sexual content involving minors.
-4. **localStorage** only for mute preference. No PII.
-5. **Licenses.** Ship only CC0 / CC-BY / Mixkit-or-Pixabay End Product assets. `CREDITS.md` mandatory. Reject NC.
-6. **XSS surface.** Static HTML; no user-generated HTML. Subtitles are text nodes from committed JSON.
+1. **No cross-origin runtime network.** No analytics, no accounts, no TTS API, no CDN scripts. Same-origin asset `fetch` only on the static host.
+2. **Bake isolation.** `tools/voice/bake.mjs` must not be reachable from the game bundle. CI greps `dist/game.js` and `src/**` for `tiktokv.com`, `tools/voice/bake`, `sessionid`.
+3. **Bake secrets.** TikTok `sessionid` (or successor) lives in env / secret store for bakers only — never git. Document in tools README.
+4. **TikTok ToS / redistribution risk.** Unofficial API; confirm committed MP3s may ship under the game license; keep offline-TTS fallback path if bake is revoked (Open Question).
+5. **Content safety.** CI: `child` + trope tags = fail. Banned-string test for real killer names / manifesto fragments on SIGMA_07 lines. **Runtime** kid-proximity director fixture (P4.5/P4.5b merge gate). No sexual content involving minors.
+6. **localStorage** only for mute preference. No PII.
+7. **Licenses.** Ship only CC0 / CC-BY / Mixkit-or-Pixabay End Product assets. `CREDITS.md` mandatory (Steve + SFX). Reject NC.
+8. **XSS surface.** Static HTML; no user-generated HTML. Subtitles are text nodes from committed JSON/manifest.
 
 ---
 
@@ -1286,44 +1414,45 @@ Flat `lines.json` array. Fields: `id`, `text`, `voice`, `speaker`, `ageBand`, `t
 Offline game — no telemetry pipeline. Dev / QA hooks only:
 
 1. On-screen FPS / dt warning when `dt > 28 ms` for 20 frames (triggers quality drop).
-2. Debug flag `?debug=1`: lotion ml, coverage mean/min, overpaint ml, active VO id, bus gains.
-3. Feature-detect log once for tracker vs carpenter fallback.
-4. CI: missing voice MP3 for referenced id; ageBand/trope fixtures; banned-name test; bake-not-in-bundle.
+2. Debug flag `?debug=1`: lotion ml, coverage mean/min, overpaint ml, active VO id, bus gains, readback ms, shadow map size.
+3. Feature-detect log once: tracker vs carpenter; R8 vs RGBA; RG16F vs constant UvMetric.
+4. CI: missing voice MP3 for referenced id; ageBand/trope fixtures; banned-name test; bake-not-in-bundle; **kid-proximity director fixture**; Option B poster fixtures present.
 5. Unit test: apply duck depth on `GainNode` (≥ 6 dB).
-6. Manual soak: two-source VO priority; gossip pair cooldown; Key M mute persists reload.
+6. PERF0 device log: readPixels stall median, physical-material frame cost.
+7. Manual soak: two-source VO priority; gossip pair cooldown; Key M mute persists reload; Esc pause freezes UV/swarm.
 
 ---
 
 ## 11. Rollout Plan
 
-1. **POSTER0 + P1:** `#0b1210` + poster-first boot (logo overlay, tap unlock); shell never shows a dark instruction menu as first paint.
-2. **W0–W2 / POSTER1:** Vendor Coconuts + Three; player + bands; live cast tableau; `file://` noon sand.
-3. **W3:** Shore-break + foam death (first recognisable AUS101 world beat).
-4. **A0–A1:** Audio context (poster tap resume) + Carpenter + chorus (must-ship bed).
-5. **P2–P4:** Cameras, UV paint, lotion FSM.
-6. **W4–W7 / A3–A5:** Beach scatter, kiosk/tower, film props, radio transport, DJ catalog.
-7. **P5–P6 / P4.x:** Skin shader, reticule + fails, full dialog director + SIGMA_07.
-8. **SFX checkout:** first 30 files under 2.5 MB; CREDITS.md.
-9. **Playable milestone:** poster unlock → lock, walk to water, hear dump, foam dies on wet sand, climb tower, squeeze/rub one subject, hear DJ open, mute with M.
-10. **Content complete:** 12 subjects, all catalogs, swarm fails, gossip pools.
-11. **Polish:** perf floor 30 Hz iPhone 13; license pass; banned-string CI green; 160/240/400px poster fixtures.
+1. **Build + W0 + POSTER0 + P1:** esbuild, Three **r160** pin, Steve-credited Coconuts vendor, Option B `og.webp`, `#0b1210` shell — static-host smoke.
+2. **CHAR0:** shared cast primitives (AUS101, Ken, babe, SIGMA_07 shirt-on) before live poster or apply.
+3. **POSTER1:** live tableau using CHAR0 meshes.
+4. **W1–W3:** player port, bands, shore-break foam death.
+5. **A0–A1:** audio context (poster tap) + Carpenter + chorus.
+6. **BODY0 + bottle (ex-W7 early) + P2–P4:** placeholders + ClothMask, viewmodel bottle, ApplyRig, UV paint, lotion FSM.
+7. **PERF0:** readback + materials gate on device (before more content).
+8. **W4–W6 / A3–A5 / SFX1:** beach, film props, radio, DJ 53 files, Foley first-checkout.
+9. **P5–P6 / P4.x / A6:** skin, reticule/fails, full dialog including gossip + ~200 NPC lines + SIGMA_07.
+10. **Playable / content-complete / v1:** see milestone tags in §15.
 
-No staged server rollout — ship is a git tag of `dist/`.
+No staged server rollout — ship is a git tag of `dist/` on laserbarf (or equivalent static host). Rollback = previous tag.
 
 ---
 
 ## 12. Open Questions
 
-1. Exact Three version pin (r160 vs newer r1xx) for iOS WebGL quirks.
-2. Whether SPF kiosk buy flow refills the bottle mid-run or is scenery-only for v1.
+1. ~~Exact Three version pin~~ → **Resolved: Three r160** for W0/build (revisit only if iOS blocker).
+2. ~~SPF kiosk buy refill~~ → **Resolved for v1: scenery-only** (no mid-run refill). Revisit post-v1.
 3. Tracker pack: ship empty `assets/mods/` stub or defer entirely until after Carpenter A/B.
 4. Gossip speakers: unify `WALKBY_BABE` / `beach_babe` enums vs alias map in director.
 5. Optional InspectorJ CC-BY seaside bed — accept attribution string or stay CC0-only.
 6. Phone-recorded lotion rub if CC0 stand-ins fail playtest — who owns the take / CC0 grant.
 7. Win screen copy and credit roll length.
-8. Whether `KeyN` night mode stays in product or becomes a hidden leftover.
-9. Poster Option B trigger: exact mesh time-to-poster SLA before shipping baked WebP.
+8. ~~KeyN night~~ → **Resolved: no KeyN.** Optional continuous `dayTime` + **`KeyT`** fast-forward leftover; noon default.
+9. ~~Option B SLA~~ → **Resolved: Option B `og.webp` required for laserbarf v1 OG**; live Option A for humans after CHAR0. No WebGL-wait dependency on screenshotapi.
 10. Default optional tagline copy (`I'LL BE BACK WITH SPF 50+` vs `TERMINATE UV`) or none.
+11. **Risk:** TikTok bake ToS / right to redistribute committed MP3s; pick fallback TTS if bake dies.
 
 ---
 
@@ -1336,74 +1465,103 @@ No staged server rollout — ship is a git tag of `dist/`.
 - BigSoundBank: https://bigsoundbank.com
 - OpenGameArt CC0 packs; Mixkit SFX Free License (End Product)
 - Part sources (this draft merges): `grok-design-part-{systems,world,audio,npcs,dialog-extra,sfx,poster}-3641153d.md`
+- SFX authoritative catalog: `docs/sfx-catalog.md` (from SFX part)
+- Canonical design: `docs/DESIGN.md` / summary: `docs/SUMMARY.md`
+- Repo README / CREDITS: Steve / Coconuts attribution (https://github.com/williamsharkey/aus101)
+- laserbarf screenshots: no WebGL wait (screenshotapi `url/width/height/fresh` only)
 
 ---
 
 ## 14. Key Decisions
 
-1. **Poster-first boot.** First paint is a full-scale movie poster (live Three.js tableau + huge 2D `AUS101` overlay) for laserbarf.com thumbnails; tap anywhere / giant PLAY unlocks; `#0b1210` under poster; no dark instruction menu as hero CTA. Esc returns to poster as pause/brand frame.
-2. **Coverage is UV-space, 256 R8, not screen decals.** Turning cannot fake a win.
-3. **`100vh` + `innerHeight`, never `100dvh`, never recreate WebGL** after boot.
-4. **Finite 200 ml / 4–6 ml hand.** The bottle is the clock.
-5. **Punch and laser are first-class instant lose** → helicopter swarm in 2.4 s.
-6. **ClothMask is a paint reject for coverage, not a pick reject** — painting trunks triggers chase.
-7. **Extract Coconuts functions; delete the OC level.** Vendor Three; no r128 CDN.
-8. **Noon is the product.** Day/night is a leftover switch.
-9. **Foam dies on wet sand** — the nearer Australian shore-break rule.
-10. **Bake TTS, commit audio.** Runtime has no network voice path.
-11. **`carpenter.js` ships with stereo BBD chorus** (0.6 Hz, 8–12 ms). Tracker optional with iOS fallback.
-12. **Radio is 2D (Prev/Pause/Next); NPCs are 3D; beds stay under.** Apply is the only duck. Key M hard-mutes.
-13. **Age band is data.** CI greps `lines.json`. Kids not paint targets. Gull ≠ child.
-14. **SIGMA_07 is a cloth-masked heckler.** Shirt on. SIGMA_07 / Trevor from the forum. No real killer names. No manifesto. Joke is `/iamverysmart` + incel slang, not a rampage. Poster cast: long sleeves ON.
-15. **Everyone is mocked.** Adult vanity / Ken gossip is `ageBand: adult` only.
-16. **SFX ≤ 2.5 MB, CC0-first**, separate bus, CREDITS.md mandatory.
-17. **Restart clears maps, keeps the GL context.**
-18. **White-cast + erythema carry the tutorial.** No popup. Red and zinc.
-19. **80 × 50 m is the world budget.** Miss 60 Hz: cut gulls and tourists first, not the wave cycle.
+1. **Poster-first boot + Option B required for laserbarf v1 OG.** Committed `og.webp` at **400×400** (laserbarf square) for thumbnails (screenshotapi has no WebGL wait). Humans get live Option A after CHAR0 + huge 2D `AUS101`; tap/PLAY unlocks; `#0b1210` under; Esc → pause table. No dark instruction menu. Canonical design path: `docs/DESIGN.md`.
+2. **Static-host ship contract.** esbuild bundles JS+Three r160; audio via same-origin `fetch`. `file://` not supported for full play.
+3. **Coverage is UV-space via WebGLRenderTarget** (R8/RGBA), applying-subject 256 resident; not screen decals; FramebufferTexture non-normative.
+4. **`100vh` + `innerHeight`, never `100dvh`, never recreate WebGL** after boot.
+5. **Finite 200 ml / 4–6 ml hand;** bottle viewmodel before lotion FSM. The bottle is the clock.
+6. **Punch and laser are first-class instant lose** → wanted 2.4 s → ≤8 heli hulls + recall/panic VO + heli SFX.
+7. **ClothMask is a paint reject for coverage, not a pick reject** — painting trunks triggers chase.
+8. **Port Coconuts patterns (Steve); rewrite ES modules; delete the OC level.** Not “extract modules” from the IIFE. Vendor/bundle Three r160; no r128 CDN.
+9. **Noon is the product.** Optional continuous `dayTime` + **`KeyT`** fast-forward leftover — **no KeyN**.
+10. **Foam dies on wet sand** — the nearer Australian shore-break rule.
+11. **Bake TTS, commit audio;** one `tools/voice/lines.json` source → manifest. Runtime has no network voice path.
+12. **`carpenter.js` ships with stereo BBD chorus** (0.6 Hz, 8–12 ms). Tracker optional with iOS fallback.
+13. **Radio is 2D (Prev/Pause/Next); NPCs are 3D; beds stay under.** Apply/wanted duck radio. Key M hard-mutes.
+14. **Age band is data + runtime kid-proximity fixtures.** Kids not paint targets. Gull ≠ child.
+15. **SIGMA_07 is a cloth-masked heckler.** Shirt on. SIGMA_07 / Trevor from the forum. No real killer names. No manifesto.
+16. **Everyone is mocked.** Adult vanity / Ken gossip is `ageBand: adult` only.
+17. **SFX ≤ 2.5 MB, CC0-first;** authoritative catalog = SFX part file; CREDITS.md (Steve + SFX) mandatory.
+18. **Restart clears maps, keeps the GL context.**
+19. **White-cast + erythema carry the tutorial.** No popup. Red and zinc. `LIGHTS` single table in `src/world/lights.js`.
+20. **80 × 50 m world budget; PERF0 early; swarm capped; applying-only full RTTs.**
+21. **CHAR0 / BODY0 before POSTER1 and P2–P4.** Shared meshes first.
 
 ---
 
 ## 15. PR Plan (unified ordered PRs)
 
-Land in this order. Every world/audio PR leaves `dist/index.html` playable where noted. Do not land score/chase before real `CoverageMap`. Do not merge voice catalogs if bake code is in the game bundle. Do not merge Carpenter without BBD chorus. No SIGMA_07 without banned-string test. No rub without child-collider reject. Poster-first boot lands early so laserbarf.com never advertises a blank menu.
+Land in this order. Gates: no chase before real `CoverageMap`; no voice catalogs if bake is in the game bundle; no Carpenter without BBD chorus; no SIGMA_07 without banned-string test; no rub without child-collider reject; **no POSTER1 before CHAR0**; **no P2–P4 before BODY0**; **no P4 lotion before bottle viewmodel**; **PERF0 after P3** before piling content.
 
 | PR | Scope | Done when |
 | --- | --- | --- |
-| **POSTER0** | Poster-first boot: `#0b1210`, mount poster root ASAP, giant `AUS101` CSS/canvas overlay, optional one tagline + giant PLAY, full-poster click unlock, 400ms fade, Esc → poster pause; gate any legacy dark “click start” menu | Cold load shows poster in first meaningful paint; 160/240/400px captures pass silhouette checklist; one tap enters; no instruction menu as first frame |
-| **W0** | Vendor Coconuts + Three; `dist/index.html` noon sand plane | `file://` lit ground, no CDN |
-| **W1** | Extract player + `COL[]`, edge walls, bob, veil, lock | WASD + Shift 3.4/6.4; stay in 80 × 50 |
-| **P1** | Shell: viewport meta, `#0b1210`, `100vh`, safe-area probes, DPR cap, resize never recreates GL; wire poster root under shell | iPhone rotate + URL-bar keeps context; poster still first paint |
-| **POSTER1** | `PosterScene` live tableau: posed AUS101 + Ken + babe + SIGMA_07 (shirt on); optional goth/gull flag; idle wind / eye pulse / dolly; placeholder→mesh swap without black flash; Option B WebP fallback if needed | At ~300px capture, `AUS101` reads and four primary silhouettes differentiate |
-| **A0** | `audio/context.js` — resume-on-gesture (poster tap), Key M, master gain | mute survives reload; poster unlock resumes AudioContext |
-| **W2** | Bands: boardwalk, stairs, dry/wet, wade; floor AABBs | Deck → stairs → sand → wet, no fall-through |
-| **A1** | `carpenter.js` + chorus + oscillator fallback | iPhone plays D-minor pulse after tap |
-| **W3** | Shore-break + foam death on wet sand; retune ocean | Three waves, dump Z=36, no dry-sand foam |
-| **P2** | `FrameInput`, joystick, PlayCamera / ApplyRig, pick layer | hold Space on a body, camera orbits; release 180 ms returns |
-| **A2** | `assets/synth/*` 400–800 KB + sample path | A/B vs oscillators; CREDITS.md licences |
-| **W4** | Beach factories + scatter; harsh noon | Reads as a beach from spawn |
-| **P3** | UV unwrap, Coverage/Thickness/Cloth 256 R8, aniso stamp, 64×64 readback | orbit keeps film in UV; trunks do not raise coverage |
-| **A3** | Radio HUD Prev / Pause / Next + `[` `]` `P` + mobile buttons | transport works with master muted |
-| **P4** | Lotion FSM: 200 ml, 4–6 ml hand, squeeze/transfer/drip | empty bottle before 12 bodies is a lose |
-| **W5** | Kiosk + tower from bar-builder | Tower deck Y=4.8; kiosk blocks |
-| **A4** | `tools/voice/bake.mjs` + lines schema + CI missing-file | bake never imported from `src/` |
-| **SFX1** | First-checkout Foley (~30 files), folder layout, CREDITS.md | `assets/sfx/` ≤ 2.5 MB; ocean/steps/laser/punch/lotion/heli |
-| **W6** | `film.js` + placements; radios on mute graph | Seven prop types; KeyM silences radios + ocean |
-| **P5** | Skin shader: clearcoat, white-cast, UV dose, erythema | unpainted reddens; thick film reads zinc |
-| **A5** | 50 DJ MP3s + bag shuffle + `dj_open_01` + three song announces | catalog ids match §5.3 |
-| **W7** | `vm.js` bottle + palm; optional `KeyN` night | Viewmodel bobs; noon remains default |
-| **P4.1** | Dialog schema + empty director | `lines.json` validates; child+trope fixture fails |
-| **P4.2** | HUD + recall VO | 12 HUD + 4 recall; recall preempts HUD |
-| **P6** | Reticule bay + fails (chase / sunburn / punch-laser swarm) | overpaint 12 ml chases; F/G or 2-/3-finger → swarm 2.4 s |
-| **P4.3** | Gull + kid lines | 10+8; gull ≠ child; kids not in paint set |
-| **A6** | ~200 NPC lines path, LRU 16, panner, priority steal | panic beats DJ; gull never steals |
-| **P4.4** | Lad + goth | Unique meshes; 12+10; Flume id-stable |
-| **A7** | Mix: ocean/crowd, apply −6 dB duck, slasher stem, sfx duck | duck depth unit-tested |
-| **P4.5** | Babe/jock + rub/flirt/heckle | 12+12+10; rub needs adult contact |
-| **P4.5b** | Babe gossip 20 + Ken 20 + cross-talk 8 + bit-part mocks | adult-only; 6 m / 8 m gates; under flirt priority |
-| **P4.6** | Overpaint / chase / panic | 10 lines; panic preempts walk-by |
-| **P4.7** | SIGMA_07 | Shirt-on mesh; 16 incel lines; banned-name test |
-| **P4.8** | DJ priority vs dialog | DJ drop > gull VO; DJ bed > gull ambience |
-| **A8** | Optional tracker + sinc + same chorus + iOS fallback | feature-detect logged once |
-| **PERF** | Quality drop path; triangle/draw audit | 30 Hz floor iPhone 13 hidden URL bar |
+| **BUILD0** | `package.json`, `scripts/build.mjs` (esbuild), Three **r160** vendor path, `npm run build` → `dist/index.html` + `dist/game.js` (Three bundled), asset copy, bake-isolation CI greps | Static-host open shows blank/`#0b1210` canvas; `dist/game.js` has no `tiktokv.com` / bake |
+| **W0** | Vendor Coconuts snapshot + NOTICE (Steve); noon sand via `LIGHTS`; list symbols ported vs rewritten | Static host lit ground; no CDN; CREDITS/README credit Steve |
+| **POSTER0** | Option B `assets/poster/og.webp` **400×400 required**; `#0b1210`; giant `AUS101` overlay; optional one tagline + PLAY; tap unlock; Esc pause table stub; 400×400 + 160/240/400 fixtures; gate dark start menu | Cold load shows static poster; **400×400** square silhouette pass; laserbarf OG does not depend on WebGL wait |
+| **P1** | Shell viewport meta, `100vh`, safe-area, DPR cap, never recreate GL; poster root under shell | iPhone rotate keeps context; poster still first paint |
+| **CHAR0** | Shared `src/chars/` primitives: AUS101 chrome, Ken-jock, beach babe, SIGMA_07 long-sleeve; silhouette-distinct | Four meshes render in isolation; usable by poster + subjects |
+| **POSTER1** | Live `PosterScene` using CHAR0; wind/eye/dolly; same renderer | ~300px human view: title + four silhouettes; no second art fork |
+| **W1** | Port player + `COL[]`, walls, bob, veil/pause, lock | WASD + Shift 3.4/6.4; stay in 80 × 50 |
+| **A0** | `audio/context.js` — resume on poster tap, Key M, master gain | mute survives reload |
+| **W2** | Bands: boardwalk, stairs, dry/wet, wade; floor AABBs | Deck → sand → wet, no fall-through |
+| **A1** | `carpenter.js` + chorus + oscillator fallback | iPhone D-minor pulse after tap |
+| **W3** | Shore-break + foam death; retune ocean | Dump Z=36; no dry-sand foam |
+| **BODY0** | 12 slot placeholder bodies + ClothMask atlases + ApplyPickLayer; kids excluded from pick set | Ray hits body vs cloth; KID collider rejected |
+| **VM0** | `vm.js` bottle + palm **before lotion** (was late W7) | Bottle ray / hold pose exists; bob works |
+| **P2** | `FrameInput`, joystick, PlayCamera / ApplyRig | Space on BODY0 mesh orbits; release 180 ms returns |
+| **P3** | UV unwrap WebGLRenderTarget maps, aniso stamp, 64×64 readback (applying-only 256) | Orbit keeps film in UV; trunks do not raise coverage |
+| **PERF0** | Measure readback stall + physical skin cost on iPhone; quality-drop hooks; shadow 1024/512 | Documented numbers; drop path wired; gate further content if floor missed |
+| **P4** | Lotion FSM using VM0 bottle: 200 ml, 4–6 ml hand, drip | Empty bottle before 12 bodies is a lose |
+| **A2** | `assets/synth/*` + sample path | A/B vs oscillators; CREDITS licences |
+| **W4** | Beach prop ports + scatter; noon `LIGHTS` | Reads as beach from spawn |
+| **A3** | Radio Prev/Pause/Next + mobile buttons | Transport OK while muted |
+| **W5** | Kiosk + tower (scenery; no refill v1) | Tower Y=4.8; kiosk blocks |
+| **A4** | `tools/voice/bake.mjs` + `lines.json` SoT + manifest emit + CI missing-file; sessionid secret docs | bake never imported from `src/`; manifest emitted |
+| **SFX1** | Follow SFX part **first-checkout table** (~30 files) | `assets/sfx/` ≤ 2.5 MB; heli/punch/laser/lotion present; CREDITS pasted |
+| **W6** | `film.js` placements; radios on mute graph | Seven prop types |
+| **P5** | Skin shader under `LIGHTS`; white-cast; erythema | Unpainted reddens; zinc reads |
+| **A5** | **53** DJ MP3s: open + 49 quips + 3 song announces; bag shuffle | Ids match §5.3 count |
+| **P4.1** | Schema + empty director on `tools/voice/lines.json` | child+trope fixture fails |
+| **P4.2** | HUD + recall VO | Recall preempts HUD |
+| **P6** | Reticule + fails; wanted sequence (panic/recall, heli SFX, ≤8 hulls, game-over card) | F/G or 2-/3-finger → swarm 2.4 s |
+| **P4.3** | Gull + kid lines | gull ≠ child; kids not in paint set |
+| **A6** | ~200 NPC lines, LRU 16, panner, priority | panic beats DJ; gull never steals |
+| **P4.4** | Lad + goth (CHAR0 variants / unique meshes) | 12+10; Flume id-stable |
+| **A7** | Mix: ocean/crowd, apply/wanted duck, slasher stem, sfx duck | duck depth unit-tested |
+| **P4.5** | Babe/jock + rub/flirt/heckle + **kid-proximity fixture** | rub needs adult contact; KID in radius suppresses |
+| **P4.5b** | Babe gossip 20 + Ken 20 + cross-talk 8 + bit-parts + kid-proximity | adult-only; 6 m / 8 m gates |
+| **P4.6** | Overpaint / chase / panic lines | panic preempts walk-by |
+| **P4.7** | SIGMA_07 | Shirt-on; 16 incel lines; banned-name test |
+| **P4.8** | DJ priority vs dialog | DJ drop > gull VO |
+| **A8** | Optional tracker + iOS fallback | feature-detect logged once |
+| **DAY?** | Optional continuous dayTime + **KeyT** (not KeyN) | Noon remains default if shipped |
+| **PERF1** | Final triangle/draw audit; swarm 4 drop; tracker off | 30 Hz floor iPhone 13 hidden URL bar |
 
-**Milestone tags:** `poster-boot` after POSTER0+P1; `playable-beach` after W3+A1; `playable-apply` after P4+A3; `content-complete` after P4.7+A5+SFX1; `v1` after PERF + license/CI green + thumbnail fixtures.
+**Milestone tags:**
+
+- `poster-boot` — after BUILD0+POSTER0+P1
+- `playable-beach` — after W3+A1
+- `playable-apply` — after BODY0+VM0+P4+PERF0
+- **`content-complete`** — after **A6 + P4.5b + P4.7 + A5 + SFX1** (and BODY/paint already landed)
+- `v1` — after PERF1 + license/CI green + Option B fixtures + Steve CREDITS
+
+## 16. Risks
+
+| Risk | Severity | Mitigation |
+|---|---|---|
+| screenshotapi captures empty GL | high | Option B `og.webp` required |
+| `file://` fetch fails for VO | high | Static-host contract; drop file:// goal |
+| readPixels stalls iPhone | high | PERF0 early; applying-only RTT; interval/size drop |
+| TikTok bake ToS / API death | medium | secrets out of git; offline TTS fallback OQ |
+| MeshPhysicalMaterial cost ×12 | medium | applying-only physical; Standard+albedo escape |
+| Swarm instance spike | medium | `swarmHullCap` 8 → 4 on quality drop |
+| Coconuts IIFE rewrite underestimation | medium | W0 symbol list; pattern-port language |
