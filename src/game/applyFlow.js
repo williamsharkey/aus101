@@ -26,10 +26,11 @@ export function runApplyFrame({ lotion, cast, playerPos, playerYaw, squeezing, d
 
   if (painted) {
     lotion.tick({ squeezeHeld: false, applying: true, dt: t });
+    lotion.squeezing = !!squeezing;
     bay?.track?.(painted.npc);
   }
 
-  const npc = painted?.npc || (squeezing ? target : null);
+  const npc = painted?.npc || (squeezing && lotion.canPaint() ? target : null);
   if (npc) applyUx?.show?.(npc);
   else applyUx?.hide?.();
 
