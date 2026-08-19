@@ -19,7 +19,8 @@ import {
   TICK,
 } from "./input/player.js";
 import { createFollowCam, updateFollowCam } from "./input/thirdPerson.js";
-import { installTouchControls } from "./input/touchControls.js";
+import { installTouchControls, getLookStick } from "./input/touchControls.js";
+import { createShadesBed } from "./audio/shades.js";
 import { buildGoldCoast, setupGoldCoastLights, BOUNDS, GC } from "./world/goldCoast.js";
 import { createAus101, poseAus101 } from "./chars/aus101.js";
 import { spawnBeachCast } from "./chars/npcs.js";
@@ -68,6 +69,7 @@ const walkby = createWalkbyDirector(voice, cast);
 
 let carpenter = null;
 let oceanBed = null;
+let shades = null;
 
 let playing = false;
 let paused = false;
@@ -120,6 +122,9 @@ async function beginPlay() {
     if (ctx && !carpenter) {
       carpenter = createCarpenterBed(ctx);
       oceanBed = initOcean(ctx);
+      shades = createShadesBed(ctx);
+      shades.start();
+      shades.setMix(0, 0.05);
     }
     carpenter?.setState("boardwalk");
     carpenter?.start();
@@ -159,7 +164,15 @@ function frame() {
   const raw = paused || !playing ? 0 : Math.min(0.05, clock.getDelta());
   acc += raw;
   while (acc >= TICK) {
-    if (playing && !paused) fixedUpdate(player, input.keys, colliders.COL, BOUNDS, TICK);
+    if (playing && !paused) {
+      const lk = getLookStick();
+      if (lk.mag > 0.04) {
+        player.yaw -= lk.x * 2.35 * TICK;
+        player.pitch -= lk.y * 1.55 * TICK;
+        player.pitch = Math.max(-1.45, Math.min(1.45, player.pitch));
+      }
+      fixedUpdate(player, input.keys, colliders.COL, BOUNDS, TICK);
+    }
     acc -= TICK;
   }
 
@@ -185,7 +198,15 @@ function frame() {
     if (painted && audioOn && Math.random() < 0.012) {
       voice.play("rub_pleasure_01", { gain: 1.2 }).catch(() => {});
     }
-    if (audioOn) walkby.tick(performance.now(), player.pos, speed);
+    if (audioOn) walkby.tick(performance.now(), player.pos);
+    if (level.piano && shades) {
+      const dx = player.pos.x - level.piano.x;
+      const dz = player.pos.z - level.piano.z;
+      const pd = Math.hypot(dx, dz);
+      const wet = pd < 14 ? Math.max(0, 1 - pd / 14) ** 1.4 : 0;
+      shades.setMix(audioOn ? wet : 0, 0.35);
+      if (wet > 0.35) carpenter?.setState("menu");
+    }
   } else if (!playing) {
     camera.position.set(8, 6.5, 22);
     camera.lookAt(0, 1.2, 4);

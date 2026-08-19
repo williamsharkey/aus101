@@ -54,16 +54,47 @@ export class VoiceBank {
     return buf;
   }
 
-  async play(id, { when = 0, gain = 1 } = {}) {
-    await this.unlock();
-    const buf = await this.decode(id);
-    const src = this.ctx.createBufferSource();
-    src.buffer = buf;
-    const g = this.ctx.createGain();
-    g.gain.value = gain;
-    src.connect(g);
-    g.connect(this.gain);
-    src.start(this.ctx.currentTime + when);
-    return src;
+  play(id, { when = 0, gain = 1 } = {}) {
+    const handle = {
+      src: null,
+      g: null,
+      setGain(v) {
+        if (this.g && this.g.context) this.g.gain.setTargetAtTime(v, this.g.context.currentTime, 0.04);
+      },
+      fadeOut(s = 0.08) {
+        if (!this.g) return;
+        const t = this.g.context.currentTime;
+        this.g.gain.cancelScheduledValues(t);
+        this.g.gain.setValueAtTime(this.g.gain.value, t);
+        this.g.gain.linearRampToValueAtTime(0.0001, t + s);
+        try {
+          this.src?.stop(t + s + 0.02);
+        } catch {
+          /* already stopped */
+        }
+      },
+      stop() {
+        try {
+          this.src?.stop();
+        } catch {
+          /* already stopped */
+        }
+      },
+    };
+    this.unlock()
+      .then(() => this.decode(id))
+      .then((buf) => {
+        const src = this.ctx.createBufferSource();
+        src.buffer = buf;
+        const g = this.ctx.createGain();
+        g.gain.value = gain;
+        src.connect(g);
+        g.connect(this.gain);
+        src.start(this.ctx.currentTime + when);
+        handle.src = src;
+        handle.g = g;
+      })
+      .catch(() => {});
+    return handle;
   }
 }

@@ -67,11 +67,13 @@ export function createCarpenterBed(ctx, dest) {
   const padA = osc(ctx, "sawtooth", hz(57));
   padD.detune.value = 3;
   padA.detune.value = -3;
-  const padPre = gn(ctx, 0.32), padLp = bq(ctx, "lowpass", 880, 0.7);
+  const padPre = gn(ctx, 0.08), padLp = bq(ctx, "lowpass", 720, 0.7);
+  const padTrem = gn(ctx, 1);
+  padLp.connect(padTrem);
   padD.connect(padPre);
   padA.connect(padPre);
   padPre.connect(padLp);
-  const lfo = bbd(ctx, padLp, padBus);
+  const lfo = bbd(ctx, padTrem, padBus);
   const apD = osc(ctx, "sawtooth", hz(74));
   const apA = osc(ctx, "sawtooth", hz(81));
   apD.detune.value = 5;
@@ -119,7 +121,13 @@ export function createCarpenterBed(ctx, dest) {
       bassLp.frequency.setTargetAtTime(cut, t + 0.02, 0.06);
     }
     if (e === 2 || e === 6) click(t, 0);
+    if (e === 0) click(t, 0);
     if (bar === 14 && e >= 4) click(t, 1);
+    // pad only breathes on downbeats — not a held chord
+    const swell = e === 0 || e === 4 ? 1 : 0.15;
+    padTrem.gain.setValueAtTime(padTrem.gain.value, t);
+    padTrem.gain.linearRampToValueAtTime(swell, t + 0.08);
+    padTrem.gain.linearRampToValueAtTime(0.12, t + 0.42);
   }
 
   function clock() {

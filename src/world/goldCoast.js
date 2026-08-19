@@ -435,6 +435,16 @@ export function buildGoldCoast(scene, colliders) {
     gulls.push(g);
   }
 
+  // Piano man — far out in the swell
+  const pianoPos = { x: 7, z: -29 };
+  const pianoRig = buildPianoMan();
+  pianoRig.position.set(pianoPos.x, 0.15, pianoPos.z);
+  scene.add(pianoRig);
+
+  // DJ booth + stupid big screen + dancers
+  const dj = buildDjBooth(scene, add);
+  const dancers = spawnDancers(scene);
+
   return {
     ocean,
     oceanBase,
@@ -444,6 +454,7 @@ export function buildGoldCoast(scene, colliders) {
     balls,
     flames,
     bounds: BOUNDS,
+    piano: pianoPos,
     isWood(x, z) {
       return Math.abs(z - GC.boardwalkZ) < 4.8 && Math.abs(x) < GC.width * 0.4;
     },
@@ -481,6 +492,167 @@ export function buildGoldCoast(scene, colliders) {
         const s = 0.85 + Math.sin(t * 9 + (f.userData?.ph || 0)) * 0.12;
         f.scale.setScalar(s);
       }
+      pianoRig.userData.tick?.(t);
+      dj.tick(t);
+      for (const d of dancers) d.tick(t);
     },
   };
+}
+
+function buildPianoMan() {
+  const g = new THREE.Group();
+  const skin = mat(0xc9b09a);
+  const black = mat(0x141414);
+  const body = box(0.38, 0.55, 0.22, mat(0x1c1c22));
+  body.position.y = 1.05;
+  g.add(body);
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.12, 10, 8), skin);
+  head.position.y = 1.48;
+  g.add(head);
+  const hair = new THREE.Mesh(new THREE.SphereGeometry(0.13, 8, 6), black);
+  hair.position.set(0, 1.54, -0.02);
+  hair.scale.set(1, 0.7, 1);
+  g.add(hair);
+  const piano = box(1.35, 0.18, 0.55, black);
+  piano.position.set(0.15, 0.78, 0.42);
+  g.add(piano);
+  const keys = box(1.2, 0.04, 0.22, mat(0xf4f0e6));
+  keys.position.set(0.15, 0.89, 0.52);
+  g.add(keys);
+  const lid = box(1.3, 0.04, 0.5, black);
+  lid.position.set(0.15, 1.05, 0.28);
+  lid.rotation.x = -0.7;
+  g.add(lid);
+  const bench = box(0.5, 0.08, 0.22, black);
+  bench.position.set(0, 0.62, 0);
+  g.add(bench);
+  g.userData.tick = (t) => {
+    head.position.y = 1.48 + Math.sin(t * 1.3) * 0.015;
+    keys.position.y = 0.89 + Math.abs(Math.sin(t * 6)) * 0.008;
+    g.position.y = 0.12 + Math.sin(t * 0.7) * 0.06;
+  };
+  return g;
+}
+
+function slideCanvas() {
+  const lines = [
+    ["THE SUN", "IS A HOSTILE ACTOR"],
+    ["COME WITH ME", "IF YOU WANT TO LIVE", "(YOUR MELANOCYTES)"],
+    ["THIS UNIT", "HAS BEEN REASSIGNED", "TO PUBLIC HEALTH"],
+    ["NOT A NIGHTCLUB", "A MELANOMA BRIEFING"],
+    ["AUS101", "DOES NOT TAKE REQUESTS"],
+    ["APPLY", "OR BE RECALLED"],
+  ];
+  const c = document.createElement("canvas");
+  c.width = 1024;
+  c.height = 576;
+  const x = c.getContext("2d");
+  let i = 0;
+  const paint = () => {
+    const L = lines[i % lines.length];
+    x.fillStyle = "#0b1210";
+    x.fillRect(0, 0, 1024, 576);
+    x.fillStyle = "#ffb040";
+    x.fillRect(0, 0, 1024, 8);
+    x.fillRect(0, 568, 1024, 8);
+    x.fillStyle = "#f4f7fb";
+    x.font = "bold 72px Impact, Arial Black, sans-serif";
+    x.textAlign = "center";
+    x.textBaseline = "middle";
+    const y0 = 288 - (L.length - 1) * 44;
+    L.forEach((row, n) => {
+      x.font = n === 0 ? "bold 86px Impact, Arial Black, sans-serif" : "bold 48px Impact, Arial Black, sans-serif";
+      x.fillStyle = n === 0 ? "#f4f7fb" : "#ffb040";
+      x.fillText(row, 512, y0 + n * 88);
+    });
+    i += 1;
+  };
+  paint();
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return { tex, paint, canvas: c };
+}
+
+function buildDjBooth(scene, add) {
+  const g = new THREE.Group();
+  const desk = box(3.4, 1.1, 1.4, mat(0x1a1a1e));
+  desk.position.y = 0.55;
+  g.add(desk);
+  const decks = box(2.6, 0.08, 0.9, mat(0x2a2a30, { metalness: 0.4, roughness: 0.4 }));
+  decks.position.y = 1.14;
+  g.add(decks);
+  for (const sx of [-0.7, 0.7]) {
+    const platter = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.32, 0.04, 16), mat(0x111, { metalness: 0.6 }));
+    platter.position.set(sx, 1.2, 0.05);
+    g.add(platter);
+  }
+  const dj = box(0.36, 0.7, 0.22, mat(0x222));
+  dj.position.set(0, 1.55, -0.15);
+  g.add(dj);
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.13, 10, 8), mat(0xc68642));
+  head.position.set(0, 2.05, -0.15);
+  g.add(head);
+  const phones = box(0.38, 0.08, 0.08, mat(0x111));
+  phones.position.set(0, 2.12, -0.15);
+  g.add(phones);
+
+  const slides = slideCanvas();
+  const screen = new THREE.Mesh(
+    new THREE.PlaneGeometry(8.4, 4.7),
+    new THREE.MeshBasicMaterial({ map: slides.tex })
+  );
+  screen.position.set(0, 4.4, -1.35);
+  g.add(screen);
+  const frame = box(8.7, 5.0, 0.12, mat(0x111));
+  frame.position.set(0, 4.4, -1.42);
+  g.add(frame);
+
+  g.position.set(-24, 0, 7);
+  g.rotation.y = 0.55;
+  scene.add(g);
+  add(-26.5, -21.5, 5.2, 8.8);
+
+  let last = 0;
+  return {
+    tick(t) {
+      head.position.y = 2.05 + Math.sin(t * 4) * 0.03;
+      if (t - last > 4.2) {
+        last = t;
+        slides.paint();
+        slides.tex.needsUpdate = true;
+      }
+    },
+  };
+}
+
+function spawnDancers(scene) {
+  const out = [];
+  const spots = [
+    [-22.2, 5.4],
+    [-21.0, 8.6],
+    [-25.5, 6.8],
+    [-23.6, 9.2],
+    [-20.4, 6.2],
+  ];
+  const cols = [0xe23d7a, 0x1f6f78, 0xf2c12e, 0x2f7fd0, 0x141414];
+  spots.forEach(([x, z], i) => {
+    const d = new THREE.Group();
+    const body = box(0.28, 0.5, 0.16, mat(cols[i % cols.length]));
+    body.position.y = 1.0;
+    d.add(body);
+    const hd = new THREE.Mesh(new THREE.SphereGeometry(0.11, 8, 6), mat(0xd4a06a));
+    hd.position.y = 1.38;
+    d.add(hd);
+    d.position.set(x, 0, z);
+    scene.add(d);
+    const ph = i * 0.9;
+    out.push({
+      tick(t) {
+        d.position.y = Math.abs(Math.sin(t * 5 + ph)) * 0.18;
+        d.rotation.y = Math.sin(t * 2 + ph) * 0.4;
+        body.rotation.z = Math.sin(t * 5 + ph) * 0.15;
+      },
+    });
+  });
+  return out;
 }

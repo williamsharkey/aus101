@@ -5,10 +5,13 @@
 
 const DEAD = 0.3;
 const STICK_PX = 132;
+const LOOK_PX = 96;
 const KNOB_PX = 58;
-const BTN = 64;
+const LOOK_KNOB = 42;
+const BTN = 56;
 
 const stick = { x: 0, y: 0, mag: 0 };
+const look = { x: 0, y: 0, mag: 0 };
 const owned = { w: false, a: false, s: false, d: false, space: false, shift: false };
 
 let installed = false;
@@ -137,6 +140,48 @@ function dot() {
   });
 }
 
+function bindStick(pad, base, knob, radius, onMove, onEnd) {
+  let joyId = null;
+  const fromEvent = (e) => {
+    const r = base.getBoundingClientRect();
+    const cx = r.left + r.width / 2;
+    const cy = r.top + r.height / 2;
+    const dx = e.clientX - cx;
+    const dy = e.clientY - cy;
+    const raw = Math.hypot(dx, dy);
+    const mag = Math.min(1, raw / radius);
+    const x = raw > 0 ? (dx / raw) * mag : 0;
+    const y = raw > 0 ? (-dy / raw) * mag : 0;
+    onMove(x, y, mag);
+    knob.style.transform = `translate(${x * radius}px, ${-y * radius}px)`;
+  };
+  pad.addEventListener("pointerdown", (e) => {
+    if (joyId != null) return;
+    joyId = e.pointerId;
+    pad.setPointerCapture?.(e.pointerId);
+    fromEvent(e);
+    e.preventDefault();
+    e.stopPropagation();
+  });
+  pad.addEventListener("pointermove", (e) => {
+    if (e.pointerId !== joyId) return;
+    fromEvent(e);
+    e.preventDefault();
+    e.stopPropagation();
+  });
+  const end = (e) => {
+    if (joyId == null || (e.pointerId != null && e.pointerId !== joyId)) return;
+    joyId = null;
+    onEnd();
+    knob.style.transform = "translate(0px, 0px)";
+    e.preventDefault();
+    e.stopPropagation();
+  };
+  pad.addEventListener("pointerup", end);
+  pad.addEventListener("pointercancel", end);
+  pad.addEventListener("lostpointercapture", end);
+}
+
 function mountPad(keys, isPlaying) {
   if (root) return root;
 
@@ -206,64 +251,93 @@ function mountPad(keys, isPlaying) {
   );
 
   const radius = (STICK_PX - KNOB_PX) * 0.5;
-  let joyId = null;
+  bindStick(
+    padL,
+    base,
+    knob,
+    radius,
+    (x, y, mag) => {
+      if (!isPlaying()) return;
+      setStick(x, y, mag);
+      writeDigital(keys);
+    },
+    () => clearMove(keys)
+  );
 
-  const placeKnob = (nx, ny) => {
-    knob.style.transform = `translate(${nx * radius}px, ${-ny * radius}px)`;
-  };
-
-  const joyFromEvent = (e) => {
-    const r = base.getBoundingClientRect();
-    const cx = r.left + r.width / 2;
-    const cy = r.top + r.height / 2;
-    const dx = e.clientX - cx;
-    const dy = e.clientY - cy;
-    const raw = Math.hypot(dx, dy);
-    const mag = Math.min(1, raw / radius);
-    const x = raw > 0 ? (dx / raw) * mag : 0;
-    const y = raw > 0 ? (-dy / raw) * mag : 0;
-    setStick(x, y, mag);
-    writeDigital(keys);
-    placeKnob(x, y);
-  };
-
-  padL.addEventListener("pointerdown", (e) => {
-    if (joyId != null) return;
-    if (!isPlaying()) return;
-    joyId = e.pointerId;
-    padL.setPointerCapture?.(e.pointerId);
-    joyFromEvent(e);
-    e.preventDefault();
-    e.stopPropagation();
-  });
-  padL.addEventListener("pointermove", (e) => {
-    if (e.pointerId !== joyId) return;
-    joyFromEvent(e);
-    e.preventDefault();
-    e.stopPropagation();
-  });
-  const joyEnd = (e) => {
-    if (joyId == null || (e.pointerId != null && e.pointerId !== joyId)) return;
-    joyId = null;
-    clearMove(keys);
-    placeKnob(0, 0);
-    e.preventDefault();
-    e.stopPropagation();
-  };
-  padL.addEventListener("pointerup", joyEnd);
-  padL.addEventListener("pointercancel", joyEnd);
-  padL.addEventListener("lostpointercapture", joyEnd);
+  // Smaller look / steer stick (mouse-look)
+  const padR = el(
+    "div",
+    {
+      position: "absolute",
+      right: "max(16px, env(safe-area-inset-right))",
+      bottom: "max(16px, env(safe-area-inset-bottom))",
+      width: `${LOOK_PX}px`,
+      height: `${LOOK_PX}px`,
+      pointerEvents: "auto",
+    },
+    root
+  );
+  const lookBase = el(
+    "div",
+    {
+      position: "absolute",
+      inset: "0",
+      borderRadius: "50%",
+      background: "rgba(12,18,16,0.30)",
+      border: "1px solid rgba(251,246,234,0.18)",
+      boxShadow: "inset 0 0 0 1px rgba(0,0,0,0.16), 0 4px 16px rgba(0,0,0,0.22)",
+      backdropFilter: "blur(8px)",
+      webkitBackdropFilter: "blur(8px)",
+    },
+    padR
+  );
+  const lookKnob = el(
+    "div",
+    {
+      position: "absolute",
+      width: `${LOOK_KNOB}px`,
+      height: `${LOOK_KNOB}px`,
+      left: "50%",
+      top: "50%",
+      marginLeft: `${-LOOK_KNOB / 2}px`,
+      marginTop: `${-LOOK_KNOB / 2}px`,
+      borderRadius: "50%",
+      background: "rgba(255,215,106,0.28)",
+      border: "1px solid rgba(255,215,106,0.45)",
+      boxShadow: "0 2px 8px rgba(0,0,0,0.28)",
+      pointerEvents: "none",
+    },
+    padR
+  );
+  const lookR = (LOOK_PX - LOOK_KNOB) * 0.5;
+  bindStick(
+    padR,
+    lookBase,
+    lookKnob,
+    lookR,
+    (x, y, mag) => {
+      if (!isPlaying()) return;
+      look.x = x;
+      look.y = y;
+      look.mag = mag;
+    },
+    () => {
+      look.x = 0;
+      look.y = 0;
+      look.mag = 0;
+    }
+  );
 
   const col = el(
     "div",
     {
       position: "absolute",
-      right: "max(18px, env(safe-area-inset-right))",
-      bottom: "max(18px, env(safe-area-inset-bottom))",
+      right: "max(16px, env(safe-area-inset-right))",
+      bottom: `max(${18 + LOOK_PX + 12}px, calc(env(safe-area-inset-bottom) + ${LOOK_PX + 12}px))`,
       display: "flex",
       flexDirection: "column",
       alignItems: "center",
-      gap: "16px",
+      gap: "12px",
       pointerEvents: "none",
     },
     root
@@ -272,7 +346,7 @@ function mountPad(keys, isPlaying) {
   holdButton(col, BTN, dot(), (down) => {
     setOwned(keys, "ShiftLeft", "shift", down);
   });
-  holdButton(col, BTN + 8, droplet(), (down) => {
+  holdButton(col, BTN + 6, droplet(), (down) => {
     setOwned(keys, "Space", "space", down);
   });
 
@@ -285,7 +359,7 @@ function mountPad(keys, isPlaying) {
       clearMove(keys);
       setOwned(keys, "Space", "space", false);
       setOwned(keys, "ShiftLeft", "shift", false);
-      placeKnob(0, 0);
+      look.x = look.y = look.mag = 0;
     }
   };
   const loop = () => {
@@ -322,4 +396,9 @@ export function installTouchControls({ keys, isPlaying }) {
 /** @returns {{x:number,y:number,mag:number}} */
 export function getStick() {
   return { x: stick.x, y: stick.y, mag: stick.mag };
+}
+
+/** Look/steer analog (right stick). x = yaw, y = pitch. */
+export function getLookStick() {
+  return { x: look.x, y: look.y, mag: look.mag };
 }
