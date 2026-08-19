@@ -626,6 +626,8 @@ function poseHolder(h, t) {
   _qWant.setFromEuler(_eWant);
   _qChain.copy(rig.arm.quaternion).multiply(rig.hinge.quaternion).invert().multiply(_qWant);
   h.restQuat.copy(_qChain);
+  // Apply straight away: posing must not depend on faceScreen running afterwards.
+  h.yawNode.quaternion.copy(_qChain);
 
   if (p.pose === "tablet") {
     // Second hand at the far edge — a tablet is a two-handed object.

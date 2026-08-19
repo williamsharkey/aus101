@@ -44,6 +44,7 @@ import { createMusicDirector } from "./audio/musicDirector.js";
 import { createBoomBed, createGuitarBed, createDjBed } from "./audio/localBeds.js";
 import { attachGadgets } from "./world/gadgets.js";
 import { spawnSynthRig } from "./world/synthRig.js";
+import { spawnInteriors } from "./world/interiors.js";
 import { createTapeSystem } from "./audio/tapeDeck.js";
 
 const BG = 0x0b1210;
@@ -72,6 +73,9 @@ const follow = createFollowCam();
 
 const colliders = createColliders();
 const level = buildGoldCoast(scene, colliders);
+// Enterable buildings register their own wall AABBs, with a gap at each doorway.
+const interiors = spawnInteriors(scene, colliders);
+
 const props = createPropPhysics({
   scene,
   bounds: BOUNDS,
@@ -334,6 +338,7 @@ function frame() {
   if (playing && !paused) {
     const t = performance.now() * 0.001;
     level.update(t);
+    interiors.tick(t, player.pos);
     party.tick(t);
     fights.tick(raw || TICK);
     psa.tick(player.pos, audioOn);
@@ -361,6 +366,8 @@ function frame() {
       laserT: combat.laserT,
     });
     updateFollowCam(camera, player, raw || 0.016);
+    // Pull the boom in and off the walls once the player is inside a building.
+    interiors.adjustCamera(camera, player);
     lotionFoley.tick(performance.now(), speed > 0.4);
     steps.tick({
       speed,
