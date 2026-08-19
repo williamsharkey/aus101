@@ -26,6 +26,12 @@ import { createAus101, poseAus101 } from "./chars/aus101.js";
 import { spawnBeachCast } from "./chars/npcs.js";
 import { createWalkbyDirector } from "./audio/walkby.js";
 import { tickApply } from "./game/apply.js";
+import { createArtist } from "./chars/artist.js";
+import { spawnParty } from "./world/party.js";
+import { spawnFights } from "./phys/fights.js";
+import { spawnPsaKiosks } from "./world/psa.js";
+import { createMusicDirector } from "./audio/musicDirector.js";
+import { createBoomBed, createGuitarBed, createDjBed } from "./audio/localBeds.js";
 
 const BG = 0x0b1210;
 
@@ -59,6 +65,15 @@ player.yaw = 0;
 const aus101 = createAus101();
 scene.add(aus101);
 const cast = spawnBeachCast(scene);
+const party = spawnParty(scene);
+const fights = spawnFights(scene);
+const psa = spawnPsaKiosks(scene);
+const artist = createArtist(scene);
+for (const spot of party.musicSpots) {
+  if (spot.id.startsWith("guitar") && spot.position) {
+    cast.push({ mesh: { position: spot.position }, kind: "ken", ageBand: "adult" });
+  }
+}
 
 const voice = new VoiceBank();
 voice.loadManifest().catch(() => {});
@@ -70,6 +85,10 @@ const walkby = createWalkbyDirector(voice, cast);
 let carpenter = null;
 let oceanBed = null;
 let shades = null;
+let music = null;
+let boomBed = null;
+let guitarBed = null;
+let djBed = null;
 
 let playing = false;
 let paused = false;
@@ -125,6 +144,28 @@ async function beginPlay() {
       shades = createShadesBed(ctx);
       shades.start();
       shades.setMix(0, 0.05);
+      boomBed = createBoomBed(ctx);
+      guitarBed = createGuitarBed(ctx);
+      djBed = createDjBed(ctx);
+      boomBed.start();
+      guitarBed.start();
+      djBed.start();
+      boomBed.setMix(0, 0.05);
+      guitarBed.setMix(0, 0.05);
+      djBed.setMix(0, 0.05);
+      const spots = party.musicSpots;
+      const find = (id) => spots.find((s) => s.id === id);
+      music = createMusicDirector({
+        carpenter,
+        shades,
+        locals: [
+          { id: "piano", getPos: () => level.piano, radius: 12, bed: shades },
+          { id: "dj", getPos: () => find("dj")?.position || { x: -24, z: 7 }, radius: 10, bed: djBed },
+          { id: "boombox", getPos: () => find("boombox")?.position, radius: 8, bed: boomBed },
+          { id: "guitar-a", getPos: () => find("guitar-a")?.position, radius: 7, bed: guitarBed },
+          { id: "guitar-b", getPos: () => find("guitar-b")?.position, radius: 7, bed: guitarBed },
+        ],
+      });
     }
     carpenter?.setState("boardwalk");
     carpenter?.start();
@@ -192,6 +233,9 @@ function frame() {
   if (playing && !paused) {
     const t = performance.now() * 0.001;
     level.update(t);
+    party.tick(t);
+    fights.tick(raw || TICK);
+    psa.tick(player.pos);
     const speed = Math.hypot(player.vel.x, player.vel.z);
     aus101.position.set(player.pos.x, player.pos.y, player.pos.z);
     // Rig face is +Z; locomotion forward is −Z at yaw=0 (Coconuts convention).
@@ -212,14 +256,8 @@ function frame() {
       voice.play("rub_pleasure_01", { gain: 1.2 });
     }
     if (audioOn) walkby.tick(performance.now(), player.pos);
-    if (level.piano && shades) {
-      const dx = player.pos.x - level.piano.x;
-      const dz = player.pos.z - level.piano.z;
-      const pd = Math.hypot(dx, dz);
-      const wet = pd < 14 ? Math.max(0, 1 - pd / 14) ** 1.4 : 0;
-      shades.setMix(audioOn ? wet : 0, 0.35);
-      if (wet > 0.35) carpenter?.setState("menu");
-    }
+    music?.tick(player.pos, audioOn);
+    artist.tick(renderer, scene, performance.now());
   } else if (!playing) {
     camera.position.set(8, 6.5, 22);
     camera.lookAt(0, 1.2, 4);
