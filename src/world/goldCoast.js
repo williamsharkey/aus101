@@ -526,7 +526,7 @@ export function buildGoldCoast(scene, colliders) {
   // Palms along esplanade + sand
   const palmSpots = [
     [-30, 14, 1.1],
-    [-26, 8, 0.95],
+    [-29, 12.5, 0.95],
     [-22, 18, 1.2],
     [-12, 12, 1.0],
     [12, 13, 1.05],
@@ -536,9 +536,11 @@ export function buildGoldCoast(scene, colliders) {
     [16, -2, 0.9],
     [-28, 0, 1.0],
     [30, 2, 0.95],
-    [-18, 6, 0.8],
+    [-15.5, 9.8, 0.8],
   ];
-  for (const [x, z, s] of palmSpots) placePalm(scene, add, palms, x, z, s);
+  for (const [x, z, s] of palmSpots) {
+    if (clearOf(x, z, 1.6)) placePalm(scene, add, palms, x, z, s);
+  }
 
   // Patio umbrellas + chairs (Coconuts factory). Laid out in the gaps between the
   // cast, then filtered again by clearOf() so nothing spawns through a body.
@@ -548,12 +550,12 @@ export function buildGoldCoast(scene, colliders) {
     [-1.5, 3.0, true],
     [3.5, 5.5, true],
     [13.0, 3.0, true],
-    [-17.5, 5.5, true],
+    [-16.5, 1.5, true],
     [-11.0, 0.5, true],
     [17.0, 6.0, true],
     [-1.0, 9.5, true],
     [7.5, 9.0, true],
-    [-7.5, -4.5, false],
+    [-4.0, -7.0, false],
     [5.0, -2.0, false],
     [12.5, -5.5, false],
     [-16.5, -2.5, false],
@@ -913,13 +915,13 @@ function buildPianoMan() {
     g.add(cheek);
   }
   const nameBoard = box(1.42, 0.09, 0.09, gloss);
-  nameBoard.position.set(0, KY + 0.02, KZ + 0.205);
+  nameBoard.position.set(0, KY + 0.02, KZ + 0.225);
   g.add(nameBoard);
   const badge = new THREE.Mesh(
     new THREE.PlaneGeometry(0.4, 0.05),
     new THREE.MeshBasicMaterial({ map: signTex("AUS101", "GOLD COAST"), transparent: true })
   );
-  badge.position.set(0, KY + 0.03, KZ + 0.161);
+  badge.position.set(0, KY + 0.03, KZ + 0.181);
   badge.rotation.y = Math.PI;
   g.add(badge);
 

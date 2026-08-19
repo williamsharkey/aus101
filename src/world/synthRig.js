@@ -110,7 +110,7 @@ function makeGear() {
     g.add(end);
   }
   const panel = box(0.66, 0.012, 0.1, std(0x111118, { roughness: 0.34, metalness: 0.2 }));
-  panel.position.set(-0.06, deckY + 0.082, STAND_Z - 0.085);
+  panel.position.set(-0.06, deckY + 0.082, STAND_Z + 0.075);
   g.add(panel);
 
   // One octave and a half, proper piano layout.
@@ -119,7 +119,7 @@ function makeGear() {
   const whiteGeo = new THREE.BoxGeometry(0.027, 0.014, 0.1);
   const blackGeo = new THREE.BoxGeometry(0.015, 0.02, 0.062);
   const keyY = deckY + 0.083;
-  const keyZ = STAND_Z + 0.035;
+  const keyZ = STAND_Z - 0.055;
   const x0 = -0.4;
   for (let w = 0; w < 15; w++) {
     const k = new THREE.Mesh(whiteGeo, cream);
@@ -130,7 +130,7 @@ function makeGear() {
     const pc = WHITE[w % 7];
     if (pc !== 4 && pc !== 11 && w < 14) {
       const b = new THREE.Mesh(blackGeo, std(0x0d0d10, { roughness: 0.35 }));
-      b.position.set(x0 + w * 0.029 + 0.0145, keyY + 0.014, keyZ - 0.02);
+      b.position.set(x0 + w * 0.029 + 0.0145, keyY + 0.014, keyZ + 0.02);
       g.add(b);
     }
   }
@@ -138,30 +138,30 @@ function makeGear() {
   const knobGeo = new THREE.CylinderGeometry(0.011, 0.013, 0.016, 8);
   for (let i = 0; i < 5; i++) {
     const knob = new THREE.Mesh(knobGeo, chrome);
-    knob.position.set(-0.3 + i * 0.055, deckY + 0.096, STAND_Z - 0.085);
+    knob.position.set(-0.3 + i * 0.055, deckY + 0.096, STAND_Z + 0.075);
     knob.rotation.y = i * 0.7;
     g.add(knob);
   }
   const sliderGeo = new THREE.BoxGeometry(0.012, 0.01, 0.05);
   for (let i = 0; i < 3; i++) {
     const sl = new THREE.Mesh(sliderGeo, cream);
-    sl.position.set(0.02 + i * 0.03, deckY + 0.093, STAND_Z - 0.085);
+    sl.position.set(0.02 + i * 0.03, deckY + 0.093, STAND_Z + 0.075);
     g.add(sl);
   }
   const wheelGeo = new THREE.CylinderGeometry(0.024, 0.024, 0.014, 10);
   for (const sx of [-0.44, -0.4]) {
     const wheel = new THREE.Mesh(wheelGeo, rubber);
     wheel.rotation.z = Math.PI / 2;
-    wheel.position.set(sx, deckY + 0.1, STAND_Z - 0.06);
+    wheel.position.set(sx, deckY + 0.1, STAND_Z + 0.05);
     g.add(wheel);
   }
 
   const drums = box(0.3, 0.06, 0.24, shell);
-  drums.position.set(0.44, deckY + 0.03, STAND_Z - 0.02);
+  drums.position.set(0.46, deckY + 0.03, STAND_Z + 0.02);
   drums.rotation.y = -0.35;
   g.add(drums);
   const readout = box(0.14, 0.006, 0.045, std(0x0a2a1a, { emissive: 0x2ec4c8, emissiveIntensity: 0.5 }));
-  readout.position.set(0.005, 0.036, -0.08);
+  readout.position.set(0.005, 0.036, 0.085);
   drums.add(readout);
 
   const pads = [];
@@ -171,7 +171,7 @@ function makeGear() {
       const m = std(0x2a2a32, { roughness: 0.45, emissive: 0x000000, emissiveIntensity: 1 });
       const p = new THREE.Mesh(padGeo, m);
       p.castShadow = true;
-      p.position.set(-0.09 + c * 0.06, 0.036, 0.02 + r * 0.055);
+      p.position.set(-0.09 + c * 0.06, 0.036, -0.055 + r * 0.055);
       drums.add(p);
       pads.push({ mesh: p, mat: m });
     }
@@ -191,8 +191,8 @@ function makeGear() {
   amp.add(ampCone);
 
   const lead = std(0x14141a, { roughness: 0.7 });
-  g.add(cable(new THREE.Vector3(-0.42, deckY + 0.05, STAND_Z - 0.12), new THREE.Vector3(-0.6, 0.24, STAND_Z + 0.02), 0.22, lead));
-  g.add(cable(new THREE.Vector3(0.3, deckY + 0.05, STAND_Z - 0.12), new THREE.Vector3(0.42, deckY + 0.03, STAND_Z - 0.12), 0.14, lead));
+  g.add(cable(new THREE.Vector3(-0.42, deckY + 0.05, STAND_Z + 0.1), new THREE.Vector3(-0.6, 0.24, STAND_Z + 0.02), 0.22, lead));
+  g.add(cable(new THREE.Vector3(0.3, deckY + 0.05, STAND_Z + 0.1), new THREE.Vector3(0.42, deckY + 0.03, STAND_Z + 0.1), 0.14, lead));
 
   // Headphones: band over the crown, cups on the ears, lead down to the deck.
   const cans = new THREE.Group();
@@ -347,7 +347,7 @@ export function spawnSynthRig(scene) {
   lad.add(
     cable(
       new THREE.Vector3(-headR * 1.05, headY + headR * 0.4, 0),
-      new THREE.Vector3(deck.x - 0.3, deck.y - 0.02, deck.standZ - 0.12),
+      new THREE.Vector3(deck.x - 0.3, deck.y - 0.02, deck.standZ + 0.1),
       0.12,
       gear.userData.cableMat
     )
@@ -357,12 +357,12 @@ export function spawnSynthRig(scene) {
   const labelM = std(0xe07030, { roughness: 0.55 });
   for (let i = 0; i < 3; i++) {
     const c = makeCassette(bodyM, labelM);
-    c.position.set(0.3 - i * 0.02, deck.y + 0.03 + i * 0.015, deck.standZ - 0.16);
+    c.position.set(0.3 - i * 0.02, deck.y + 0.03 + i * 0.015, deck.standZ + 0.02);
     c.rotation.y = 0.2 + i * 0.08;
     gear.add(c);
   }
   const loose = makeCassette(bodyM, std(0xffd76a, { roughness: 0.5 }));
-  loose.position.set(-0.34, deck.y + 0.03, deck.standZ - 0.17);
+  loose.position.set(-0.34, deck.y + 0.03, deck.standZ + 0.03);
   loose.visible = false;
   gear.add(loose);
 
@@ -520,7 +520,7 @@ export function spawnSynthRig(scene) {
         _key.set(
           deck.x + side * (0.16 + Math.sin(ph) * 0.07),
           deck.y + 0.1 + Math.abs(Math.sin(ph * 2)) * 0.02,
-          deck.z - 0.05
+          deck.z + 0.03
         );
         // gear sits under root; the lad sways, so pull the target into his space.
         _key.applyAxisAngle(UP, -lad.rotation.y);

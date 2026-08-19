@@ -78,7 +78,7 @@ function mats() {
     // Floor tile is deliberately darker than the walls — a white room on a
     // white floor reads as a void under this sunset key.
     tile: new THREE.MeshStandardMaterial({
-      map: cloneMap(brickTex("#9fb3ae", "#6f8781"), 9, 7),
+      map: cloneMap(brickTex("#879d98", "#5d736e"), 9, 7),
       roughness: 0.6,
       emissive: 0x0e1414,
     }),
@@ -392,7 +392,7 @@ function buildSurfClub(reg) {
   // All signage lives on the long blank run west of the door.
   const fz = B.z1 + T + 0.03;
   sign(g, signTex("SURF CLUB", "MEMBERS · VISITORS · THE UNZINCED"), 4.4, 0.9, -19.75, B.floorY + 2.72, fz, 0);
-  sign(g, awningTex("ENTRY", "MIND THE GLARE"), 1.9, 0.5, dx, B.floorY + 2.42, fz, 0);
+  sign(g, awningTex("ENTRY", "MIND THE GLARE"), 1.9, 0.5, dx, B.floorY + 2.5, fz, 0);
   sign(g, awningTex("NO HAT", "NO PLAY"), 1.3, 0.44, -21.4, B.floorY + 1.5, fz, 0);
   sign(g, awningTex("ZINC UP", "OR ZIP IT"), 1.3, 0.44, -19.75, B.floorY + 1.5, fz, 0);
   sign(g, signTex("PATROL 0600", "UV 14 BY 0900 · SEEK SHADE"), 1.7, 0.85, -18.15, B.floorY + 1.62, fz, 0);
@@ -549,7 +549,7 @@ function buildShadeShack(reg) {
     g.add(b);
   }
 
-  sign(g, signTex("THE SHADE SHACK", "OPEN TILL THE UV DROPS"), 4.0, 0.72, cx, B.floorY + 2.55, B.z0 - T - 0.03, Math.PI);
+  sign(g, signTex("THE SHADE SHACK", "OPEN TILL THE UV DROPS"), 4.0, 0.7, cx, B.floorY + 2.62, B.z0 - T - 0.03, Math.PI);
   sign(g, awningTex("SPF 50+", "ON TAP"), 1.7, 0.55, B.x0 + 1.4, B.floorY + 1.75, B.z0 - T - 0.03, Math.PI);
   sign(g, awningTex("NO SHIRT", "NO SHADE"), 1.7, 0.55, B.x1 - 1.4, B.floorY + 1.75, B.z0 - T - 0.03, Math.PI);
 
@@ -667,11 +667,14 @@ function buildChangeRooms(reg) {
   reg(px - 0.1, px + 0.1, pz0, B.z1 + T, B.floorY, B.floorY + B.h);
 
   // --- signage -------------------------------------------------------
-  sign(g, signTex("CHANGE ROOMS", "RINSE · ZINC · REPEAT"), 3.6, 0.9, cx, B.floorY + 2.5, B.z0 - T - 0.03, Math.PI);
-  sign(g, awningTex("BLOKES", ""), 1.1, 0.42, dBlokes, B.floorY + 2.32, B.z0 - T - 0.03, Math.PI);
-  sign(g, awningTex("SHEILAS", ""), 1.1, 0.42, dSheilas, B.floorY + 2.32, B.z0 - T - 0.03, Math.PI);
-  sign(g, signTex("SHOWER FIRST", "SAND IS NOT SUNSCREEN"), 1.8, 0.62, cx - 2.5, B.floorY + 1.9, B.z1 - 0.02, Math.PI);
-  sign(g, signTex("DUNNY", "OUT OF ORDER SINCE '94"), 1.4, 0.7, cx + 2.5, B.floorY + 1.9, B.z1 - 0.02, Math.PI);
+  const sz = B.z0 - T - 0.03;
+  sign(g, signTex("CHANGE ROOMS", "RINSE · ZINC · REPEAT"), 3.2, 0.5, cx, B.floorY + 2.62, sz, Math.PI);
+  sign(g, awningTex("BLOKES", ""), 1.1, 0.3, dBlokes, B.floorY + 2.2, sz, Math.PI);
+  sign(g, awningTex("SHEILAS", ""), 1.1, 0.3, dSheilas, B.floorY + 2.2, sz, Math.PI);
+  // Interior notices go on the partition faces — the back wall is all shower
+  // recess and basin bench.
+  sign(g, signTex("SHOWER FIRST", "SAND IS NOT SUNSCREEN"), 1.7, 0.6, cx - 0.11, B.floorY + 1.85, 25.2, -Math.PI / 2);
+  sign(g, signTex("DUNNY", "OUT OF ORDER SINCE '94"), 1.7, 0.6, cx + 0.11, B.floorY + 1.85, 25.2, Math.PI / 2);
 
   // --- fittings ------------------------------------------------------
   for (const [side, wx] of [
