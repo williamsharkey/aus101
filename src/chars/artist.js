@@ -48,7 +48,7 @@ const LEAN_PITCH = 0.17;
 const LEAN_ROLL = 0.15;
 
 /** Painter's stance in easel-local space (easel sits at the artist root origin). */
-const STANCE = { x: 0.36, z: 0.8, turn: 0.22 };
+const STANCE = { x: 0.38, z: 0.72, turn: -0.2 };
 
 const QUAD_VERT = `
 varying vec2 vUv;
@@ -406,7 +406,7 @@ function makePainter() {
   // ---- painting arm (aimed by aimBrush; local +Z runs down the arm) -------
   const limb = makeLimb(shirt, skin, armR);
   const arm = limb.group;
-  arm.position.set(shoulderW * 0.5 - armR * 0.6, shoulderY - 0.035, 0.015);
+  arm.position.set(-(shoulderW * 0.5 - armR * 0.6), shoulderY - 0.035, 0.015);
   const brush = makeBrush(skin);
   brush.position.z = 0.42;
   arm.add(brush);
@@ -414,9 +414,9 @@ function makePainter() {
   g.add(arm);
 
   // ---- palette arm (static, bent, hand under the palette) ----------------
-  const pShoulder = new THREE.Vector3(-(shoulderW * 0.5 - armR * 0.6), shoulderY - 0.035, 0.015);
-  const pElbow = new THREE.Vector3(-0.255, 1.145, 0.035);
-  const pHand = new THREE.Vector3(-0.145, 1.055, 0.235);
+  const pShoulder = new THREE.Vector3(shoulderW * 0.5 - armR * 0.6, shoulderY - 0.035, 0.015);
+  const pElbow = new THREE.Vector3(0.255, 1.145, 0.035);
+  const pHand = new THREE.Vector3(0.145, 1.055, 0.235);
   const pDelt = part(GEO.sphere, shirt, armR * 1.3, armR * 1.24, armR * 1.24);
   pDelt.position.copy(pShoulder);
   g.add(pDelt);
@@ -429,9 +429,9 @@ function makePainter() {
   pElbowBall.position.copy(pElbow);
   g.add(pElbowBall);
 
-  const palHand = makeFlatHand(skin, -1);
+  const palHand = makeFlatHand(skin, 1);
   palHand.position.copy(pHand);
-  palHand.rotation.set(-0.1, 0.5, 0.2);
+  palHand.rotation.set(-0.1, -0.5, -0.2);
   g.add(palHand);
 
   // Palette rides on the flat of that hand, thumb up through it.
@@ -568,10 +568,8 @@ export function createArtist(scene, pose = { x: 4.5, z: -6.2, yaw: -2.6 }) {
   canvasMesh.position.copy(board.position);
   canvasMesh.position.z += 0.018;
   canvasMesh.rotation.copy(board.rotation);
-  canvasMesh.layers.set(LAYER_PAINT);
-  canvasMesh.layers.enable(0);
-  board.layers.set(LAYER_PAINT);
-  board.layers.enable(0);
+  canvasMesh.layers.set(0);
+  board.layers.set(0);
   easel.add(canvasMesh);
 
   const lookX = pose.x + Math.sin(pose.yaw) * 14;
@@ -656,41 +654,52 @@ export function createArtist(scene, pose = { x: 4.5, z: -6.2, yaw: -2.6 }) {
     const prevShadow = renderer.shadowMap.enabled;
     renderer.getClearColor(prevClear);
 
-    renderer.autoClear = true;
-    renderer.shadowMap.enabled = false;
+    try {
+      renderer.autoClear = true;
+      renderer.shadowMap.enabled = false;
 
-    if (!inited) {
+      root.visible = false;
+      renderer.setRenderTarget(viewRT);
+      renderer.setClearColor(sky, 1);
+      renderer.render(scene3, eye);
+      root.visible = true;
+
+      if (!inited) {
+        // First pass: drop the whole view onto linen so the canvas is never black.
+        renderer.setRenderTarget(paintRT);
+        renderer.setClearColor(linen, 1);
+        renderer.clear();
+        stampMat.uniforms.center.value.set(0.5, 0.5);
+        stampMat.uniforms.radius.value = 2.0;
+        stampMat.uniforms.amount.value = 1.0;
+        renderer.autoClear = false;
+        renderer.render(stampScene, blitCam);
+        inited = true;
+        paintMat.needsUpdate = true;
+        restore(renderer, prevRT, prevAuto, prevAlpha, prevShadow);
+        return;
+      }
+
+      renderer.setRenderTarget(errRT);
+      renderer.setClearColor(0x000000, 1);
+      renderer.render(errScene, blitCam);
+      renderer.readRenderTargetPixels(errRT, 0, 0, VIEW, VIEW, errPix);
+
+      const hit = maxErrorUV(errPix);
+      targetUV.set(hit.u, hit.v);
+      jab = 1;
+
+      stampMat.uniforms.center.value.set(hit.u, hit.v);
+      stampMat.uniforms.radius.value = BRUSH_UV * (0.72 + Math.random() * 0.5);
+      stampMat.uniforms.amount.value = 0.58 + Math.min(0.36, hit.err / 90000);
+
+      renderer.autoClear = false;
       renderer.setRenderTarget(paintRT);
-      renderer.setClearColor(linen, 1);
-      renderer.clear();
-      inited = true;
+      renderer.render(stampScene, blitCam);
+      paintRT.texture.needsUpdate = true;
+    } catch (e) {
+      console.warn("artist stroke", e);
     }
-
-    // He paints the beach, not his own kit: the easel, canvas and painter
-    // himself all sit between the locked eye and the view.
-    root.visible = false;
-    renderer.setRenderTarget(viewRT);
-    renderer.setClearColor(sky, 1);
-    renderer.render(scene3, eye);
-    root.visible = true;
-
-    renderer.setRenderTarget(errRT);
-    renderer.setClearColor(0x000000, 1);
-    renderer.render(errScene, blitCam);
-    renderer.readRenderTargetPixels(errRT, 0, 0, VIEW, VIEW, errPix);
-
-    const hit = maxErrorUV(errPix);
-    targetUV.set(hit.u, hit.v);
-    jab = 1;
-
-    stampMat.uniforms.center.value.set(hit.u, hit.v);
-    stampMat.uniforms.radius.value = BRUSH_UV * (0.72 + Math.random() * 0.5);
-    stampMat.uniforms.amount.value = 0.58 + Math.min(0.36, hit.err / 90000);
-
-    renderer.autoClear = false;
-    renderer.setRenderTarget(paintRT);
-    renderer.render(stampScene, blitCam);
-
     restore(renderer, prevRT, prevAuto, prevAlpha, prevShadow);
   }
 
@@ -727,7 +736,8 @@ export function createArtist(scene, pose = { x: 4.5, z: -6.2, yaw: -2.6 }) {
     pose,
     tick(renderer, scene3, nowMs) {
       const ios = /iP(hone|ad|od)/.test(navigator.userAgent);
-      if (!ios && nowMs - lastStroke >= STROKE_MS) {
+      const gap = ios ? 380 : STROKE_MS;
+      if (nowMs - lastStroke >= gap) {
         stroke(renderer, scene3);
         lastStroke = nowMs;
       }
