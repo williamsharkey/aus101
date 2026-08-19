@@ -38,6 +38,9 @@ import { spawnFights } from "./phys/fights.js";
 import { spawnPsaKiosks } from "./world/psa.js";
 import { createMusicDirector } from "./audio/musicDirector.js";
 import { createBoomBed, createGuitarBed, createDjBed } from "./audio/localBeds.js";
+import { attachGadgets } from "./world/gadgets.js";
+import { spawnSynthRig } from "./world/synthRig.js";
+import { createTapeSystem } from "./audio/tapeDeck.js";
 
 const BG = 0x0b1210;
 
@@ -75,6 +78,12 @@ const party = spawnParty(scene);
 const fights = spawnFights(scene);
 const psa = spawnPsaKiosks(scene);
 const artist = createArtist(scene);
+const gadgets = attachGadgets(cast, scene);
+const synth = spawnSynthRig(scene);
+const tapes = createTapeSystem({
+  getBoomPos: () => party.musicSpots.find((s) => s.id === "boombox")?.position || { x: 12, z: 8 },
+  getDjPos: () => ({ x: -24, z: 7 }),
+});
 for (const spot of party.musicSpots) {
   if (spot.id.startsWith("guitar") && spot.position) {
     cast.push({ mesh: { position: spot.position }, kind: "ken", ageBand: "adult" });
@@ -197,6 +206,13 @@ async function beginPlay() {
           { id: "boombox", getPos: () => find("boombox")?.position, radius: 8, bed: boomBed },
           { id: "guitar-a", getPos: () => find("guitar-a")?.position, radius: 7, bed: guitarBed },
           { id: "guitar-b", getPos: () => find("guitar-b")?.position, radius: 7, bed: guitarBed },
+          {
+            id: "tape",
+            getPos: () =>
+              tapes.currentBed.inserted === "dj" ? { x: -24, z: 7 } : { x: 12, z: 8 },
+            radius: 9,
+            bed: tapes.currentBed,
+          },
         ],
       });
     }
@@ -291,6 +307,13 @@ function frame() {
     party.tick(t);
     fights.tick(raw || TICK);
     psa.tick(player.pos, audioOn);
+    gadgets.tick(t, player.pos);
+    synth.tick(t);
+    {
+      const act = synth.tryInteract(player.pos, input.keys);
+      if (act === "save" || act === "take") tapes.saveFromSynth(synth.snapshot());
+    }
+    tapes.tick(player.pos);
     radio?.tick?.();
     recall.tick(raw || TICK, player.pos);
     const speed = Math.hypot(player.vel.x, player.vel.z);
