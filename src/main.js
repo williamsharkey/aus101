@@ -1,21 +1,27 @@
 /**
- * AUS101 entry — BUILD0/POSTER0 + W0/W1 beach locomotion.
- * Controls ported from Coconuts (Steve / a-better-internet).
+ * AUS101 — Gold Coast. Coconuts factories as kit, restyled.
+ * Third-person copper/gold T-101, Carpenter bed, footsteps, unlabeled mobile pad.
  */
 import * as THREE from "three";
 import { applyDocumentShell, createSafeAreaProbe, sizeRenderer, installEdgeSwipeGuard } from "./shell/viewport.js";
 import { PosterOverlay } from "./poster/PosterOverlay.js";
 import { VoiceBank } from "./audio/voice.js";
 import { SfxBank, installLotionFoley } from "./audio/sfx.js";
+import { createCarpenterBed } from "./audio/carpenter.js";
+import { initOcean } from "./audio/ocean.js";
+import { createFootstepPlayer } from "./audio/footsteps.js";
 import {
   createPlayer,
   createColliders,
   installInput,
   fixedUpdate,
-  applyCamera,
   TICK,
 } from "./input/player.js";
-import { buildBeach, setupLights, BOUNDS } from "./world/beach.js";
+import { createFollowCam, updateFollowCam } from "./input/thirdPerson.js";
+import { installTouchControls } from "./input/touchControls.js";
+import { buildGoldCoast, setupGoldCoastLights, BOUNDS } from "./world/goldCoast.js";
+import { createAus101, poseAus101 } from "./chars/aus101.js";
+import { spawnBeachCast } from "./chars/npcs.js";
 
 const BG = 0x0b1210;
 
@@ -36,20 +42,28 @@ renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(BG);
-scene.fog = new THREE.FogExp2(0xb8d4e0, 0.008);
+setupGoldCoastLights(scene);
 
-const camera = new THREE.PerspectiveCamera(70, 1, 0.05, 400);
-setupLights(scene);
+const camera = new THREE.PerspectiveCamera(62, 1, 0.08, 220);
+const follow = createFollowCam();
 
 const colliders = createColliders();
-const beach = buildBeach(scene, colliders);
+const level = buildGoldCoast(scene, colliders);
 const player = createPlayer({ x: 0, y: 0, z: 10 });
+player.yaw = 0;
+
+const aus101 = createAus101();
+scene.add(aus101);
+spawnBeachCast(scene);
 
 const voice = new VoiceBank();
-voice.loadManifest().catch((e) => console.warn("VO manifest", e));
+voice.loadManifest().catch(() => {});
 const sfx = new SfxBank();
 const lotionFoley = installLotionFoley(sfx, null);
+const steps = createFootstepPlayer(sfx);
+
+let carpenter = null;
+let oceanBed = null;
 
 let playing = false;
 let paused = false;
@@ -63,11 +77,13 @@ const input = installInput({
     if (playing && !paused) {
       paused = true;
       poster.showAsPause();
+      carpenter?.setState("menu");
       if (document.pointerLockElement) document.exitPointerLock();
     }
   },
 });
 input.bindPlayer(player);
+installTouchControls({ keys: input.keys, isPlaying: () => playing && !paused });
 
 function resize() {
   const { w, h } = sizeRenderer(renderer, canvas);
@@ -78,29 +94,12 @@ resize();
 window.addEventListener("resize", resize);
 window.addEventListener("orientationchange", () => setTimeout(resize, 300));
 
-const hud = document.createElement("div");
-hud.id = "hud";
-Object.assign(hud.style, {
-  position: "fixed",
-  left: "14px",
-  bottom: "max(14px, env(safe-area-inset-bottom))",
-  zIndex: "5",
-  color: "#fbf6ea",
-  font: "12.5px ui-sans-serif, system-ui, sans-serif",
-  textShadow: "0 1px 3px rgba(0,0,0,.55)",
-  pointerEvents: "none",
-  opacity: "0",
-  transition: "opacity .3s",
-});
-hud.innerHTML =
-  "<b style='color:#ffd76a'>WASD</b> move · <b style='color:#ffd76a'>Mouse</b> look · <b style='color:#ffd76a'>Shift</b> jog · <b style='color:#ffd76a'>Space</b> squeeze/rub · <b style='color:#ffd76a'>Esc</b> pause · <b style='color:#ffd76a'>M</b> mute";
-document.body.appendChild(hud);
-
 let audioOn = true;
 window.addEventListener("keydown", (e) => {
   if (e.code === "KeyM" && playing) {
     audioOn = !audioOn;
     if (voice.gain) voice.gain.gain.value = audioOn ? 1 : 0;
+    if (sfx.master) sfx.master.gain.value = audioOn ? 0.85 : 0;
   }
 });
 
@@ -109,14 +108,22 @@ const poster = new PosterOverlay({
     playing = true;
     paused = false;
     clock.start();
-    hud.style.opacity = "0.92";
+    follow.snap();
     input.tryLock();
     try {
       await voice.unlock();
       await sfx.unlock();
-      if (audioOn) await voice.play("dj_open_01");
+      const ctx = voice.ctx || sfx.ctx;
+      if (ctx && !carpenter) {
+        carpenter = createCarpenterBed(ctx);
+        oceanBed = initOcean(ctx);
+      }
+      carpenter?.setState("boardwalk");
+      carpenter?.start();
+      oceanBed?.start();
+      if (audioOn) await voice.play("dj_open_01").catch(() => {});
     } catch (e) {
-      console.warn("VO play", e);
+      console.warn("audio", e);
     }
   },
 });
@@ -129,17 +136,28 @@ function frame() {
     if (playing && !paused) fixedUpdate(player, input.keys, colliders.COL, BOUNDS, TICK);
     acc -= TICK;
   }
+
   if (playing && !paused) {
-    beach.update(performance.now() * 0.001);
-    applyCamera(camera, player);
-    const moving = Math.hypot(player.vel.x, player.vel.z) > 0.4;
-    lotionFoley.tick(performance.now(), moving);
+    const t = performance.now() * 0.001;
+    level.update(t);
+    const speed = Math.hypot(player.vel.x, player.vel.z);
+    aus101.position.set(player.pos.x, player.pos.y, player.pos.z);
+    // Rig face is +Z; locomotion forward is −Z at yaw=0 (Coconuts convention).
+    aus101.rotation.y = player.yaw + Math.PI;
+    poseAus101(aus101, { walkPhase: player.step, speed });
+    updateFollowCam(camera, player, raw || 0.016);
+    lotionFoley.tick(performance.now(), speed > 0.4);
+    steps.tick({
+      speed,
+      onWood: level.isWood(player.pos.x, player.pos.z),
+      dt: raw || TICK,
+    });
+    if (input.keys.Space) carpenter?.setState("apply");
+    else carpenter?.setState("boardwalk");
   } else if (!playing) {
-    camera.position.set(0, 2.2, 14);
-    camera.lookAt(0, 1.0, 0);
+    camera.position.set(8, 6.5, 22);
+    camera.lookAt(0, 1.2, 4);
   }
   renderer.render(scene, camera);
 }
 frame();
-
-console.info("AUS101 W0/W1 beach + Coconuts-style controls ready");

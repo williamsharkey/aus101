@@ -11,7 +11,7 @@ Design document: [`docs/DESIGN.md`](docs/DESIGN.md)
 Design approved (`docs/DESIGN.md`).
 
 - **Voice:** 217 lines in `assets/voice/`. Bake without a TikTok account via `python3 tools/voice/bake_tiktok_proxy.py` (Weilnet/Ottsy) or `.venv/bin/python tools/voice/bake_edge.py`. See `docs/tts-research.md`.
-- **BUILD0 / POSTER0 / W0–W1:** `npm run build` → playable `dist/`. Movie-poster first frame, then WASD/arrows + mouse-look beach (Coconuts control patterns, Steve).
+- Playable `dist/`: movie-poster start, then **third-person** copper/gold AUS101 on a **Gold Coast** esplanade (Coconuts prop kit restyled — timber boardwalk, surf club, SLS tower, palms, umbrellas, NPCs). Carpenter bed + ocean + footsteps. Mobile: unlabeled stick + two hold buttons. Desktop: WASD / arrows / Shift / Space / mouse look. No on-screen key legend.
 
 ```bash
 npm install
