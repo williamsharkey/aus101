@@ -4,12 +4,12 @@
  */
 
 const NEAR = {
-  ken: 5.8,
-  babe: 5.8,
-  goth: 5.2,
-  sigma_07: 5.4,
-  kid: 4.6,
-  gull: 6.5,
+  ken: 8.5,
+  babe: 8.5,
+  goth: 7.5,
+  sigma_07: 7.8,
+  kid: 6.2,
+  gull: 9.0,
 };
 
 const TAGS = {
@@ -22,12 +22,12 @@ const TAGS = {
 };
 
 const CD = {
-  ken: 14000,
-  babe: 14000,
-  goth: 16000,
-  sigma_07: 20000,
-  kid: 18000,
-  gull: 9000,
+  ken: 7000,
+  babe: 7000,
+  goth: 8000,
+  sigma_07: 9000,
+  kid: 10000,
+  gull: 5000,
 };
 
 const ADULT_TROPES = new Set(["pleasure", "flirt", "gossip", "incel", "iamverysmart", "babe", "ken"]);
@@ -105,9 +105,9 @@ export function createWalkbyDirector(voice, cast) {
 
       last.set(best.mesh, now);
       lastId = line.id;
-      const dur = Math.max(1800, (line.text?.length || 20) * 70);
-      busyUntil = now + dur + 400;
-      voice.play(line.id).catch(() => {});
+      const dur = Math.max(1400, (line.text?.length || 20) * 55);
+      busyUntil = now + dur + 180;
+      voice.play(line.id, { gain: 1.55 }).catch(() => {});
     },
   };
 }

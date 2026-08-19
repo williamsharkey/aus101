@@ -54,12 +54,15 @@ export class VoiceBank {
     return buf;
   }
 
-  async play(id, { when = 0 } = {}) {
+  async play(id, { when = 0, gain = 1 } = {}) {
     await this.unlock();
     const buf = await this.decode(id);
     const src = this.ctx.createBufferSource();
     src.buffer = buf;
-    src.connect(this.gain);
+    const g = this.ctx.createGain();
+    g.gain.value = gain;
+    src.connect(g);
+    g.connect(this.gain);
     src.start(this.ctx.currentTime + when);
     return src;
   }
