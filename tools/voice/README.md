@@ -35,16 +35,28 @@ Node alternative (same flags): `node tools/voice/bake.mjs` when Node is installe
 
 **2026-08-19:** `--no-session` returns `Couldn't load speech. Try again.` on both known endpoints. A valid `TIKTOK_SESSION_ID` is required for real TikTok voices.
 
-## Temporary placeholders (macOS `say`)
+## Sessionless TikTok TTS (preferred — no account)
 
-Until a TikTok session is available:
+Official `tiktokv.com` needs a `sessionid`. These public proxies do **not**:
 
 ```bash
-python3 tools/voice/bake_say.py          # 34-line starter set
-python3 tools/voice/bake_say.py --all-sheet   # every line (slow)
+# TikTok voices via Weilnet / Ottsy proxies (no cookie)
+python3 tools/voice/bake_tiktok_proxy.py --smoke --force
+python3 tools/voice/bake_tiktok_proxy.py --force          # all 217 lines
+
+# Fallback: Microsoft Edge neural (AU Natasha / William) — no key
+.venv/bin/python tools/voice/bake_edge.py --force
 ```
 
-Placeholders are tagged `placeholder_say` in `assets/voice/manifest.json`. Replace by running `bake.py` with `TIKTOK_SESSION_ID` and `--force`.
+See `docs/tts-research.md` for probe results and ToS notes. Proxies are unofficial and may die; bake commits MP3s so runtime stays offline.
+
+## Temporary placeholders (macOS `say`)
+
+```bash
+python3 tools/voice/bake_say.py --all-sheet
+```
+
+Tagged `placeholder_say` in the manifest.
 
 Outputs:
 

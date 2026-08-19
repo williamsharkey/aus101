@@ -10,14 +10,13 @@ Design document: [`docs/DESIGN.md`](docs/DESIGN.md)
 
 Design approved (`docs/DESIGN.md`).
 
-- **Voice:** 217 macOS `say` placeholder MP3s in `assets/voice/` (swap to TikTok with `TIKTOK_SESSION_ID`).
-- **BUILD0 / POSTER0:** `npm run build` → playable `dist/index.html`. First frame is the movie poster (`assets/poster/og.webp`, 400×400 OG). Tap / PLAY unlocks audio and plays `dj_open_01`.
+- **Voice:** 217 lines in `assets/voice/`. Bake without a TikTok account via `python3 tools/voice/bake_tiktok_proxy.py` (Weilnet/Ottsy) or `.venv/bin/python tools/voice/bake_edge.py`. See `docs/tts-research.md`.
+- **BUILD0 / POSTER0 / W0–W1:** `npm run build` → playable `dist/`. Movie-poster first frame, then WASD/arrows + mouse-look beach (Coconuts control patterns, Steve).
 
 ```bash
 npm install
 npm run build
-# serve dist/ on any static host (not file:// for VO fetch)
-npx --yes serve dist
+npx --yes serve dist   # not file:// — VO uses fetch
 ```
 
 ## Credits

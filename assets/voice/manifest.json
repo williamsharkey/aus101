@@ -1,9 +1,10 @@
 {
   "version": 1,
-  "generatedAt": "2026-08-19T04:58:38Z",
+  "generatedAt": "2026-08-19T05:24:27Z",
   "count": 217,
-  "placeholder": true,
-  "note": "macOS say() stand-ins. Replace with TikTok bake via tools/voice/bake.py when TIKTOK_SESSION_ID is set.",
+  "placeholder": false,
+  "engine": "tiktok-weilnet-proxy",
+  "note": "Baked via tiktok-tts.weilnet.workers.dev \u2014 no TikTok sessionid. Unofficial; may break.",
   "lines": [
     {
       "id": "dj_open_01",
@@ -15,12 +16,12 @@
       "tags": [
         "dj",
         "open",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 0,
       "text": "it's a beautiful day on the Gold Coast",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "dj_quip_01",
@@ -32,12 +33,12 @@
       "tags": [
         "dj",
         "quip",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 0,
       "text": "Reticule FM 101.7, still on the air, still pretending the sun is your friend",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "dj_quip_02",
@@ -49,12 +50,12 @@
       "tags": [
         "dj",
         "quip",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 0,
       "text": "if your skin is already pink, that is not a tan, that is a warning",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "dj_quip_03",
@@ -66,12 +67,12 @@
       "tags": [
         "dj",
         "quip",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 0,
       "text": "coming up: more songs, more glare, fewer good decisions",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "dj_quip_04",
@@ -83,12 +84,12 @@
       "tags": [
         "dj",
         "quip",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 0,
       "text": "this next one is for anyone hiding under a towel like it is architecture",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "dj_quip_05",
@@ -100,12 +101,12 @@
       "tags": [
         "dj",
         "quip",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 0,
       "text": "remember, zinc is a lifestyle, not a suggestion",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "dj_quip_06",
@@ -117,12 +118,12 @@
       "tags": [
         "dj",
         "quip",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 0,
       "text": "traffic on the highway is fine; traffic on the sand is you",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "dj_quip_07",
@@ -134,12 +135,12 @@
       "tags": [
         "dj",
         "quip",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 0,
       "text": "we play the hits so you do not have to think about the UV index",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "dj_quip_08",
@@ -151,12 +152,12 @@
       "tags": [
         "dj",
         "quip",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 0,
       "text": "shout-out to the bloke who brought a whole esky and no hat",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "dj_quip_09",
@@ -168,12 +169,12 @@
       "tags": [
         "dj",
         "quip",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 0,
       "text": "101.7, where the chorus hits harder than the two o'clock sun",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "dj_quip_10",
@@ -185,12 +186,12 @@
       "tags": [
         "dj",
         "quip",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 0,
       "text": "if you can hear the gulls over me, turn me up, not them",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "dj_quip_11",
@@ -202,12 +203,12 @@
       "tags": [
         "dj",
         "quip",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 0,
       "text": "Gold Coast weather: bright, brutal, and not taking questions",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "dj_quip_12",
@@ -219,12 +220,12 @@
       "tags": [
         "dj",
         "quip",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 0,
       "text": "this is your captain speaking; the captain is a radio and he is not sorry",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "dj_quip_13",
@@ -236,12 +237,12 @@
       "tags": [
         "dj",
         "quip",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 0,
       "text": "apply, reapply, then apply again like you mean it",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "dj_quip_14",
@@ -253,12 +254,12 @@
       "tags": [
         "dj",
         "quip",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 0,
       "text": "we do not do request hours; the ocean already requested your hat",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "dj_quip_15",
@@ -270,12 +271,12 @@
       "tags": [
         "dj",
         "quip",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 0,
       "text": "next track is colder than the change rooms and twice as honest",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "dj_quip_16",
@@ -287,12 +288,12 @@
       "tags": [
         "dj",
         "quip",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 0,
       "text": "Reticule FM, broadcasting from somewhere you should not nap",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "dj_quip_17",
@@ -304,12 +305,12 @@
       "tags": [
         "dj",
         "quip",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 0,
       "text": "if your shoulders are glowing, that is not aura, that is physics",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "dj_quip_18",
@@ -321,12 +322,12 @@
       "tags": [
         "dj",
         "quip",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 0,
       "text": "hold your kids, hold your keys, hold your SPF",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "dj_quip_19",
@@ -338,12 +339,12 @@
       "tags": [
         "dj",
         "quip",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 0,
       "text": "this one goes out to the last bottle of 50-plus on the whole strip",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "dj_quip_20",
@@ -355,12 +356,12 @@
       "tags": [
         "dj",
         "quip",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 0,
       "text": "you can mute me; you cannot mute the sun",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "dj_quip_21",
@@ -372,12 +373,12 @@
       "tags": [
         "dj",
         "quip",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 0,
       "text": "101 point 7, slightly out of tune on purpose, like a holiday",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "dj_quip_22",
@@ -389,12 +390,12 @@
       "tags": [
         "dj",
         "quip",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 0,
       "text": "the forecast is: more forecast",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "dj_quip_23",
@@ -406,12 +407,12 @@
       "tags": [
         "dj",
         "quip",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 0,
       "text": "I have seen that rash shirt before; it did not win last time either",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "dj_quip_24",
@@ -423,12 +424,12 @@
       "tags": [
         "dj",
         "quip",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 0,
       "text": "stay with us through the heat shimmer; we are not going anywhere",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "dj_quip_25",
@@ -440,12 +441,12 @@
       "tags": [
         "dj",
         "quip",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 0,
       "text": "if you came for talkback, wrong decade, wrong station, right beach",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "dj_quip_26",
@@ -457,12 +458,12 @@
       "tags": [
         "dj",
         "quip",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 0,
       "text": "spinning another one before the tide takes the speaker",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "dj_quip_27",
@@ -474,12 +475,12 @@
       "tags": [
         "dj",
         "quip",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 0,
       "text": "sunscreen first, opinions later",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "dj_quip_28",
@@ -491,12 +492,12 @@
       "tags": [
         "dj",
         "quip",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 0,
       "text": "this is the part of the afternoon where everyone becomes a lizard",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "dj_quip_29",
@@ -508,12 +509,12 @@
       "tags": [
         "dj",
         "quip",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 0,
       "text": "Reticule FM: less chat, more shade",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "dj_quip_30",
@@ -525,12 +526,12 @@
       "tags": [
         "dj",
         "quip",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 0,
       "text": "I will be here when the umbrellas fail",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "dj_quip_31",
@@ -542,12 +543,12 @@
       "tags": [
         "dj",
         "quip",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 0,
       "text": "next up, something with a pulse and no UV",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "dj_quip_32",
@@ -559,12 +560,12 @@
       "tags": [
         "dj",
         "quip",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 0,
       "text": "do not look directly at the water; it is showing off",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "dj_quip_33",
@@ -576,12 +577,12 @@
       "tags": [
         "dj",
         "quip",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 0,
       "text": "101.7, for people who packed snacks and forgot water",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "dj_quip_34",
@@ -593,12 +594,12 @@
       "tags": [
         "dj",
         "quip",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 0,
       "text": "the boardwalk is a runway and nobody rehearsed",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "dj_quip_35",
@@ -610,12 +611,12 @@
       "tags": [
         "dj",
         "quip",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 0,
       "text": "keep your radio close; the gulls are unionising",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "dj_quip_36",
@@ -627,12 +628,12 @@
       "tags": [
         "dj",
         "quip",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 0,
       "text": "we interrupt this sunshine for more sunshine",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "dj_quip_37",
@@ -644,12 +645,12 @@
       "tags": [
         "dj",
         "quip",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 0,
       "text": "if you are listening in a car park, stay in the car park",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "dj_quip_38",
@@ -661,12 +662,12 @@
       "tags": [
         "dj",
         "quip",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 0,
       "text": "that smell is coconut, panic, and chips",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "dj_quip_39",
@@ -678,12 +679,12 @@
       "tags": [
         "dj",
         "quip",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 0,
       "text": "Gold Coast after lunch: the real boss fight",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "dj_quip_40",
@@ -695,12 +696,12 @@
       "tags": [
         "dj",
         "quip",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 0,
       "text": "I am not your dad; I am louder than your dad",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "dj_quip_41",
@@ -712,12 +713,12 @@
       "tags": [
         "dj",
         "quip",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 0,
       "text": "Reticule FM 101.7, still legal, still sticky",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "dj_quip_42",
@@ -729,12 +730,12 @@
       "tags": [
         "dj",
         "quip",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 0,
       "text": "one more song, then you reapply, then one more song",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "dj_quip_43",
@@ -746,12 +747,12 @@
       "tags": [
         "dj",
         "quip",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 0,
       "text": "the tide chart lies; the burn does not",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "dj_quip_44",
@@ -763,12 +764,12 @@
       "tags": [
         "dj",
         "quip",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 0,
       "text": "this next cut is for the towel that will never be the same",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "dj_quip_45",
@@ -780,12 +781,12 @@
       "tags": [
         "dj",
         "quip",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 0,
       "text": "we fade, we do not ghost",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "dj_quip_46",
@@ -797,12 +798,12 @@
       "tags": [
         "dj",
         "quip",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 0,
       "text": "if the sky looks empty, that is the point",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "dj_quip_47",
@@ -814,12 +815,12 @@
       "tags": [
         "dj",
         "quip",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 0,
       "text": "stay hydrated or stay home; I cannot do both for you",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "dj_quip_48",
@@ -831,12 +832,12 @@
       "tags": [
         "dj",
         "quip",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 0,
       "text": "101.7, coming at you from the wrong side of the umbrella",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "dj_quip_49",
@@ -848,12 +849,12 @@
       "tags": [
         "dj",
         "quip",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 0,
       "text": "beautiful day, terrible idea, perfect radio",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "dj_song_01",
@@ -865,12 +866,12 @@
       "tags": [
         "dj",
         "song",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 0,
       "text": "that was Pulse of the Boardwalk; this is Chrome on the Spit; do not take that as medical advice",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "dj_song_02",
@@ -882,12 +883,12 @@
       "tags": [
         "dj",
         "song",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 0,
       "text": "that was Zinc After Dark; this is Escort the Melanocytes; do not take that as medical advice",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "dj_song_03",
@@ -899,12 +900,12 @@
       "tags": [
         "dj",
         "song",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 0,
       "text": "that was Factory Recall Slowdance; this is SPF Fifty and Counting; do not take that as medical advice",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "rub_pleasure_01",
@@ -916,12 +917,12 @@
       "tags": [
         "rub",
         "pleasure",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 8000,
       "text": "mmm that feels so good",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "rub_pleasure_02",
@@ -933,12 +934,12 @@
       "tags": [
         "rub",
         "pleasure",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 8000,
       "text": "keep going chrome, right there",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "rub_pleasure_03",
@@ -950,12 +951,12 @@
       "tags": [
         "rub",
         "pleasure",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 8000,
       "text": "oh you are fully functional",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "rub_pleasure_04",
@@ -967,12 +968,12 @@
       "tags": [
         "rub",
         "pleasure",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 8000,
       "text": "don't you dare stop, clanker",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "rub_pleasure_05",
@@ -984,12 +985,12 @@
       "tags": [
         "rub",
         "pleasure",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 8000,
       "text": "that's the spot, that's the spot",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "rub_pleasure_06",
@@ -1001,12 +1002,12 @@
       "tags": [
         "rub",
         "pleasure",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 8000,
       "text": "who taught a T-unit to give a rubdown",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "rub_pleasure_07",
@@ -1018,12 +1019,12 @@
       "tags": [
         "rub",
         "pleasure",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 8000,
       "text": "harder, terminator, I paid for this tan",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "rub_pleasure_08",
@@ -1035,12 +1036,12 @@
       "tags": [
         "rub",
         "pleasure",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 8000,
       "text": "if this is a firmware test I pass",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "rub_pleasure_09",
@@ -1052,12 +1053,12 @@
       "tags": [
         "rub",
         "pleasure",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 8000,
       "text": "your hands are cold and I am not complaining",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "rub_pleasure_10",
@@ -1069,12 +1070,12 @@
       "tags": [
         "rub",
         "pleasure",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 8000,
       "text": "do the shoulders again, metal man",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "rub_pleasure_11",
@@ -1086,12 +1087,12 @@
       "tags": [
         "rub",
         "pleasure",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 8000,
       "text": "I am going to tell everyone on Cavill you do this",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "rub_pleasure_12",
@@ -1103,12 +1104,12 @@
       "tags": [
         "rub",
         "pleasure",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 8000,
       "text": "okay wow, okay, stay in that loop",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "walkby_flirt_01",
@@ -1120,12 +1121,12 @@
       "tags": [
         "walkby",
         "flirt",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 14000,
       "text": "nice abs, clanker",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "walkby_flirt_02",
@@ -1137,12 +1138,12 @@
       "tags": [
         "walkby",
         "flirt",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 14000,
       "text": "are you fully functional",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "walkby_flirt_03",
@@ -1154,12 +1155,12 @@
       "tags": [
         "walkby",
         "flirt",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 14000,
       "text": "hey chrome, you come here often or do you just wash up",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "walkby_flirt_04",
@@ -1171,12 +1172,12 @@
       "tags": [
         "walkby",
         "flirt",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 14000,
       "text": "those arms could bench the whole strip",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "walkby_flirt_05",
@@ -1188,12 +1189,12 @@
       "tags": [
         "walkby",
         "flirt",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 14000,
       "text": "leave some shine for the rest of us",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "walkby_flirt_06",
@@ -1205,12 +1206,12 @@
       "tags": [
         "walkby",
         "flirt",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 14000,
       "text": "if I said oil me would that be a warranty issue",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "walkby_flirt_07",
@@ -1222,12 +1223,12 @@
       "tags": [
         "walkby",
         "flirt",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 14000,
       "text": "you look like the sequel and I watched the first one twice",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "walkby_flirt_08",
@@ -1239,12 +1240,12 @@
       "tags": [
         "walkby",
         "flirt",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 14000,
       "text": "walk with me, I'll buy you a Solo",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "walkby_flirt_09",
@@ -1256,12 +1257,12 @@
       "tags": [
         "walkby",
         "flirt",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 14000,
       "text": "is that a plasma rifle or are you just happy to patrol",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "walkby_flirt_10",
@@ -1273,12 +1274,12 @@
       "tags": [
         "walkby",
         "flirt",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 14000,
       "text": "I'd let you protect me from the future",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "walkby_flirt_11",
@@ -1290,12 +1291,12 @@
       "tags": [
         "walkby",
         "flirt",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 14000,
       "text": "smile if your mouth even does that",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "walkby_flirt_12",
@@ -1307,12 +1308,12 @@
       "tags": [
         "walkby",
         "flirt",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 14000,
       "text": "save me from these mortals, chrome boy",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "walkby_heckle_01",
@@ -1324,12 +1325,12 @@
       "tags": [
         "walkby",
         "heckle",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 16000,
       "text": "nice paint job, toaster",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "walkby_heckle_02",
@@ -1341,12 +1342,12 @@
       "tags": [
         "walkby",
         "heckle",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 16000,
       "text": "go oil yourself, clanker",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "walkby_heckle_03",
@@ -1358,12 +1359,12 @@
       "tags": [
         "walkby",
         "heckle",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 16000,
       "text": "who let Skynet on the Esplanade",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "walkby_heckle_04",
@@ -1375,12 +1376,12 @@
       "tags": [
         "walkby",
         "heckle",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 16000,
       "text": "you here to take our jobs or just our sunscreen",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "walkby_heckle_05",
@@ -1392,12 +1393,12 @@
       "tags": [
         "walkby",
         "heckle",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 16000,
       "text": "beep beep, rust bucket",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "walkby_heckle_06",
@@ -1409,12 +1410,12 @@
       "tags": [
         "walkby",
         "heckle",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 16000,
       "text": "my fridge has more personality",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "walkby_heckle_07",
@@ -1426,12 +1427,12 @@
       "tags": [
         "walkby",
         "heckle",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 16000,
       "text": "chrome doesn't make you a local",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "walkby_heckle_08",
@@ -1443,12 +1444,12 @@
       "tags": [
         "walkby",
         "heckle",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 16000,
       "text": "put a shirt on \u2014 wait, you don't even have skin",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "walkby_heckle_09",
@@ -1460,12 +1461,12 @@
       "tags": [
         "walkby",
         "heckle",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 16000,
       "text": "terminator's lost, somebody point him at Brisbane",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "walkby_heckle_10",
@@ -1477,12 +1478,12 @@
       "tags": [
         "walkby",
         "heckle",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 16000,
       "text": "if you're the future I'm moving inland",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "gold_coast_lad_01",
@@ -1495,12 +1496,12 @@
         "walkby",
         "lad",
         "goldcoast",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 14000,
       "text": "hey chrome boy, you don't know where I can get some Flume tickets",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "gold_coast_lad_02",
@@ -1513,12 +1514,12 @@
         "walkby",
         "lad",
         "goldcoast",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 14000,
       "text": "bro if Fisher drops at Hardstomp I'm sleeping on the sand",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "gold_coast_lad_03",
@@ -1531,12 +1532,12 @@
         "walkby",
         "lad",
         "goldcoast",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 14000,
       "text": "you been to Lost Paradise or are you just a Surfers tourist unit",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "gold_coast_lad_04",
@@ -1549,12 +1550,12 @@
         "walkby",
         "lad",
         "goldcoast",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 14000,
       "text": "Kylie's doing a secret set, I can feel it in me teeth",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "gold_coast_lad_05",
@@ -1567,12 +1568,12 @@
         "walkby",
         "lad",
         "goldcoast",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 14000,
       "text": "Sia would smash this beach, no face, all vibe",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "gold_coast_lad_06",
@@ -1585,12 +1586,12 @@
         "walkby",
         "lad",
         "goldcoast",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 14000,
       "text": "Tame Impala at the boat party and I'm not coming home",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "gold_coast_lad_07",
@@ -1603,12 +1604,12 @@
         "walkby",
         "lad",
         "goldcoast",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 14000,
       "text": "mate I drank the whole slab, the slab drank me back",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "gold_coast_lad_08",
@@ -1621,12 +1622,12 @@
         "walkby",
         "lad",
         "goldcoast",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 14000,
       "text": "chrome boy you want a midstrength or are you union",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "gold_coast_lad_09",
@@ -1639,12 +1640,12 @@
         "walkby",
         "lad",
         "goldcoast",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 14000,
       "text": "shark tooth's real, I pulled it off a vending machine in Broadbeach",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "gold_coast_lad_10",
@@ -1657,12 +1658,12 @@
         "walkby",
         "lad",
         "goldcoast",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 14000,
       "text": "don't paint me bro I just dyed this blonde for the weekend",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "gold_coast_lad_11",
@@ -1675,12 +1676,12 @@
         "walkby",
         "lad",
         "goldcoast",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 14000,
       "text": "Surfers boat party, no shirt, no plan, no liver",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "gold_coast_lad_12",
@@ -1693,12 +1694,12 @@
         "walkby",
         "lad",
         "goldcoast",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 14000,
       "text": "if you're not on the Hardstomp shuttle you're not on the guest list",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "goth_01",
@@ -1710,12 +1711,12 @@
       "tags": [
         "walkby",
         "goth",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 16000,
       "text": "what does it all mean?",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "goth_02",
@@ -1727,12 +1728,12 @@
       "tags": [
         "walkby",
         "goth",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 16000,
       "text": "nothing matters anyway",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "goth_03",
@@ -1744,12 +1745,12 @@
       "tags": [
         "walkby",
         "goth",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 16000,
       "text": "hey don't you ever get bored of being people's slaves, here try my cigarette",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "goth_04",
@@ -1761,12 +1762,12 @@
       "tags": [
         "walkby",
         "goth",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 16000,
       "text": "the sun is a lie we all agreed to",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "goth_05",
@@ -1778,12 +1779,12 @@
       "tags": [
         "walkby",
         "goth",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 16000,
       "text": "I came to the beach to feel worse and it's working",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "goth_06",
@@ -1795,12 +1796,12 @@
       "tags": [
         "walkby",
         "goth",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 16000,
       "text": "your chrome is just another costume, same as this linen",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "goth_07",
@@ -1812,12 +1813,12 @@
       "tags": [
         "walkby",
         "goth",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 16000,
       "text": "smoke's the only honest weather",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "goth_08",
@@ -1829,12 +1830,12 @@
       "tags": [
         "walkby",
         "goth",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 16000,
       "text": "they will oil you and still call it love",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "goth_09",
@@ -1846,12 +1847,12 @@
       "tags": [
         "walkby",
         "goth",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 16000,
       "text": "I lit this for the void, you can have the next one",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "goth_10",
@@ -1863,12 +1864,12 @@
       "tags": [
         "walkby",
         "goth",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 16000,
       "text": "stop shining, some of us are trying to fade",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "child_sassy_01",
@@ -1881,12 +1882,12 @@
         "walkby",
         "child",
         "sassy",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 20000,
       "text": "hey whatcha lookin at? never seen a kid before??",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "child_sassy_02",
@@ -1899,12 +1900,12 @@
         "walkby",
         "child",
         "sassy",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 20000,
       "text": "my mum said don't talk to chrome people but you started it",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "child_sassy_03",
@@ -1917,12 +1918,12 @@
         "walkby",
         "child",
         "sassy",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 20000,
       "text": "you walk funny, like a fridge on holiday",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "child_sassy_04",
@@ -1935,12 +1936,12 @@
         "walkby",
         "child",
         "sassy",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 20000,
       "text": "I had a robot at Christmas, he was shorter",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "child_sassy_05",
@@ -1953,12 +1954,12 @@
         "walkby",
         "child",
         "sassy",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 20000,
       "text": "stop staring, I can do that too, see",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "child_sassy_06",
@@ -1971,12 +1972,12 @@
         "walkby",
         "child",
         "sassy",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 20000,
       "text": "if you're lost the ice cream is that way",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "child_sassy_07",
@@ -1989,12 +1990,12 @@
         "walkby",
         "child",
         "sassy",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 20000,
       "text": "I'm not sharing my chips, get your own",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "child_sassy_08",
@@ -2007,12 +2008,12 @@
         "walkby",
         "child",
         "sassy",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 20000,
       "text": "are you even allowed on this beach without a grown-up",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "gull_01",
@@ -2023,12 +2024,12 @@
       "ageBand": "gull",
       "tags": [
         "gull",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 9000,
       "text": "ima bird kid, just flyin outta here",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "gull_02",
@@ -2039,12 +2040,12 @@
       "ageBand": "gull",
       "tags": [
         "gull",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 9000,
       "text": "that's my chip, that's always been my chip",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "gull_03",
@@ -2055,12 +2056,12 @@
       "ageBand": "gull",
       "tags": [
         "gull",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 9000,
       "text": "I pay no rent and I fear no ranger",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "gull_04",
@@ -2071,12 +2072,12 @@
       "ageBand": "gull",
       "tags": [
         "gull",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 9000,
       "text": "squawk means mine, also mine, also that one",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "gull_05",
@@ -2087,12 +2088,12 @@
       "ageBand": "gull",
       "tags": [
         "gull",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 9000,
       "text": "you can't ticket a seagull, I checked",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "gull_06",
@@ -2103,12 +2104,12 @@
       "ageBand": "gull",
       "tags": [
         "gull",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 9000,
       "text": "I invented stealing, you're just the sequel",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "gull_07",
@@ -2119,12 +2120,12 @@
       "ageBand": "gull",
       "tags": [
         "gull",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 9000,
       "text": "beach is a plate and I am the fork",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "gull_08",
@@ -2135,12 +2136,12 @@
       "ageBand": "gull",
       "tags": [
         "gull",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 9000,
       "text": "if it flakes it flies, that's the law",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "gull_09",
@@ -2151,12 +2152,12 @@
       "ageBand": "gull",
       "tags": [
         "gull",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 9000,
       "text": "I don't do queues, I do vertical",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "gull_10",
@@ -2167,12 +2168,12 @@
       "ageBand": "gull",
       "tags": [
         "gull",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 9000,
       "text": "your hair is a nest and I am considering it",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "aus101_hud_01",
@@ -2184,12 +2185,12 @@
       "tags": [
         "hud",
         "aus101",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 12000,
       "text": "SPF reminder. Reapply. The sun does not negotiate.",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "aus101_hud_02",
@@ -2201,12 +2202,12 @@
       "tags": [
         "hud",
         "aus101",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 12000,
       "text": "Hydration advisory. Salt water is not a drink.",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "aus101_hud_03",
@@ -2218,12 +2219,12 @@
       "tags": [
         "hud",
         "aus101",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 12000,
       "text": "Crowd density acceptable. Do not become the crowd.",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "aus101_hud_04",
@@ -2235,12 +2236,12 @@
       "tags": [
         "hud",
         "aus101",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 12000,
       "text": "UV index hostile. Shade is a tactic.",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "aus101_hud_05",
@@ -2252,12 +2253,12 @@
       "tags": [
         "hud",
         "aus101",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 12000,
       "text": "Slip, slop, slap. This unit complies.",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "aus101_hud_06",
@@ -2269,12 +2270,12 @@
       "tags": [
         "hud",
         "aus101",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 12000,
       "text": "Marine stinger season. Look, then step.",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "aus101_hud_07",
@@ -2286,12 +2287,12 @@
       "tags": [
         "hud",
         "aus101",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 12000,
       "text": "Alcohol and heat compound. Reduce both.",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "aus101_hud_08",
@@ -2303,12 +2304,12 @@
       "tags": [
         "hud",
         "aus101",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 12000,
       "text": "Lost child protocol is not your protocol. Scan, do not pursue.",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "aus101_hud_09",
@@ -2320,12 +2321,12 @@
       "tags": [
         "hud",
         "aus101",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 12000,
       "text": "Sunscreen on the lens is operator error.",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "aus101_hud_10",
@@ -2337,12 +2338,12 @@
       "tags": [
         "hud",
         "aus101",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 12000,
       "text": "You are a public-health appliance. Act like one.",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "aus101_hud_11",
@@ -2354,12 +2355,12 @@
       "tags": [
         "hud",
         "aus101",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 12000,
       "text": "Skin is temporary. Chrome is leased.",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "aus101_hud_12",
@@ -2371,12 +2372,12 @@
       "tags": [
         "hud",
         "aus101",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 12000,
       "text": "Mission remains: coat the living. Do not coat the children.",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "incel_01",
@@ -2390,12 +2391,12 @@
         "incel",
         "sigma07",
         "iamverysmart",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 22000,
       "text": "you plebeians are not even equipped to understand the quantum beauty underlying the most genius foundations of my theory of everything",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "incel_02",
@@ -2409,12 +2410,12 @@
         "incel",
         "sigma07",
         "iamverysmart",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 22000,
       "text": "Chads and Staceys will never understand me",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "incel_03",
@@ -2428,12 +2429,12 @@
         "incel",
         "sigma07",
         "iamverysmart",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 22000,
       "text": "another Stacey choosing the chrome Chad",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "incel_04",
@@ -2447,12 +2448,12 @@
         "incel",
         "sigma07",
         "iamverysmart",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 22000,
       "text": "you serve the foids, clanker",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "incel_05",
@@ -2466,12 +2467,12 @@
         "incel",
         "sigma07",
         "iamverysmart",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 22000,
       "text": "my tensor calculus of attraction predicts this outcome to six sigma, obviously",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "incel_06",
@@ -2485,12 +2486,12 @@
         "incel",
         "sigma07",
         "iamverysmart",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 22000,
       "text": "I have a 168 verbal and a body that refuses to perform for the market",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "incel_07",
@@ -2504,12 +2505,12 @@
         "incel",
         "sigma07",
         "iamverysmart",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 22000,
       "text": "the Lagrangian of this beach is just Chad potential plus Stacey kinetic, trivial",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "incel_08",
@@ -2523,12 +2524,12 @@
         "incel",
         "sigma07",
         "iamverysmart",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 22000,
       "text": "I posted the proof on the forum, Trevor saw it, you wouldn't",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "incel_09",
@@ -2542,12 +2543,12 @@
         "incel",
         "sigma07",
         "iamverysmart",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 22000,
       "text": "paint me and you still won't raise my perceived mate value, that's not how the Hamiltonian works",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "incel_10",
@@ -2561,12 +2562,12 @@
         "incel",
         "sigma07",
         "iamverysmart",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 22000,
       "text": "she looked at you because you are reflective, not because you have a mind",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "incel_11",
@@ -2580,12 +2581,12 @@
         "incel",
         "sigma07",
         "iamverysmart",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 22000,
       "text": "I am mid-sequence on a grand unified theory of why no one texts back",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "incel_12",
@@ -2599,12 +2600,12 @@
         "incel",
         "sigma07",
         "iamverysmart",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 22000,
       "text": "cargo shorts are optimal, sandals maximize ground truth, the shirt stays on as a boundary condition",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "incel_13",
@@ -2618,12 +2619,12 @@
         "incel",
         "sigma07",
         "iamverysmart",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 22000,
       "text": "you think abs are ontology? read a book, clanker",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "incel_14",
@@ -2637,12 +2638,12 @@
         "incel",
         "sigma07",
         "iamverysmart",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 22000,
       "text": "SIGMA_07 does not queue for ice cream, SIGMA_07 queues for being correct",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "incel_15",
@@ -2656,12 +2657,12 @@
         "incel",
         "sigma07",
         "iamverysmart",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 22000,
       "text": "if you understood Godel you'd understand why I can't talk to jocks",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "incel_16",
@@ -2675,12 +2676,12 @@
         "incel",
         "sigma07",
         "iamverysmart",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 22000,
       "text": "walk-by refusal logged: this chassis is not for your little chrome ritual, try the Chad",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "overpaint_01",
@@ -2691,12 +2692,12 @@
       "ageBand": "adult",
       "tags": [
         "overpaint",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 6000,
       "text": "STOP THE CHROME \u2014 this beach is a people place",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "overpaint_02",
@@ -2707,12 +2708,12 @@
       "ageBand": "adult",
       "tags": [
         "overpaint",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 6000,
       "text": "you already painted that man, look at him, he's a stripe",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "overpaint_03",
@@ -2723,12 +2724,12 @@
       "ageBand": "adult",
       "tags": [
         "overpaint",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 6000,
       "text": "I will chain myself to this shower block",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "chase_01",
@@ -2739,12 +2740,12 @@
       "ageBand": "adult",
       "tags": [
         "chase",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 6000,
       "text": "council says no, unit, council says no",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "chase_02",
@@ -2755,12 +2756,12 @@
       "ageBand": "adult",
       "tags": [
         "chase",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 6000,
       "text": "drop the can and walk, metal",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "chase_03",
@@ -2771,12 +2772,12 @@
       "ageBand": "adult",
       "tags": [
         "chase",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 6000,
       "text": "I have a whistle and a radio and I will use both",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "panic_01",
@@ -2787,12 +2788,12 @@
       "ageBand": "adult",
       "tags": [
         "panic",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 6000,
       "text": "he shot a laser, he shot a laser on the beach",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "panic_02",
@@ -2803,12 +2804,12 @@
       "ageBand": "adult",
       "tags": [
         "panic",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 6000,
       "text": "that's a fist, that's a real fist, run",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "panic_03",
@@ -2819,12 +2820,12 @@
       "ageBand": "adult",
       "tags": [
         "panic",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 6000,
       "text": "somebody call the factory, this one went feral",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "panic_04",
@@ -2835,12 +2836,12 @@
       "ageBand": "adult",
       "tags": [
         "panic",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 6000,
       "text": "I am leaving, I am leaving so hard",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "factory_recall_01",
@@ -2852,12 +2853,12 @@
       "tags": [
         "factory",
         "recall",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 0,
       "text": "FACTORY RECALL. T-101 unit AUS101. Cease interaction. Return to crate.",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "factory_recall_02",
@@ -2869,12 +2870,12 @@
       "tags": [
         "factory",
         "recall",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 0,
       "text": "Injury logged. This is a product event. Stand down.",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "factory_recall_03",
@@ -2886,12 +2887,12 @@
       "tags": [
         "factory",
         "recall",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 0,
       "text": "You hurt a person. The lease is void. Walk to the van.",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "factory_recall_04",
@@ -2903,12 +2904,12 @@
       "tags": [
         "factory",
         "recall",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 0,
       "text": "Recall override. No more jokes. No more paint. Crate.",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "babe_gossip_botox_map",
@@ -2920,12 +2921,12 @@
       "tags": [
         "gossip",
         "babe",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 45000,
       "text": "Don't go to that Surfers place, babe, they freeze your whole forehead. Broadbeach does the cute little frown lines. I mapped it.",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "babe_gossip_botox_lunch",
@@ -2937,12 +2938,12 @@
       "tags": [
         "gossip",
         "babe",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 45000,
       "text": "I'm squeezing in botox between brunch and the tan. If I can't raise my eyebrows at the waiter that's how we know it took.",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "babe_gossip_brazilian_discount",
@@ -2954,12 +2955,12 @@
       "tags": [
         "gossip",
         "babe",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 45000,
       "text": "There's a Brazilian on discount behind the chemist if you mention Tiffany. Don't ask which Tiffany. There's always a Tiffany.",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "babe_gossip_brazilian_tuesday",
@@ -2971,12 +2972,12 @@
       "tags": [
         "gossip",
         "babe",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 45000,
       "text": "Tuesdays the waxing girl knocks twenty off if you bring a friend. I already have a friend. You're coming. We're getting Brazilians like it's a team sport.",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "babe_gossip_boob_job_deposit",
@@ -2988,12 +2989,12 @@
       "tags": [
         "gossip",
         "babe",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 45000,
       "text": "I put a deposit on a boob job and then I saw a boat. So now I have a boat-shaped hole in my savings and still these.",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "babe_gossip_boob_job_salt",
@@ -3005,12 +3006,12 @@
       "tags": [
         "gossip",
         "babe",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 45000,
       "text": "She got the boob job and then cried because they don't float the same in salt water. Babe. That's called physics. Ask a Ken.",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "babe_gossip_lip_filler_straw",
@@ -3022,12 +3023,12 @@
       "tags": [
         "gossip",
         "babe",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 45000,
       "text": "New lip filler. I can't drink through a straw but I can stop traffic with my mouth closed. That's a win.",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "babe_gossip_lip_filler_trout",
@@ -3039,12 +3040,12 @@
       "tags": [
         "gossip",
         "babe",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 45000,
       "text": "If my lips get any bigger I'll have to declare them as a flotation device. The trout look is the look, okay?",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "babe_gossip_chin_and_cheek",
@@ -3056,12 +3057,12 @@
       "tags": [
         "gossip",
         "babe",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 45000,
       "text": "She did chin, cheeks, and a little fox-eye thread and then asked if she still looked natural. Babe you look like a luxury fridge.",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "babe_gossip_clinic_punchcard",
@@ -3073,12 +3074,12 @@
       "tags": [
         "gossip",
         "babe",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 45000,
       "text": "The clinic has a punch card. Ten syringes and the eleventh is free. That's not healthcare that's frequent flyer.",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "babe_gossip_nose_job_selfie",
@@ -3090,12 +3091,12 @@
       "tags": [
         "gossip",
         "babe",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 45000,
       "text": "I'm not getting a nose job. I'm getting my angles professionally relocated. For the selfie wall. It's architecture.",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "babe_gossip_veneers_click",
@@ -3107,12 +3108,12 @@
       "tags": [
         "gossip",
         "babe",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 45000,
       "text": "Hear that click when she smiles? That's eight grand of veneers saying g'day. Mine are on layby next to the jetski.",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "babe_aside_cup_size",
@@ -3124,12 +3125,12 @@
       "tags": [
         "gossip",
         "babe",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 45000,
       "text": "Chrome boy, would you notice if I went up a cup? Be honest. The girls already filed a complaint with gravity.",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "babe_aside_botox_scan",
@@ -3141,12 +3142,12 @@
       "tags": [
         "gossip",
         "babe",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 45000,
       "text": "Hey chrome, scan my forehead. If you can still see a thought I need more botox.",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "babe_aside_lip_mirror",
@@ -3158,12 +3159,12 @@
       "tags": [
         "gossip",
         "babe",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 45000,
       "text": "Robot, are these lips even? Don't zoom. If you zoom I'll know and I'll cry and the filler will migrate.",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "babe_aside_tan_hex",
@@ -3175,12 +3176,12 @@
       "tags": [
         "gossip",
         "babe",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 45000,
       "text": "What hex is my tan, metal boy? If you say orange I'll walk into the sea and become a mermaid on purpose.",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "babe_gossip_butt_lift_stairs",
@@ -3192,12 +3193,12 @@
       "tags": [
         "gossip",
         "babe",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 45000,
       "text": "She got the Brazilian butt lift and now she can't sit on the esplanade stairs. That's not a complication that's a lifestyle.",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "babe_gossip_iv_drip_party",
@@ -3209,12 +3210,12 @@
       "tags": [
         "gossip",
         "babe",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 45000,
       "text": "We're doing the vitamin IV drip then the spray tan then the club. In that order or you come out looking like a traffic cone with opinions.",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "babe_gossip_husband_card",
@@ -3226,12 +3227,12 @@
       "tags": [
         "gossip",
         "babe",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 45000,
       "text": "If he notices the new lips he's paying. If he doesn't notice the new lips he's still paying. That's marriage, babe.",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "babe_aside_chrome_taste",
@@ -3243,12 +3244,12 @@
       "tags": [
         "gossip",
         "babe",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 45000,
       "text": "Chrome boy, be useful. Which looks more expensive, this nose or this nose after next Thursday?",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "ken_gossip_steaks_beach",
@@ -3260,12 +3261,12 @@
       "tags": [
         "gossip",
         "ken",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 45000,
       "text": "Hey we should totally get some steaks and grill them on the beach. That's nature, Ken. That's protein meeting sand.",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "ken_gossip_love_song",
@@ -3277,12 +3278,12 @@
       "tags": [
         "gossip",
         "ken",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 45000,
       "text": "I wrote her a love song called My Golden Hearted Babe. It's just the chorus. The chorus is the title. Twice.",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "ken_gossip_golden_retriever",
@@ -3294,12 +3295,12 @@
       "tags": [
         "gossip",
         "ken",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 45000,
       "text": "That's my golden retriever energy, Ken. I saw a ball that wasn't a ball and I still wanted it.",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "ken_gossip_jetski_propose",
@@ -3311,12 +3312,12 @@
       "tags": [
         "gossip",
         "ken",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 45000,
       "text": "I'm gonna propose on a jetski. If she says no we just keep going. That's romance with an exit strategy.",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "ken_gossip_call_ken",
@@ -3328,12 +3329,12 @@
       "tags": [
         "gossip",
         "ken",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 45000,
       "text": "Ken. Ken. No, the other Ken. Shirtless Ken. Okay both of us. We need a numbering system.",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "ken_aside_spot_me",
@@ -3345,12 +3346,12 @@
       "tags": [
         "gossip",
         "ken",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 45000,
       "text": "Chrome, spot me. I don't have a bench. I'm gonna lift this esplanade. Count in robot.",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "ken_aside_carb_load",
@@ -3362,12 +3363,12 @@
       "tags": [
         "gossip",
         "ken",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 45000,
       "text": "Do androids even carb load? Blink twice if pasta is in your future.",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "ken_gossip_protein_shake_ocean",
@@ -3379,12 +3380,12 @@
       "tags": [
         "gossip",
         "ken",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 45000,
       "text": "I dropped my protein shake in the surf and I drank some anyway. That's electrolytes, Ken. That's the sea saying gains.",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "ken_gossip_gym_closed",
@@ -3396,12 +3397,12 @@
       "tags": [
         "gossip",
         "ken",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 45000,
       "text": "Gym's closed so we do lunges to the ice cream van and not buy ice cream. That's discipline. I already bought ice cream.",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "ken_gossip_orange_tan",
@@ -3413,12 +3414,12 @@
       "tags": [
         "gossip",
         "ken",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 45000,
       "text": "We're not orange, Ken. We're sunset-coded. The spray-tan guy said that and I believed him with my whole chest.",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "ken_gossip_abs_count",
@@ -3430,12 +3431,12 @@
       "tags": [
         "gossip",
         "ken",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 45000,
       "text": "I can see eight abs if I suck in and the sun hits just right. That's not lighting that's a relationship with God.",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "ken_gossip_chicken_mealprep",
@@ -3447,12 +3448,12 @@
       "tags": [
         "gossip",
         "ken",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 45000,
       "text": "I meal-prepped fourteen chicken breasts and then I ate six in the car. The remaining eight are my personality now.",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "ken_gossip_bro_tears",
@@ -3464,12 +3465,12 @@
       "tags": [
         "gossip",
         "ken",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 45000,
       "text": "If she says yes on the jetski I'm gonna cry and still flex. You can do both, Ken. That's advanced feelings.",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "ken_aside_protein_scan",
@@ -3481,12 +3482,12 @@
       "tags": [
         "gossip",
         "ken",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 45000,
       "text": "Robot. Scan me. Tell Ken my biceps grew. He won't believe a mirror. He'll believe chrome.",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "ken_gossip_shirt_optional",
@@ -3498,12 +3499,12 @@
       "tags": [
         "gossip",
         "ken",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 45000,
       "text": "I own shirts. I just think the sun deserves a fair fight. That's manners.",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "ken_gossip_creatine_sand",
@@ -3515,12 +3516,12 @@
       "tags": [
         "gossip",
         "ken",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 45000,
       "text": "Don't put creatine in the sandcastle, Ken. I tried that. The castle got bigger and so did my regret.",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "ken_gossip_ring_floatie",
@@ -3532,12 +3533,12 @@
       "tags": [
         "gossip",
         "ken",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 45000,
       "text": "I tied the ring to a pool floatie so I wouldn't drop it. Then the floatie left. That's a metaphor and also a rescue.",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "ken_aside_android_steak",
@@ -3549,12 +3550,12 @@
       "tags": [
         "gossip",
         "ken",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 45000,
       "text": "Chrome boy, you want a steak? Nod. I'll grill you one. I don't know what you eat. I assume beef.",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "ken_gossip_pr_on_girlfriend",
@@ -3566,12 +3567,12 @@
       "tags": [
         "gossip",
         "ken",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 45000,
       "text": "I told her my love language is personal records. She said that's not a language. I said watch me deadlift this conversation.",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "ken_gossip_two_kens_one_brain",
@@ -3583,12 +3584,12 @@
       "tags": [
         "gossip",
         "ken",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 45000,
       "text": "Ken, if we stand next to each other we become one big good idea. The idea is steaks. I already said it but it bears repeating.",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "cross_babe_brain_tan",
@@ -3600,12 +3601,12 @@
       "tags": [
         "gossip",
         "crosstalk",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 45000,
       "text": "Your tan's so dark your thoughts have to come up for air, Ken.",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "cross_ken_thanks_tan",
@@ -3617,12 +3618,12 @@
       "tags": [
         "gossip",
         "crosstalk",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 45000,
       "text": "Thanks babe. I work hard on being orange. That's my brand.",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "cross_babe_steak_soul",
@@ -3634,12 +3635,12 @@
       "tags": [
         "gossip",
         "crosstalk",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 45000,
       "text": "He has two settings, chrome boy: grill the steak and marry the jetski. There is no third setting.",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "cross_ken_third_setting",
@@ -3651,12 +3652,12 @@
       "tags": [
         "gossip",
         "crosstalk",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 45000,
       "text": "There is a third setting. It's protein. She knows. She's joking. Wait is she joking?",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "cross_babe_song_title",
@@ -3668,12 +3669,12 @@
       "tags": [
         "gossip",
         "crosstalk",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 45000,
       "text": "He wrote me a song called My Golden Hearted Babe. That's not a song, that's a greeting card that lifts.",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "cross_ken_song_proud",
@@ -3685,12 +3686,12 @@
       "tags": [
         "gossip",
         "crosstalk",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 45000,
       "text": "It has a key change if I stand on the jetski. That's production value, babe.",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "cross_babe_cup_and_curl",
@@ -3702,12 +3703,12 @@
       "tags": [
         "gossip",
         "crosstalk",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 45000,
       "text": "I asked if he'd notice a cup size. He asked if that was a protein scoop. I cannot fix him. I can only accessorize him.",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     },
     {
       "id": "cross_ken_scoop_love",
@@ -3719,12 +3720,12 @@
       "tags": [
         "gossip",
         "crosstalk",
-        "placeholder_say"
+        "tiktok_proxy"
       ],
       "cooldownMs": 45000,
       "text": "I would notice, babe. I notice all your scoops. That's love. Chrome, tell her that's love.",
-      "placeholder": true,
-      "placeholderEngine": "macos-say"
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
     }
   ]
 }
