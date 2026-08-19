@@ -8,7 +8,17 @@ Design document: [`docs/DESIGN.md`](docs/DESIGN.md)
 
 ## Status
 
-Design approved (`docs/DESIGN.md`). Voice line sheet (217 lines) + bake tooling landed. **34 macOS `say` placeholder MP3s** are in `assets/voice/` for wiring; swap to TikTok with `TIKTOK_SESSION_ID` (see `tools/voice/README.md`).
+Design approved (`docs/DESIGN.md`).
+
+- **Voice:** 217 macOS `say` placeholder MP3s in `assets/voice/` (swap to TikTok with `TIKTOK_SESSION_ID`).
+- **BUILD0 / POSTER0:** `npm run build` → playable `dist/index.html`. First frame is the movie poster (`assets/poster/og.webp`, 400×400 OG). Tap / PLAY unlocks audio and plays `dj_open_01`.
+
+```bash
+npm install
+npm run build
+# serve dist/ on any static host (not file:// for VO fetch)
+npx --yes serve dist
+```
 
 ## Credits
 

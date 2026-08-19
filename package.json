@@ -1,0 +1,25 @@
+{
+  "name": "aus101",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AUS101 — I'll Be Back With SPF 50+. Self-contained Three.js beach sunscreen game.",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "dev": "node scripts/build.mjs --watch",
+    "bake:voice": "python3 tools/voice/bake.py",
+    "bake:say": "python3 tools/voice/bake_say.py",
+    "bake:say:all": "python3 tools/voice/bake_say.py --all-sheet"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/williamsharkey/aus101.git"
+  },
+  "license": "UNLICENSED",
+  "dependencies": {
+    "three": "0.160.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2"
+  }
+}
