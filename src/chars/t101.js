@@ -254,15 +254,15 @@ function buildHead(neck, C, G, D, eyeMat) {
   put(head, box(0.16, 0.026, 0.05), C, [0, 0.072, 0.062], [0.3, 0, 0]);
 
   // recessed optic band + emitters
-  put(head, box(0.058, 0.058, 0.045), D, [-0.047, 0.0, 0.075]);
-  put(head, box(0.058, 0.058, 0.045), D, [0.047, 0.0, 0.075]);
+  put(head, box(0.052, 0.05, 0.045), D, [-0.047, 0.0, 0.072]);
+  put(head, box(0.052, 0.05, 0.045), D, [0.047, 0.0, 0.072]);
   put(head, box(0.034, 0.062, 0.055), C, [0, 0.0, 0.086]); // nose bridge divider
   const eyes = [];
   for (const s of [-1, 1]) {
     put(head, sph(0.03, 8, 6), D, [s * 0.047, 0.0, 0.07], null, [1.1, 0.9, 0.7]);
     put(head, box(0.022, 0.056, 0.05), C, [s * 0.079, 0.0, 0.07], [0, s * 0.3, 0]); // orbital wall
-    const e = new THREE.Mesh(sph(0.017, 8, 6), eyeMat);
-    e.position.set(s * 0.047, 0.0, 0.086);
+    const e = new THREE.Mesh(sph(0.015, 8, 6), eyeMat);
+    e.position.set(s * 0.047, 0.0, 0.082);
     head.add(e);
     eyes.push(e);
   }

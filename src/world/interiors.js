@@ -61,6 +61,26 @@ function bgeo(w, h, d) {
   return g;
 }
 
+function cgeo(rt, rb, h, seg) {
+  const k = `c${rt}|${rb}|${h}|${seg}`;
+  let g = _geo.get(k);
+  if (!g) {
+    g = new THREE.CylinderGeometry(rt, rb, h, seg);
+    _geo.set(k, g);
+  }
+  return g;
+}
+
+function pgeo(w, h) {
+  const k = `p${w.toFixed(3)}|${h.toFixed(3)}`;
+  let g = _geo.get(k);
+  if (!g) {
+    g = new THREE.PlaneGeometry(w, h);
+    _geo.set(k, g);
+  }
+  return g;
+}
+
 function bx(w, h, d, m) {
   const me = new THREE.Mesh(bgeo(w, h, d), m);
   me.castShadow = true;
@@ -121,9 +141,7 @@ function mats() {
     mirror: mat(0x5f8b99, { roughness: 0.1, metalness: 0.75, emissive: 0x0a1418 }),
     bulb: new THREE.MeshBasicMaterial({ color: 0xffe9b8, fog: false }),
     fluoro: new THREE.MeshBasicMaterial({ color: 0xeaf6ff, fog: false }),
-    bottle: [0x6fae3a, 0xc23a1f, 0xe6c133, 0x3a86b0, 0x8a4fb0, 0xe8862a, 0x2f9aa8].map((c) =>
-      mat(c, { roughness: 0.35 })
-    ),
+    bottleGlass: mat(0xffffff, { roughness: 0.35 }),
   };
   return MATS;
 }
@@ -197,7 +215,7 @@ function shell(g, reg, B) {
    */
   const skin = (a, b, px, pz, ry) => {
     if (b - a < 0.02) return;
-    const p = new THREE.Mesh(new THREE.PlaneGeometry(b - a, h), M.wallIn);
+    const p = new THREE.Mesh(pgeo(b - a, h), M.wallIn);
     p.position.set(px, B.floorY + h / 2, pz);
     p.rotation.y = ry;
     p.receiveShadow = true;
@@ -367,24 +385,47 @@ function ceilingLamp(g, x, y, z, color, intensity, dist) {
   return light;
 }
 
-/** Shelf of bottles / zinc tubes along +X. Deterministic, so shots repeat. */
-function bottleRow(g, y, x0, x1, z) {
-  const M = mats();
+/**
+ * Shelf of bottles / zinc tubes along +X, collected as instances.
+ *
+ * These are the only high-count objects in the module (~150 across the two
+ * bars), so they go through a single InstancedMesh per building rather than a
+ * mesh and a geometry each.
+ */
+function bottleRow(out, y, x0, x1, z) {
   const span = x1 - x0;
   let p = 0;
-  let i = 0;
+  let i = out.length;
   while (p < span - 0.1) {
     const hgt = 0.22 + ((i * 37) % 17) / 100;
     const r = 0.035 + ((i * 13) % 11) / 700;
-    const b = new THREE.Mesh(
-      new THREE.CylinderGeometry(r * 0.7, r, hgt, 6),
-      M.bottle[i % M.bottle.length]
-    );
-    b.position.set(x0 + p, y + hgt / 2, z);
-    g.add(b);
+    out.push([x0 + p, y + hgt / 2, z, r, hgt, i]);
     p += r * 2.2 + 0.05;
     i++;
   }
+}
+
+const BOTTLE_COLS = [0x6fae3a, 0xc23a1f, 0xe6c133, 0x3a86b0, 0x8a4fb0, 0xe8862a, 0x2f9aa8];
+
+/** Build the single InstancedMesh for one building's bottle shelves. */
+function flushBottles(g, out) {
+  if (!out.length) return;
+  const M = mats();
+  const im = new THREE.InstancedMesh(cgeo(0.7, 1, 1, 6), M.bottleGlass, out.length);
+  const m4 = new THREE.Matrix4();
+  const col = new THREE.Color();
+  for (let k = 0; k < out.length; k++) {
+    const [x, y, z, r, h, i] = out[k];
+    m4.makeScale(r, h, r);
+    m4.setPosition(x, y, z);
+    im.setMatrixAt(k, m4);
+    im.setColorAt(k, col.setHex(BOTTLE_COLS[i % BOTTLE_COLS.length]));
+  }
+  im.instanceMatrix.needsUpdate = true;
+  if (im.instanceColor) im.instanceColor.needsUpdate = true;
+  im.castShadow = false;
+  im.receiveShadow = true;
+  g.add(im);
 }
 
 /* ------------------------------------------------------------------ *\
@@ -471,22 +512,24 @@ function buildSurfClub(reg) {
   reg(c0, c1, cz0, cz0 + 0.9, B.floorY, B.floorY + 1.1, true);
 
   // back shelving + zinc stock
+  const bottles = [];
   for (const sy of [1.15, 1.75]) {
     const sh = fx(cLen - 0.4, 0.06, 0.3, M.timber);
     sh.position.set((c0 + c1) / 2, B.floorY + sy, B.z0 + 0.18);
     g.add(sh);
-    bottleRow(g, B.floorY + sy + 0.03, c0 + 0.35, c1 - 0.35, B.z0 + 0.18);
+    bottleRow(bottles, B.floorY + sy + 0.03, c0 + 0.35, c1 - 0.35, B.z0 + 0.18);
   }
+  flushBottles(g, bottles);
   sign(g, board("HONOUR BOARD", "MOST BURNT · 1987–2026", 2.1, 1.05), 2.1, 1.05, c0 + 1.1, B.floorY + 2.5, B.z0 + 0.03, 0);
-  sign(g, board("SLIP · SLOP · SLATHER", "THEN SLATHER AGAIN", 2.2, 0.7), 2.2, 0.7, c1 - 1.0, B.floorY + 2.45, B.z0 + 0.03, 0);
+  sign(g, board("SLOP IT ON", "THEN SLOP IT ON AGAIN", 2.2, 0.7), 2.2, 0.7, c1 - 1.0, B.floorY + 2.45, B.z0 + 0.03, 0);
 
   // stools at the counter
   for (let i = 0; i < 5; i++) {
     const sx = c0 + 0.8 + i * ((cLen - 1.6) / 4);
-    const seat = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.08, 10), M.dark);
+    const seat = new THREE.Mesh(cgeo(0.22, 0.22, 0.08, 10), M.dark);
     seat.position.set(sx, B.floorY + 0.78, cz0 + 1.42);
     g.add(seat);
-    const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 0.78, 6), M.steel);
+    const leg = new THREE.Mesh(cgeo(0.04, 0.05, 0.78, 6), M.steel);
     leg.position.set(sx, B.floorY + 0.39, cz0 + 1.42);
     g.add(leg);
   }
@@ -533,7 +576,7 @@ function buildSurfClub(reg) {
 
   // ceiling fan (spun in tick) + the one lamp
   const fan = new THREE.Group();
-  const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.12, 0.14, 8), M.steel);
+  const hub = new THREE.Mesh(cgeo(0.1, 0.12, 0.14, 8), M.steel);
   fan.add(hub);
   for (let i = 0; i < 4; i++) {
     const bl = fx(1.1, 0.03, 0.2, M.timber);
@@ -626,13 +669,15 @@ function buildShadeShack(reg) {
   reg(c0, c1, barZ - 0.43, barZ + 0.43, B.floorY, B.floorY + 1.12, true);
 
   // back bar: shelves + bottles + a zinc keg
+  const bottles = [];
   for (const sy of [1.2, 1.8]) {
     const sh = fx(cLen - 0.6, 0.06, 0.32, M.timber);
     sh.position.set(ccx, B.floorY + sy, B.z1 - 0.2);
     g.add(sh);
-    bottleRow(g, B.floorY + sy + 0.03, c0 + 0.5, c1 - 0.5, B.z1 - 0.2);
+    bottleRow(bottles, B.floorY + sy + 0.03, c0 + 0.5, c1 - 0.5, B.z1 - 0.2);
   }
-  const keg = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.28, 0.8, 12), M.steel);
+  flushBottles(g, bottles);
+  const keg = new THREE.Mesh(cgeo(0.28, 0.28, 0.8, 12), M.steel);
   keg.position.set(B.x1 - 1.1, B.floorY + 0.4, B.z1 - 0.6);
   g.add(keg);
   const fridge = fx(0.8, 1.6, 0.6, M.steel);
@@ -646,10 +691,10 @@ function buildShadeShack(reg) {
   // stools facing the bar
   for (let i = 0; i < 6; i++) {
     const sx = c0 + 0.7 + i * ((cLen - 1.4) / 5);
-    const seat = new THREE.Mesh(new THREE.CylinderGeometry(0.21, 0.21, 0.08, 10), M.vinyl);
+    const seat = new THREE.Mesh(cgeo(0.21, 0.21, 0.08, 10), M.vinyl);
     seat.position.set(sx, B.floorY + 0.76, barZ - 1.05);
     g.add(seat);
-    const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 0.76, 6), M.steel);
+    const leg = new THREE.Mesh(cgeo(0.04, 0.05, 0.76, 6), M.steel);
     leg.position.set(sx, B.floorY + 0.38, barZ - 1.05);
     g.add(leg);
   }
@@ -758,14 +803,14 @@ function buildChangeRooms(reg) {
     basin.position.set(bxp, B.floorY + 0.86, B.z1 - 0.36);
     g.add(basin);
     for (const o of [-0.26, 0.26]) {
-      const bowl = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.11, 0.13, 10), M.porcelain);
+      const bowl = new THREE.Mesh(cgeo(0.15, 0.11, 0.13, 10), M.porcelain);
       bowl.position.set(bxp + o, B.floorY + 0.9, B.z1 - 0.36);
       g.add(bowl);
-      const tap = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.18, 6), M.steel);
+      const tap = new THREE.Mesh(cgeo(0.02, 0.02, 0.18, 6), M.steel);
       tap.position.set(bxp + o, B.floorY + 1.02, B.z1 - 0.2);
       g.add(tap);
     }
-    const mir = new THREE.Mesh(new THREE.PlaneGeometry(1.15, 0.7), M.mirror);
+    const mir = new THREE.Mesh(pgeo(1.15, 0.7), M.mirror);
     mir.position.set(bxp, B.floorY + 1.6, B.z1 - 0.02);
     mir.rotation.y = Math.PI;
     g.add(mir);
@@ -776,11 +821,11 @@ function buildChangeRooms(reg) {
     const rec = fx(1.1, 2.2, 0.06, M.tileWall);
     rec.position.set(sx, B.floorY + 1.1, B.z1 - 0.05);
     g.add(rec);
-    const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.34, 6), M.steel);
+    const arm = new THREE.Mesh(cgeo(0.025, 0.025, 0.34, 6), M.steel);
     arm.rotation.x = Math.PI / 2;
     arm.position.set(sx, B.floorY + 2.05, B.z1 - 0.22);
     g.add(arm);
-    const head = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.05, 0.08, 10), M.steel);
+    const head = new THREE.Mesh(cgeo(0.11, 0.05, 0.08, 10), M.steel);
     head.position.set(sx, B.floorY + 1.98, B.z1 - 0.38);
     g.add(head);
     // zinc dispenser by the door
@@ -790,7 +835,7 @@ function buildChangeRooms(reg) {
   }
 
   // floor drain
-  const drain = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 0.02, 10), M.steel);
+  const drain = new THREE.Mesh(cgeo(0.16, 0.16, 0.02, 10), M.steel);
   drain.position.set(cx, B.floorY + 0.01, cz + 0.4);
   g.add(drain);
 

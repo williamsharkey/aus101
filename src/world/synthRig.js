@@ -538,7 +538,7 @@ export function spawnSynthRig(scene) {
       }
       const keys = gear.userData.keys;
       for (let i = 0; i < keys.length; i++) {
-        keys[i].position.y = 0.505 + (open && (step % 12) === i ? 0.006 : 0);
+        keys[i].position.y = gear.userData.keyY - (open && step % keys.length === i ? 0.006 : 0);
       }
       if (open) paintPlayhead(preview?.step ?? 0);
     },
