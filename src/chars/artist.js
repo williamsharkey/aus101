@@ -15,6 +15,38 @@ const CANVAS_H = 0.6;
 const LINEN = 0xf4efe4;
 const SKY = 0x87c8ef;
 
+/** Painter rig: origin at the soles, ~1.72 m, same construction idiom as npcs.js. */
+const BODY = {
+  height: 1.72,
+  headR: 0.115,
+  neckH: 0.1,
+  shoulderW: 0.4,
+  chestW: 0.32,
+  chestD: 0.19,
+  hipW: 0.27,
+  armR: 0.045,
+  legR: 0.058,
+  footH: 0.055,
+};
+BODY.headY = BODY.height - BODY.headR - 0.01;
+BODY.shoulderY = BODY.headY - BODY.headR - BODY.neckH * 0.55;
+BODY.hipY = 0.52 * BODY.height;
+BODY.torsoH = BODY.shoulderY - BODY.hipY;
+BODY.thighH = (BODY.hipY - BODY.footH) * 0.53;
+BODY.shinH = (BODY.hipY - BODY.footH) * 0.47;
+
+const UP_ARM = 0.29;
+const FORE_ARM = 0.27;
+/** Shoulder -> hand travel the IK will honour, and hand -> bristle tip. */
+const HAND_MIN = 0.22;
+const HAND_MAX = (UP_ARM + FORE_ARM) * 0.985;
+const BRUSH_LEN = 0.3;
+const RETRACT = 0.075;
+const ELBOW_ROLL = 0.55;
+
+/** Painter's stance in easel-local space (easel sits at the artist root origin). */
+const STANCE = { x: 0.36, z: 0.62, turn: 0.22 };
+
 const QUAD_VERT = `
 varying vec2 vUv;
 void main() {
@@ -52,26 +84,40 @@ void main() {
 }
 `;
 
+/** Shared unit geometry — every part is one of these, scaled (iPhone budget). */
+const GEO = {
+  box: new THREE.BoxGeometry(1, 1, 1),
+  sphere: new THREE.SphereGeometry(1, 10, 8),
+  sphereHi: new THREE.SphereGeometry(1, 12, 10),
+  cyl: new THREE.CylinderGeometry(1, 1, 1, 8),
+  cyl12: new THREE.CylinderGeometry(1, 1, 1, 12),
+  cone: new THREE.ConeGeometry(1, 1, 6),
+  torus: new THREE.TorusGeometry(1, 0.09, 5, 14),
+};
+
+const ZAXIS = new THREE.Vector3(0, 0, 1);
+const YAXIS = new THREE.Vector3(0, 1, 0);
+
 function std(color, extra = {}) {
   return new THREE.MeshStandardMaterial({ color, roughness: 0.72, metalness: 0.04, ...extra });
 }
 
-function shadow(mesh) {
-  mesh.castShadow = true;
-  mesh.receiveShadow = true;
-  return mesh;
+function part(geo, mat, sx, sy = sx, sz = sx) {
+  const m = new THREE.Mesh(geo, mat);
+  m.castShadow = true;
+  m.receiveShadow = true;
+  m.scale.set(sx, sy, sz);
+  return m;
 }
 
-function box(w, h, d, mat) {
-  return shadow(new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat));
-}
-
-function sphere(r, mat, wSeg = 10, hSeg = 8) {
-  return shadow(new THREE.Mesh(new THREE.SphereGeometry(r, wSeg, hSeg), mat));
-}
-
-function cyl(rTop, rBot, h, mat, segs = 8) {
-  return shadow(new THREE.Mesh(new THREE.CylinderGeometry(rTop, rBot, h, segs), mat));
+/** Cylinder spanning two points — used for the static (palette) arm. */
+function bone(mat, r, a, b) {
+  const dir = new THREE.Vector3().subVectors(b, a);
+  const len = dir.length();
+  const m = part(GEO.cyl, mat, r, len, r);
+  m.position.copy(a).addScaledVector(dir, 0.5);
+  m.quaternion.setFromUnitVectors(YAXIS, dir.normalize());
+  return m;
 }
 
 function makeRT(w, h, { depth = false, colorSpace = THREE.NoColorSpace } = {}) {
@@ -100,140 +146,354 @@ function makeEasel() {
     [0.3, 0.14, -0.08],
     [0, -0.2, 0],
   ]) {
-    const leg = box(0.048, 1.52, 0.048, wood);
+    const leg = part(GEO.box, wood, 0.048, 1.52, 0.048);
     leg.position.set(x, 0.76, z);
     leg.rotation.z = lean;
     g.add(leg);
   }
 
-  const tray = box(0.72, 0.04, 0.16, dark);
+  const tray = part(GEO.box, dark, 0.72, 0.04, 0.16);
   tray.position.set(0, 0.52, 0.1);
   g.add(tray);
 
-  const bar = box(0.7, 0.04, 0.04, wood);
+  const bar = part(GEO.box, wood, 0.7, 0.04, 0.04);
   bar.position.set(0, 1.46, 0.08);
   g.add(bar);
 
-  const board = box(CANVAS_W + 0.04, CANVAS_H + 0.04, 0.028, linen);
+  const board = part(GEO.box, linen, CANVAS_W + 0.04, CANVAS_H + 0.04, 0.028);
   board.position.set(0, 1.16, 0.11);
   board.rotation.x = -0.1;
   g.add(board);
 
-  const pegL = box(0.03, 0.08, 0.03, dark);
+  const pegL = part(GEO.box, dark, 0.03, 0.08, 0.03);
   pegL.position.set(-0.34, 0.84, 0.12);
-  const pegR = box(0.03, 0.08, 0.03, dark);
+  const pegR = part(GEO.box, dark, 0.03, 0.08, 0.03);
   pegR.position.set(0.34, 0.84, 0.12);
   g.add(pegL, pegR);
 
   return { group: g, board };
 }
 
+/**
+ * Two-bone limb laid out along local +Z: shoulder ball at the origin, hand at
+ * (0, 0, len). `upper` and `fore` are posed by `poseLimb`, so the elbow bends
+ * as the reach changes and nothing ever floats free of the joint above it.
+ */
+function makeLimb(sleeveM, skinM, r) {
+  const g = new THREE.Group();
+  g.add(part(GEO.sphere, sleeveM, r * 1.3, r * 1.24, r * 1.24));
+
+  const upper = new THREE.Group();
+  const uMesh = part(GEO.cyl, sleeveM, r, UP_ARM, r);
+  uMesh.rotation.x = Math.PI / 2;
+  uMesh.position.z = UP_ARM * 0.5;
+  const cuff = part(GEO.cyl, sleeveM, r * 1.12, 0.045, r * 1.12);
+  cuff.rotation.x = Math.PI / 2;
+  cuff.position.z = UP_ARM - 0.02;
+  const elbowBall = part(GEO.sphere, skinM, r * 0.98);
+  elbowBall.position.z = UP_ARM;
+  upper.add(uMesh, cuff, elbowBall);
+  g.add(upper);
+
+  const fore = new THREE.Group();
+  const fMesh = part(GEO.cyl, skinM, r * 0.92, FORE_ARM, r * 0.78);
+  fMesh.rotation.x = Math.PI / 2;
+  fMesh.position.z = FORE_ARM * 0.5;
+  const wrist = part(GEO.sphere, skinM, r * 0.72);
+  wrist.position.z = FORE_ARM;
+  fore.add(fMesh, wrist);
+  g.add(fore);
+
+  return { group: g, upper, fore };
+}
+
+const IK_ELBOW = new THREE.Vector3();
+const IK_DIR = new THREE.Vector3();
+
+/** Place elbow/forearm so the hand lands at (0, 0, len) in limb space. */
+function poseLimb(limb, len, roll) {
+  const L = THREE.MathUtils.clamp(len, Math.abs(UP_ARM - FORE_ARM) + 0.03, (UP_ARM + FORE_ARM) * 0.999);
+  const cz = (L * L + UP_ARM * UP_ARM - FORE_ARM * FORE_ARM) / (2 * L);
+  const h = Math.sqrt(Math.max(0, UP_ARM * UP_ARM - cz * cz));
+  IK_ELBOW.set(Math.sin(roll) * h, -Math.cos(roll) * h, cz);
+  limb.upper.quaternion.setFromUnitVectors(ZAXIS, IK_DIR.copy(IK_ELBOW).normalize());
+  limb.fore.position.copy(IK_ELBOW);
+  IK_DIR.set(-IK_ELBOW.x, -IK_ELBOW.y, L - cz).normalize();
+  limb.fore.quaternion.setFromUnitVectors(ZAXIS, IK_DIR);
+}
+
+/** Fist closed around a rod that runs along local +Z through the palm. */
+function makeGripHand(skinM, flip = 1) {
+  const h = new THREE.Group();
+  const wristBall = part(GEO.sphere, skinM, 0.034, 0.034, 0.03);
+  wristBall.position.z = -0.012;
+  const back = part(GEO.box, skinM, 0.072, 0.034, 0.086);
+  back.position.set(0, 0.021, 0.03);
+  const fingers = part(GEO.box, skinM, 0.068, 0.032, 0.08);
+  fingers.position.set(0, -0.021, 0.032);
+  const knuckle = part(GEO.sphere, skinM, 0.036, 0.03, 0.014);
+  knuckle.position.set(0, 0.004, 0.072);
+  const thumb = part(GEO.box, skinM, 0.024, 0.026, 0.064);
+  thumb.position.set(flip * 0.031, 0.01, 0.038);
+  thumb.rotation.z = flip * -0.22;
+  h.add(wristBall, back, fingers, knuckle, thumb);
+  return h;
+}
+
+/** Open hand, palm up (+Y), fingers along +Z — carries the palette. */
+function makeFlatHand(skinM, flip = 1) {
+  const h = new THREE.Group();
+  const wristBall = part(GEO.sphere, skinM, 0.032, 0.028, 0.032);
+  const palm = part(GEO.box, skinM, 0.072, 0.028, 0.078);
+  palm.position.set(0, 0.004, 0.044);
+  const fingers = part(GEO.box, skinM, 0.07, 0.022, 0.056);
+  fingers.position.set(0, 0.008, 0.104);
+  fingers.rotation.x = -0.22;
+  const thumb = part(GEO.box, skinM, 0.024, 0.024, 0.056);
+  thumb.position.set(flip * 0.042, 0.006, 0.05);
+  thumb.rotation.y = flip * -0.35;
+  h.add(wristBall, palm, fingers, thumb);
+  return h;
+}
+
+function makeBrush(skinM) {
+  const g = new THREE.Group();
+  g.add(makeGripHand(skinM, -1));
+  const stick = part(GEO.cyl, std(0x5a3a1a, { roughness: 0.7 }), 0.011, 0.3, 0.011);
+  stick.rotation.x = Math.PI / 2;
+  stick.position.z = 0.075;
+  const ferrule = part(GEO.cyl, std(0xb0a070, { metalness: 0.45, roughness: 0.4 }), 0.013, 0.032, 0.013);
+  ferrule.rotation.x = Math.PI / 2;
+  ferrule.position.z = 0.24;
+  const bristle = part(GEO.cone, std(0x3a2a18, { roughness: 0.9 }), 0.016, 0.055, 0.016);
+  bristle.rotation.x = Math.PI / 2;
+  bristle.position.z = BRUSH_LEN - 0.028;
+  g.add(stick, ferrule, bristle);
+  return g;
+}
+
 function makePainter() {
   const g = new THREE.Group();
+  const { headR, neckH, shoulderW, chestW, chestD, hipW, armR, legR, footH } = BODY;
+  const { headY, shoulderY, hipY, torsoH, thighH, shinH } = BODY;
+
   const skin = std(0xc9a07a, { roughness: 0.62 });
-  const shirt = std(0xd8cbb0, { roughness: 0.86 });
+  const shirt = std(0xe4dac0, { roughness: 0.88 });
   const pants = std(0x6b5a3a, { roughness: 0.82 });
   const straw = std(0xe8d9a0, { roughness: 0.92 });
-  const hair = std(0x6a5040, { roughness: 0.88 });
+  const band = std(0x9c7a4a, { roughness: 0.85 });
+  const hairM = std(0x6a5040, { roughness: 0.88 });
+  const sandal = std(0x4a3a2c, { roughness: 0.78 });
+  const eyeM = std(0x1a1410, { roughness: 0.45 });
 
-  const torso = box(0.3, 0.48, 0.17, shirt);
-  torso.position.y = 1.12;
+  // ---- trunk -------------------------------------------------------------
+  const pelvis = part(GEO.box, pants, hipW, 0.18, chestD * 0.95);
+  pelvis.position.y = hipY;
+  g.add(pelvis);
+
+  const belt = part(GEO.box, std(0x4a3a24, { roughness: 0.7 }), hipW * 1.03, 0.045, chestD * 0.99);
+  belt.position.y = hipY + 0.085;
+  g.add(belt);
+
+  const torso = part(GEO.box, shirt, chestW, torsoH, chestD);
+  torso.position.y = hipY + torsoH * 0.5 - 0.01;
   g.add(torso);
 
-  const hips = box(0.26, 0.14, 0.16, pants);
-  hips.position.y = 0.84;
-  g.add(hips);
+  // Shoulders: a clavicle slab plus deltoid balls, so the arms seat in the body.
+  const clav = part(GEO.box, shirt, shoulderW * 0.9, 0.09, chestD * 0.9);
+  clav.position.y = shoulderY;
+  g.add(clav);
+  for (const side of [-1, 1]) {
+    const delt = part(GEO.sphere, shirt, 0.075, 0.07, chestD * 0.5);
+    delt.position.set(side * shoulderW * 0.44, shoulderY - 0.01, 0);
+    g.add(delt);
+  }
 
-  const head = sphere(0.115, skin, 12, 10);
-  head.position.y = 1.5;
-  g.add(head);
+  const collar = part(GEO.cyl12, shirt, 0.072, 0.05, 0.072);
+  collar.position.y = shoulderY + 0.035;
+  g.add(collar);
 
-  const hairCap = sphere(0.12, hair, 10, 8);
-  hairCap.position.set(0, 1.53, -0.01);
-  hairCap.scale.set(1.02, 0.72, 1.04);
-  g.add(hairCap);
+  const neck = part(GEO.cyl, skin, 0.045, neckH, 0.045);
+  neck.position.y = shoulderY + neckH * 0.45;
+  g.add(neck);
 
-  const brim = cyl(0.18, 0.18, 0.02, straw, 14);
-  brim.position.y = 1.6;
-  const crown = cyl(0.11, 0.12, 0.08, straw, 12);
-  crown.position.y = 1.65;
-  g.add(brim, crown);
-
-  // Right arm + palette (static) — left hand paints
-  const rUpper = cyl(0.036, 0.04, 0.26, shirt);
-  rUpper.position.set(0.2, 1.2, 0.02);
-  rUpper.rotation.z = -0.35;
-  const rForeP = cyl(0.03, 0.034, 0.22, skin);
-  rForeP.position.set(0.28, 1.0, 0.08);
-  rForeP.rotation.z = -0.55;
-  rForeP.rotation.x = -0.4;
-  const rHandP = sphere(0.03, skin, 8, 6);
-  rHandP.position.set(0.32, 0.9, 0.16);
-  g.add(rUpper, rForeP, rHandP);
-
-  const palette = shadow(new THREE.Mesh(new THREE.CircleGeometry(0.08, 10), std(0xcbb896, { roughness: 0.7 })));
-  palette.position.set(0.3, 0.88, 0.2);
-  palette.rotation.x = -1.15;
-  palette.rotation.z = -0.4;
-  g.add(palette);
-  for (const [ox, oy, col] of [
-    [-0.025, 0.02, 0xc8402e],
-    [0.02, 0.025, 0x2f6f9a],
-    [0.015, -0.02, 0xd4a017],
-    [-0.02, -0.018, 0x3a7a3a],
+  // Splashes of paint on the shirt.
+  for (const [dx, dy, col] of [
+    [-0.06, -0.1, 0xc8402e],
+    [0.05, -0.19, 0x2f6f9a],
+    [0.09, -0.05, 0xd4a017],
   ]) {
-    const dab = new THREE.Mesh(new THREE.CircleGeometry(0.016, 6), std(col, { roughness: 0.55 }));
-    dab.position.set(0.3 + ox, 0.882, 0.2 + oy);
-    dab.rotation.copy(palette.rotation);
+    const dab = part(GEO.sphere, std(col, { roughness: 0.6 }), 0.018, 0.024, 0.008);
+    dab.position.set(dx, shoulderY + dy, chestD * 0.5);
     g.add(dab);
   }
 
-  // Left arm aims along +Z after lookAt (brush)
-  const arm = new THREE.Group();
-  arm.position.set(-0.18, 1.34, 0.04);
-  const lShoulder = sphere(0.042, shirt, 8, 6);
-  arm.add(lShoulder);
-  const lUpperB = cyl(0.034, 0.038, 0.28, shirt);
-  lUpperB.rotation.x = Math.PI / 2;
-  lUpperB.position.z = 0.14;
-  arm.add(lUpperB);
-  const lForeB = cyl(0.028, 0.032, 0.24, skin);
-  lForeB.rotation.x = Math.PI / 2;
-  lForeB.position.z = 0.38;
-  arm.add(lForeB);
-  const lHandB = sphere(0.03, skin, 8, 6);
-  lHandB.position.z = 0.52;
-  arm.add(lHandB);
+  // ---- head --------------------------------------------------------------
+  const head = new THREE.Group();
+  head.position.y = headY;
+  head.rotation.y = -STANCE.turn; // square his gaze with the locked view
+  const skull = part(GEO.sphereHi, skin, headR, headR * 1.06, headR * 1.02);
+  head.add(skull);
+  const jaw = part(GEO.box, skin, headR * 1.1, headR * 0.6, headR * 1.2);
+  jaw.position.set(0, -headR * 0.5, headR * 0.1);
+  head.add(jaw);
+  const nose = part(GEO.cone, skin, 0.02, 0.045, 0.02);
+  nose.rotation.x = Math.PI / 2;
+  nose.position.set(0, -0.012, headR * 0.92);
+  head.add(nose);
+  for (const side of [-1, 1]) {
+    const eye = part(GEO.sphere, eyeM, 0.016);
+    eye.position.set(side * 0.042, 0.016, headR * 0.82);
+    head.add(eye);
+    const ear = part(GEO.sphere, skin, 0.012, 0.026, 0.02);
+    ear.position.set(side * headR * 0.98, -0.008, 0);
+    head.add(ear);
+  }
 
-  const brush = new THREE.Group();
-  const stick = cyl(0.009, 0.011, 0.26, std(0x5a3a1a, { roughness: 0.7 }), 6);
-  stick.rotation.x = Math.PI / 2;
-  stick.position.z = 0.13;
-  const ferrule = cyl(0.012, 0.012, 0.03, std(0xb0a070, { metalness: 0.45, roughness: 0.4 }), 6);
-  ferrule.rotation.x = Math.PI / 2;
-  ferrule.position.z = 0.26;
-  const bristle = shadow(
-    new THREE.Mesh(new THREE.ConeGeometry(0.016, 0.055, 6), std(0x3a2a18, { roughness: 0.9 }))
-  );
-  bristle.rotation.x = Math.PI / 2;
-  bristle.position.z = 0.3;
-  brush.add(stick, ferrule, bristle);
-  brush.position.z = 0.5;
+  // Hair: a full cap over the crown (nothing bald peeks out under the brim)
+  // plus a fringe and a nape tuft.
+  const hairCap = part(GEO.sphereHi, hairM, headR * 1.09, headR * 1.02, headR * 1.11);
+  hairCap.position.y = headR * 0.16;
+  head.add(hairCap);
+  const fringe = part(GEO.box, hairM, headR * 1.5, 0.03, 0.035);
+  fringe.position.set(0, headR * 0.42, headR * 0.86);
+  fringe.rotation.x = 0.25;
+  head.add(fringe);
+  const nape = part(GEO.sphere, hairM, headR * 0.95, headR * 0.7, headR * 0.6);
+  nape.position.set(0, -headR * 0.25, -headR * 0.62);
+  head.add(nape);
+  for (const side of [-1, 1]) {
+    const burn = part(GEO.box, hairM, 0.022, 0.05, 0.03);
+    burn.position.set(side * headR * 0.94, -headR * 0.18, -headR * 0.12);
+    head.add(burn);
+  }
+
+  // Straw hat, worn back off the brow.
+  const hat = new THREE.Group();
+  hat.position.set(0, headR * 0.72, -0.018);
+  hat.rotation.x = -0.14;
+  const brim = part(GEO.cyl12, straw, 0.2, 0.018, 0.2);
+  hat.add(brim);
+  const crown = part(GEO.cyl12, straw, 0.118, 0.105, 0.118);
+  crown.position.y = 0.055;
+  hat.add(crown);
+  const top = part(GEO.sphereHi, straw, 0.118, 0.05, 0.118);
+  top.position.y = 0.104;
+  hat.add(top);
+  const hatBand = part(GEO.torus, band, 0.122, 0.122, 0.122);
+  hatBand.rotation.x = Math.PI / 2;
+  hatBand.position.y = 0.024;
+  hatBand.scale.z = 0.35;
+  hat.add(hatBand);
+  head.add(hat);
+  g.add(head);
+
+  // ---- painting arm (aimed by aimBrush; local +Z runs down the arm) -------
+  const limb = makeLimb(shirt, skin, armR);
+  const arm = limb.group;
+  arm.position.set(shoulderW * 0.5, shoulderY, 0.02);
+  const brush = makeBrush(skin);
+  brush.position.z = 0.46;
   arm.add(brush);
+  poseLimb(limb, 0.46, ELBOW_ROLL);
   g.add(arm);
 
-  for (const side of [-1, 1]) {
-    const thigh = cyl(0.048, 0.052, 0.28, pants);
-    thigh.position.set(side * 0.08, 0.64, 0);
-    const shin = cyl(0.038, 0.046, 0.3, pants);
-    shin.position.set(side * 0.08, 0.36, 0);
-    const foot = box(0.07, 0.04, 0.13, std(0x3a3028));
-    foot.position.set(side * 0.08, 0.02, 0.03);
-    g.add(thigh, shin, foot);
+  // ---- palette arm (static, bent, hand under the palette) ----------------
+  const pShoulder = new THREE.Vector3(-shoulderW * 0.5, shoulderY, 0.02);
+  const pElbow = new THREE.Vector3(-0.255, 1.145, 0.035);
+  const pHand = new THREE.Vector3(-0.145, 1.055, 0.235);
+  const pDelt = part(GEO.sphere, shirt, armR * 1.3, armR * 1.24, armR * 1.24);
+  pDelt.position.copy(pShoulder);
+  g.add(pDelt);
+  g.add(bone(shirt, armR, pShoulder, pElbow));
+  const pCuff = part(GEO.sphere, shirt, armR * 1.12);
+  pCuff.position.copy(pElbow);
+  g.add(pCuff);
+  g.add(bone(skin, armR * 0.9, pElbow, pHand));
+  const pElbowBall = part(GEO.sphere, skin, armR * 0.95);
+  pElbowBall.position.copy(pElbow);
+  g.add(pElbowBall);
+
+  const palHand = makeFlatHand(skin, -1);
+  palHand.position.copy(pHand);
+  palHand.rotation.set(-0.15, 0.55, 0.25);
+  g.add(palHand);
+
+  const palette = new THREE.Group();
+  palette.position.set(-0.115, 1.088, 0.275);
+  palette.rotation.set(-1.24, 0.18, -0.3);
+  const disc = part(GEO.cyl12, std(0xcbb896, { roughness: 0.7 }), 0.105, 0.012, 0.085);
+  disc.rotation.x = Math.PI / 2;
+  palette.add(disc);
+  for (const [ox, oy, col] of [
+    [-0.05, 0.028, 0xc8402e],
+    [-0.012, 0.045, 0x2f6f9a],
+    [0.03, 0.03, 0xd4a017],
+    [0.05, -0.012, 0x3a7a3a],
+    [0.012, -0.038, 0xe8e2d2],
+    [-0.04, -0.028, 0x6a3a8a],
+  ]) {
+    const dab = part(GEO.sphere, std(col, { roughness: 0.5 }), 0.017, 0.017, 0.008);
+    dab.position.set(ox, oy, 0.01);
+    palette.add(dab);
   }
+  g.add(palette);
+
+  // ---- legs --------------------------------------------------------------
+  for (const [side, zOff, splay] of [
+    [-1, 0.055, -0.12],
+    [1, -0.075, 0.16],
+  ]) {
+    const leg = new THREE.Group();
+    leg.position.set(side * hipW * 0.3, hipY, zOff);
+    leg.rotation.x = -zOff * 0.55;
+
+    const hipBall = part(GEO.sphere, pants, legR * 1.16);
+    leg.add(hipBall);
+    const thigh = part(GEO.cyl, pants, legR, thighH, legR * 0.94);
+    thigh.position.y = -thighH * 0.5;
+    leg.add(thigh);
+    const knee = part(GEO.cyl12, pants, legR * 0.95, 0.06, legR * 0.95);
+    knee.position.y = -thighH;
+    leg.add(knee);
+
+    const shinGrp = new THREE.Group();
+    shinGrp.position.y = -thighH;
+    shinGrp.rotation.x = zOff * 0.8;
+    const shin = part(GEO.cyl, skin, legR * 0.8, shinH, legR * 0.78);
+    shin.position.y = -shinH * 0.5;
+    shinGrp.add(shin);
+    const ankle = part(GEO.sphere, skin, legR * 0.66);
+    ankle.position.y = -shinH;
+    shinGrp.add(ankle);
+
+    const foot = new THREE.Group();
+    foot.position.y = -shinH;
+    foot.rotation.y = splay;
+    const sole = part(GEO.box, sandal, 0.088, 0.028, 0.2);
+    sole.position.set(0, -footH + 0.014, 0.045);
+    foot.add(sole);
+    const heel = part(GEO.box, sandal, 0.082, 0.036, 0.07);
+    heel.position.set(0, -footH + 0.03, -0.018);
+    foot.add(heel);
+    const toes = part(GEO.sphere, skin, 0.042, 0.024, 0.045);
+    toes.position.set(0, -footH + 0.035, 0.108);
+    foot.add(toes);
+    const strap = part(GEO.box, sandal, 0.086, 0.016, 0.03);
+    strap.position.set(0, -footH + 0.05, 0.052);
+    strap.rotation.x = 0.25;
+    foot.add(strap);
+    shinGrp.add(foot);
+    leg.add(shinGrp);
+    g.add(leg);
+  }
+
+  const eye = new THREE.Vector3(0, 0.014, headR * 0.85).applyEuler(head.rotation).add(head.position);
 
   g.userData.arm = arm;
   g.userData.brush = brush;
+  g.userData.limb = limb;
+  g.userData.eye = eye;
   g.userData.paintTarget = false;
   g.userData.kind = "artist";
   g.userData.ageBand = "adult";
@@ -273,8 +533,8 @@ export function createArtist(scene, pose = { x: 4.5, z: -6.2, yaw: -2.6 }) {
 
   const { group: easel, board } = makeEasel();
   const painter = makePainter();
-  painter.position.set(0.42, 0, 0.32);
-  painter.rotation.y = Math.PI - 0.28;
+  painter.position.set(STANCE.x, 0, STANCE.z);
+  painter.rotation.y = Math.PI + STANCE.turn;
   root.add(easel, painter);
   scene.add(root);
   root.updateMatrixWorld(true);
@@ -300,7 +560,7 @@ export function createArtist(scene, pose = { x: 4.5, z: -6.2, yaw: -2.6 }) {
   const lookX = pose.x + Math.sin(pose.yaw) * 14;
   const lookZ = pose.z + Math.cos(pose.yaw) * 14;
   const eye = new THREE.PerspectiveCamera(42, CANVAS_W / CANVAS_H, 0.28, 90);
-  const head = new THREE.Vector3(0, 1.54, 0.08);
+  const head = painter.userData.eye.clone();
   painter.localToWorld(head);
   eye.position.set(
     head.x + Math.sin(pose.yaw) * 0.14,
@@ -352,13 +612,16 @@ export function createArtist(scene, pose = { x: 4.5, z: -6.2, yaw: -2.6 }) {
   const targetUV = new THREE.Vector2(0.5, 0.5);
   const strokeLocal = new THREE.Vector3();
   const strokeWorld = new THREE.Vector3();
+  const armWorld = new THREE.Vector3();
   const prevQuat = new THREE.Quaternion();
   const aimQuat = new THREE.Quaternion();
   const arm = painter.userData.arm;
   const brush = painter.userData.brush;
+  const limb = painter.userData.limb;
   let inited = false;
   let lastStroke = 0;
-  let reach = 0.5;
+  let reach = 0.46;
+  let jab = 0;
 
   function restore(renderer, prevRT, prevAuto, prevAlpha, prevShadow) {
     renderer.shadowMap.enabled = prevShadow;
@@ -384,13 +647,13 @@ export function createArtist(scene, pose = { x: 4.5, z: -6.2, yaw: -2.6 }) {
       inited = true;
     }
 
-    canvasMesh.visible = false;
-    board.visible = false;
+    // He paints the beach, not his own kit: the easel, canvas and painter
+    // himself all sit between the locked eye and the view.
+    root.visible = false;
     renderer.setRenderTarget(viewRT);
     renderer.setClearColor(sky, 1);
     renderer.render(scene3, eye);
-    canvasMesh.visible = true;
-    board.visible = true;
+    root.visible = true;
 
     renderer.setRenderTarget(errRT);
     renderer.setClearColor(0x000000, 1);
@@ -399,7 +662,7 @@ export function createArtist(scene, pose = { x: 4.5, z: -6.2, yaw: -2.6 }) {
 
     const hit = maxErrorUV(errPix);
     targetUV.set(hit.u, hit.v);
-    reach = 0.62;
+    jab = 1;
 
     stampMat.uniforms.center.value.set(hit.u, hit.v);
     stampMat.uniforms.radius.value = BRUSH_UV * (0.72 + Math.random() * 0.5);
@@ -419,8 +682,16 @@ export function createArtist(scene, pose = { x: 4.5, z: -6.2, yaw: -2.6 }) {
     arm.lookAt(strokeWorld);
     aimQuat.copy(arm.quaternion);
     arm.quaternion.copy(prevQuat).slerp(aimQuat, 0.2);
-    reach += (0.5 - reach) * 0.16;
+
+    // Extend to put the bristle tip on the canvas, then ease back between
+    // strokes so he dabs instead of leaning on it.
+    arm.getWorldPosition(armWorld);
+    const want = THREE.MathUtils.clamp(armWorld.distanceTo(strokeWorld) - BRUSH_LEN, HAND_MIN, HAND_MAX);
+    jab *= 0.82;
+    const goal = want - RETRACT * (1 - jab);
+    reach += (goal - reach) * 0.34;
     brush.position.z = reach;
+    poseLimb(limb, reach, ELBOW_ROLL);
   }
 
   return {

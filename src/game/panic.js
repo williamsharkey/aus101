@@ -1,10 +1,54 @@
 /**
- * After punch/laser: civilians scream, run, and cops close in.
+ * Public reaction to violence: civilians scream and sprint away, beach cops
+ * converge on the incident.
+ *
+ * Driven by `combat`'s harm callback, not by a keypress — `onHarm()` escalates
+ * (witness panic → cop response) and `trigger()` stays as the blunt entry point.
+ *
+ * Cops are articulated bipeds with a real gait (shared GEO/MAT tables, so a
+ * squad costs one material set, not one per body).
  */
 import * as THREE from "three";
 
 const FLEE = 6.2;
 const COP_SPEED = 7.4;
+const COP_WALK = 2.1;
+const COP_MAX = 6;
+const COP_RING = 17;
+const HOLD_R = 2.6; // cops close to here, then menace instead of overlapping you
+const FLEE_MAX = 46; // civilians stop and cower once this far from the incident
+
+// ---------------------------------------------------------------------------
+// Shared geometry / materials. Unit primitives scaled per mesh — iPhone-safe.
+// ---------------------------------------------------------------------------
+const GEO = {
+  box: new THREE.BoxGeometry(1, 1, 1),
+  sphere: new THREE.SphereGeometry(1, 10, 8),
+  cyl: new THREE.CylinderGeometry(1, 1, 1, 8),
+};
+
+function std(color, extra = {}) {
+  return new THREE.MeshStandardMaterial({ color, roughness: 0.72, metalness: 0.05, ...extra });
+}
+
+const MAT = {
+  navy: std(0x1e3a6e),
+  navyDark: std(0x152a52),
+  vest: std(0x14161a, { roughness: 0.6 }),
+  skin: std(0xc9a07a, { roughness: 0.66 }),
+  boot: std(0x101014, { roughness: 0.55 }),
+  visor: std(0x0a0c10, { roughness: 0.25, metalness: 0.35 }),
+  belt: std(0x24262c, { roughness: 0.5 }),
+  badge: std(0xd8b23a, { roughness: 0.35, metalness: 0.7 }),
+};
+
+function part(mat, sx, sy, sz, geo = GEO.box) {
+  const m = new THREE.Mesh(geo, mat);
+  m.castShadow = true;
+  m.receiveShadow = true;
+  m.scale.set(sx, sy, sz);
+  return m;
+}
 
 function away(from, pos, out) {
   out.set(pos.x - from.x, 0, pos.z - from.z);
@@ -13,86 +57,376 @@ function away(from, pos, out) {
   return out;
 }
 
+/**
+ * Beach-patrol cop. Origin at the soles, faces +Z, ~1.8 m.
+ * `userData.rig` holds the joints `poseCop` drives.
+ * @returns {THREE.Group}
+ */
 function makeCop() {
   const g = new THREE.Group();
-  const blue = new THREE.MeshStandardMaterial({ color: 0x1e3a6e, roughness: 0.7 });
-  const skin = new THREE.MeshStandardMaterial({ color: 0xc9a07a, roughness: 0.65 });
-  const torso = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.5, 0.18), blue);
-  torso.position.y = 1.1;
-  g.add(torso);
-  const head = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 6), skin);
-  head.position.y = 1.48;
-  g.add(head);
-  const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.14, 0.08, 10), blue);
-  cap.position.y = 1.6;
-  g.add(cap);
-  const visor = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.02, 0.08), new THREE.MeshStandardMaterial({ color: 0x111 }));
-  visor.position.set(0, 1.56, 0.1);
-  g.add(visor);
-  for (const s of [-1, 1]) {
-    const leg = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.5, 0.1), blue);
-    leg.position.set(s * 0.08, 0.35, 0);
-    g.add(leg);
+  g.name = "panic-cop";
+
+  const hipY = 0.92;
+  const thighH = 0.46;
+  const shinH = 0.4;
+  const upperH = 0.29;
+  const foreH = 0.26;
+
+  const hips = new THREE.Group();
+  hips.position.y = hipY;
+  g.add(hips);
+
+  const pelvis = part(MAT.navyDark, 0.28, 0.16, 0.19);
+  hips.add(pelvis);
+
+  const legs = [];
+  for (const side of [-1, 1]) {
+    const leg = new THREE.Group();
+    leg.position.set(side * 0.095, 0, 0);
+
+    const thigh = part(MAT.navy, 0.115, thighH, 0.115, GEO.cyl);
+    thigh.position.y = -thighH * 0.5;
+    leg.add(thigh);
+
+    const shinGrp = new THREE.Group();
+    shinGrp.position.y = -thighH;
+    const knee = part(MAT.navy, 0.06, 0.06, 0.06, GEO.sphere);
+    shinGrp.add(knee);
+    const shin = part(MAT.navy, 0.095, shinH, 0.095, GEO.cyl);
+    shin.position.y = -shinH * 0.5;
+    shinGrp.add(shin);
+
+    const footGrp = new THREE.Group();
+    footGrp.position.y = -shinH;
+    const boot = part(MAT.boot, 0.115, 0.1, 0.24);
+    boot.position.set(0, -0.05, 0.045);
+    const cuff = part(MAT.boot, 0.12, 0.11, 0.13);
+    cuff.position.set(0, 0.03, -0.01);
+    footGrp.add(boot, cuff);
+
+    shinGrp.add(footGrp);
+    leg.add(shinGrp);
+    hips.add(leg);
+    legs.push({ leg, shin: shinGrp, foot: footGrp });
   }
+
+  const torso = new THREE.Group();
+  hips.add(torso);
+  const chest = part(MAT.navy, 0.36, 0.46, 0.21);
+  chest.position.y = 0.25;
+  torso.add(chest);
+  const vest = part(MAT.vest, 0.38, 0.34, 0.24);
+  vest.position.y = 0.3;
+  torso.add(vest);
+  const badge = part(MAT.badge, 0.05, 0.06, 0.02);
+  badge.position.set(0.11, 0.4, 0.125);
+  torso.add(badge);
+  const belt = part(MAT.belt, 0.31, 0.07, 0.22);
+  belt.position.y = 0.04;
+  torso.add(belt);
+  const holster = part(MAT.belt, 0.07, 0.14, 0.09);
+  holster.position.set(0.17, -0.02, 0.02);
+  torso.add(holster);
+  const shoulders = part(MAT.navy, 0.46, 0.11, 0.2);
+  shoulders.position.y = 0.5;
+  torso.add(shoulders);
+
+  const arms = [];
+  for (const side of [-1, 1]) {
+    const arm = new THREE.Group();
+    arm.position.set(side * 0.235, 0.48, 0);
+    arm.rotation.z = side * 0.08;
+
+    const cap = part(MAT.navy, 0.07, 0.07, 0.07, GEO.sphere);
+    arm.add(cap);
+    const upper = part(MAT.navy, 0.085, upperH, 0.085, GEO.cyl);
+    upper.position.y = -upperH * 0.5;
+    arm.add(upper);
+
+    const foreGrp = new THREE.Group();
+    foreGrp.position.y = -upperH;
+    const elbow = part(MAT.navy, 0.052, 0.052, 0.052, GEO.sphere);
+    foreGrp.add(elbow);
+    const fore = part(MAT.skin, 0.07, foreH, 0.07, GEO.cyl);
+    fore.position.y = -foreH * 0.5;
+    foreGrp.add(fore);
+    const hand = part(MAT.skin, 0.075, 0.1, 0.06);
+    hand.position.y = -foreH - 0.05;
+    foreGrp.add(hand);
+
+    arm.add(foreGrp);
+    torso.add(arm);
+    arms.push({ arm, fore: foreGrp });
+  }
+
+  const neck = part(MAT.skin, 0.05, 0.09, 0.05, GEO.cyl);
+  neck.position.y = 0.58;
+  torso.add(neck);
+
+  const head = new THREE.Group();
+  head.position.y = 0.72;
+  const skull = part(MAT.skin, 0.115, 0.13, 0.12, GEO.sphere);
+  head.add(skull);
+  const jaw = part(MAT.skin, 0.1, 0.06, 0.11);
+  jaw.position.set(0, -0.07, 0.02);
+  head.add(jaw);
+  const cap = part(MAT.navyDark, 0.135, 0.055, 0.135, GEO.cyl);
+  cap.position.y = 0.09;
+  head.add(cap);
+  const brim = part(MAT.navyDark, 0.17, 0.022, 0.1);
+  brim.position.set(0, 0.06, 0.11);
+  head.add(brim);
+  const shades = part(MAT.visor, 0.17, 0.035, 0.05);
+  shades.position.set(0, 0.015, 0.105);
+  head.add(shades);
+  torso.add(head);
+
+  g.userData.rig = {
+    hips,
+    torso,
+    head,
+    armL: arms[0].arm,
+    armR: arms[1].arm,
+    foreL: arms[0].fore,
+    foreR: arms[1].fore,
+    legL: legs[0].leg,
+    legR: legs[1].leg,
+    shinL: legs[0].shin,
+    shinR: legs[1].shin,
+    footL: legs[0].foot,
+    footR: legs[1].foot,
+    hipY,
+  };
   g.userData.kind = "cop";
+  poseCop(g, { walkPhase: 0, speed: 0 });
   return g;
 }
 
-export function createPanic({ scene, cast, play }) {
+/**
+ * Contra-lateral gait. `speed` 0 idles, ≥6 reads as a run.
+ * Limbs hang down −Y and the body faces +Z, so forward swing is −rotation.x.
+ * @param {THREE.Group} rig
+ * @param {{ walkPhase?: number, speed?: number, reach?: number }} state
+ */
+function poseCop(rig, { walkPhase = 0, speed = 0, reach = 0 } = {}) {
+  const r = rig?.userData?.rig;
+  if (!r) return;
+  const amp = Math.min(1, Math.max(0, speed) / 5.2);
+  const run = Math.min(1, Math.max(0, speed) / 7.4);
+  const swing = Math.sin(walkPhase);
+  const lift = Math.abs(Math.sin(walkPhase));
+
+  r.hips.position.y = r.hipY + lift * 0.05 * amp - reach * 0.04;
+  r.hips.rotation.y = swing * 0.1 * amp;
+  r.torso.rotation.x = 0.04 + run * 0.2;
+  r.torso.rotation.y = -swing * 0.08 * amp;
+
+  r.legL.rotation.x = -swing * (0.55 + run * 0.25) * amp;
+  r.legR.rotation.x = swing * (0.55 + run * 0.25) * amp;
+  r.shinL.rotation.x = Math.max(0, swing) * (0.85 + run * 0.5) * amp;
+  r.shinR.rotation.x = Math.max(0, -swing) * (0.85 + run * 0.5) * amp;
+  r.footL.rotation.x = -Math.max(0, swing) * 0.3 * amp;
+  r.footR.rotation.x = -Math.max(0, -swing) * 0.3 * amp;
+
+  const armSwing = (0.55 + run * 0.35) * amp;
+  r.armL.rotation.x = swing * armSwing + 0.05 - reach * 1.6;
+  r.armR.rotation.x = -swing * armSwing + 0.05 - reach * 1.6;
+  r.foreL.rotation.x = -0.5 - run * 0.55 - Math.max(0, swing) * 0.3 - reach * 0.4;
+  r.foreR.rotation.x = -0.5 - run * 0.55 - Math.max(0, -swing) * 0.3 - reach * 0.4;
+  r.head.rotation.x = -run * 0.1;
+}
+
+/** Swing a fleeing civilian's limbs — npcs.js exposes armL/armR/legL/legR groups. */
+function poseCivilian(mesh, phase, amp) {
+  const b = mesh?.userData?.body;
+  if (!b?.legL) return;
+  const swing = Math.sin(phase);
+  b.legL.rotation.x = -swing * 0.72 * amp;
+  b.legR.rotation.x = swing * 0.72 * amp;
+  if (b.armL) b.armL.rotation.x = swing * 0.85 * amp;
+  if (b.armR) b.armR.rotation.x = -swing * 0.85 * amp;
+}
+
+/**
+ * @param {{ scene: THREE.Scene, cast?: any[], play?: (id: string) => unknown }} opts
+ */
+export function createPanic({ scene, cast = [], play } = {}) {
   let on = false;
+  let level = 0; // 0 calm, 1 witnessed, 2 cops responding
   const _d = new THREE.Vector3();
+  const _from = new THREE.Vector3();
+  /** @type {{ root: THREE.Group, x: number, z: number, phase: number, speed: number, reach: number }[]} */
   const cops = [];
+  const fleeing = [];
   let screamed = false;
 
+  function scream() {
+    if (screamed) return;
+    screamed = true;
+    try {
+      play?.("panic_01");
+      setTimeout(() => play?.("panic_02"), 400);
+    } catch {
+      /* vo optional */
+    }
+  }
+
+  function scatter(from) {
+    for (const npc of cast) {
+      const m = npc?.mesh;
+      if (!m || npc.kind === "gull" || !m.position) continue;
+      const dist = Math.hypot(m.position.x - from.x, m.position.z - from.z);
+      if (dist > 34) continue;
+      away(from, m.position, _d);
+      m.userData.flee = { x: _d.x, z: _d.z, spd: FLEE * (0.85 + Math.random() * 0.35) };
+      m.userData.fleePhase = Math.random() * Math.PI * 2;
+      if (!fleeing.includes(m)) fleeing.push(m);
+    }
+  }
+
+  function addCops(n, from) {
+    const room = Math.min(n, COP_MAX - cops.length);
+    for (let i = 0; i < room; i++) {
+      const root = makeCop();
+      const a = ((cops.length + i) / COP_MAX) * Math.PI * 2 + 0.4 + Math.random() * 0.3;
+      const rad = COP_RING + Math.random() * 5;
+      const x = from.x + Math.cos(a) * rad;
+      const z = from.z + Math.sin(a) * rad;
+      root.position.set(x, 0, z);
+      scene.add(root);
+      cops.push({
+        root,
+        x,
+        z,
+        phase: Math.random() * Math.PI * 2,
+        speed: COP_SPEED * (0.88 + Math.random() * 0.2),
+        reach: 0,
+      });
+    }
+  }
+
+  /**
+   * Blunt entry point — everyone panics and the squad rolls out at once.
+   * @param {{x:number,z:number}} from
+   */
   function trigger(from) {
     if (on) return;
     on = true;
-    if (!screamed) {
-      screamed = true;
-      try {
-        play?.("panic_01");
-        setTimeout(() => play?.("panic_02"), 400);
-        setTimeout(() => play?.("chase_01"), 900);
-      } catch {
-        /* vo optional */
+    level = 2;
+    _from.set(from?.x || 0, 0, from?.z || 0);
+    scream();
+    try {
+      play?.("chase_01");
+    } catch {
+      /* vo optional */
+    }
+    scatter(_from);
+    addCops(4, _from);
+  }
+
+  /**
+   * Graduated response to a real hit reported by `combat`.
+   * First strike: bystanders scatter and two cops start running in.
+   * Lethal / repeated: the rest of the squad and the chase VO.
+   * @param {{ kind?: string, victim?: any, lethal?: boolean, point?: {x:number,y?:number,z:number} }} ev
+   * @returns {number} the panic level after this event (0..2)
+   */
+  function onHarm(ev = {}) {
+
+    const p = ev.point || ev.victim?.mesh?.position || _from;
+    _from.set(p.x || 0, 0, p.z || 0);
+    on = true;
+    scream();
+    if (level < 1) {
+      level = 1;
+      scatter(_from);
+      addCops(2, _from);
+      return level;
+    }
+    scatter(_from);
+    if (ev.lethal || level >= 1) {
+      if (level < 2) {
+        level = 2;
+        try {
+          play?.("chase_01");
+        } catch {
+          /* vo optional */
+        }
       }
+      addCops(ev.lethal ? 4 : 2, _from);
     }
-    for (const npc of cast) {
-      const m = npc.mesh;
-      if (!m || npc.kind === "gull") continue;
-      away(from, m.position, _d);
-      m.userData.flee = { x: _d.x, z: _d.z, spd: FLEE * (0.85 + Math.random() * 0.35) };
-    }
-    for (let i = 0; i < 4; i++) {
-      const c = makeCop();
-      const a = (i / 4) * Math.PI * 2 + 0.4;
-      c.position.set(from.x + Math.cos(a) * 16, 0, from.z + Math.sin(a) * 16);
-      scene.add(c);
-      cops.push(c);
-    }
+    return level;
   }
 
   function tick(dt, playerPos) {
     if (!on || !(dt > 0)) return;
-    for (const npc of cast) {
-      const m = npc.mesh;
-      const f = m?.userData?.flee;
+    const h = Math.min(dt, 0.05);
+
+    for (const m of fleeing) {
+      const f = m.userData.flee;
       if (!f) continue;
-      m.position.x += f.x * f.spd * dt;
-      m.position.z += f.z * f.spd * dt;
-      m.rotation.y = Math.atan2(f.x, f.z);
-      m.position.y = Math.abs(Math.sin(performance.now() * 0.02 + m.id)) * 0.08;
+      const gone = Math.hypot(m.position.x - _from.x, m.position.z - _from.z);
+      const slow = gone > FLEE_MAX ? 0 : 1;
+      if (slow) {
+        m.position.x += f.x * f.spd * h;
+        m.position.z += f.z * f.spd * h;
+        m.rotation.y = Math.atan2(f.x, f.z); // npc bodies face +Z — face the way they bolt
+        m.userData.fleePhase += h * (5.2 + f.spd * 0.9);
+        m.position.y = Math.abs(Math.sin(m.userData.fleePhase)) * 0.055;
+      } else {
+        m.userData.fleePhase += h * 1.4;
+        m.position.y = 0;
+      }
+      poseCivilian(m, m.userData.fleePhase, slow ? 1 : 0.12);
     }
+
+    if (!playerPos) return;
     for (const c of cops) {
-      const dx = playerPos.x - c.position.x;
-      const dz = playerPos.z - c.position.z;
+      const dx = playerPos.x - c.x;
+      const dz = playerPos.z - c.z;
       const d = Math.hypot(dx, dz) || 1;
-      c.position.x += (dx / d) * COP_SPEED * dt;
-      c.position.z += (dz / d) * COP_SPEED * dt;
-      c.rotation.y = Math.atan2(dx, dz);
-      c.position.y = Math.abs(Math.sin(performance.now() * 0.018 + c.id)) * 0.07;
+      // Sprint in, then hold a menacing ring — the recall units do the seizing.
+      const want = d > HOLD_R + 1.4 ? c.speed : d > HOLD_R ? COP_WALK : 0;
+      if (want > 0) {
+        c.x += (dx / d) * want * h;
+        c.z += (dz / d) * want * h;
+      }
+      const target = d < HOLD_R + 0.8 ? 1 : 0;
+      c.reach += (target - c.reach) * Math.min(1, h * 4);
+      c.phase += h * (2.2 + want * 1.15);
+      c.root.position.set(c.x, 0, c.z);
+      c.root.rotation.y = Math.atan2(dx, dz);
+      poseCop(c.root, { walkPhase: c.phase, speed: want, reach: c.reach });
     }
   }
 
-  return { trigger, tick, get active() { return on; } };
+  /**
+   * Remove every cop from the scene and stand the sim down. Civilians keep the
+   * pose they died on. Safe to call twice; a later trigger/onHarm restarts it.
+   */
+  function dispose() {
+    for (const c of cops) scene?.remove(c.root);
+    cops.length = 0;
+    for (const m of fleeing) delete m.userData.flee;
+    fleeing.length = 0;
+    on = false;
+    level = 0;
+    screamed = false;
+  }
+
+  return {
+    trigger,
+    onHarm,
+    tick,
+    dispose,
+    get active() {
+      return on;
+    },
+    get level() {
+      return level;
+    },
+    get copCount() {
+      return cops.length;
+    },
+  };
 }
