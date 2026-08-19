@@ -1,10 +1,10 @@
 /** Opening skit: still sequence after the poster tap. Tap skips. */
 
 export const INTRO_STILLS = [
+  { src: "assets/media/cutscene/intro_divas_strut.jpg", hold: 3200 },
+  { src: "assets/media/cutscene/intro_divas_brief.jpg", hold: 3000 },
+  { src: "assets/media/cutscene/intro_divas_catwalk.jpg", hold: 3000 },
   { src: "assets/media/cutscene/s1_bunker_bay.jpg", hold: 2000 },
-  { src: "assets/media/cutscene/intro_divas_strut.jpg", hold: 2600 },
-  { src: "assets/media/cutscene/intro_divas_brief.jpg", hold: 2400 },
-  { src: "assets/media/cutscene/intro_divas_catwalk.jpg", hold: 2400 },
   { src: "assets/media/cutscene/s4_i_can_use_them.jpg", hold: 2400 },
   { src: "assets/media/cutscene/s5_psa_apply.jpg", hold: 2200 },
 ];
@@ -34,7 +34,14 @@ export class CutsceneReel {
     this._timer = 0;
     this._stills = INTRO_STILLS;
     this._done = false;
-    this.root.addEventListener("pointerdown", () => this.finish());
+    this._armed = 0;
+    this.root.addEventListener("pointerdown", (e) => {
+      e.stopPropagation();
+      // Same tap that dismissed the poster must not skip the reel.
+      if (performance.now() < this._armed) return;
+      this._i += 1;
+      this.show();
+    });
   }
 
   get playing() {
@@ -46,6 +53,7 @@ export class CutsceneReel {
     this._stills = stills && stills.length ? stills : INTRO_STILLS;
     this._i = 0;
     this._done = false;
+    this._armed = performance.now() + 450;
     this.root.style.display = "flex";
     this.show();
   }
