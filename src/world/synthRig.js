@@ -1,6 +1,8 @@
 /**
  * Beach synth lad — physical synth + drum machine, 16-step overlay.
- * E or the unlabeled pad opens the grid. SAVE writes a tape clip.
+ * KeyE (or the unlabeled pad) opens the sequencer; preview bed plays while
+ * open (createPatternBed start + setMix 0.4) and mutes when closed.
+ * SAVE writes a tape clip.
  */
 import * as THREE from "three";
 import { ken } from "../chars/npcs.js";
@@ -294,11 +296,12 @@ export function spawnSynthRig(scene) {
   function ensurePreview() {
     const ctx = acquireCtx();
     if (!ctx) return;
+    if (ctx.state === "suspended") ctx.resume();
     if (!preview) {
-      preview = createPatternBed(ctx, ctx.destination, pattern, { peak: 0.3 });
+      preview = createPatternBed(ctx, ctx.destination, pattern, { peak: 0.48 });
     }
     preview.start();
-    preview.setMix(0.85, 0.06);
+    preview.setMix(0.4, 0.06);
   }
 
   function stopPreview() {
@@ -349,6 +352,12 @@ export function spawnSynthRig(scene) {
           }
         )
       : null;
+
+  if (typeof window !== "undefined") {
+    window.addEventListener("keydown", (e) => {
+      if (e.code === "KeyE") acquireCtx();
+    });
+  }
 
   function tryInteract(playerPos, keys) {
     const inRange = distXZ(playerPos, root.position) <= RANGE;

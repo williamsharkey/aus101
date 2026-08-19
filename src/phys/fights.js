@@ -190,6 +190,17 @@ function setMode(f, mode) {
   f.doll.root.visible = rag;
 }
 
+/** Guard / jab on the planted ken. Feet stay level on the sand. */
+function poseStand(f, jab = 0) {
+  const b = f.mesh.userData.body;
+  if (!b) return;
+  const lead = f.lead || 1;
+  b.armL.rotation.set(-1.22 + (lead < 0 ? -jab * 0.5 : jab * 0.1), 0.1, 0.48);
+  b.armR.rotation.set(-1.22 + (lead > 0 ? -jab * 0.5 : jab * 0.1), -0.1, -0.48);
+  b.legL.rotation.set(0.1, 0, 0.05);
+  b.legR.rotation.set(0.06, 0, -0.05);
+}
+
 function resetFighter(f) {
   f.x = f.home.x;
   f.z = f.home.z;
@@ -201,6 +212,7 @@ function resetFighter(f) {
   f.acc = 0;
   f.mesh.position.set(f.home.x, 0, f.home.z);
   f.mesh.rotation.set(0, f.home.yaw, 0);
+  poseStand(f, 0);
   setMode(f, "stand");
 }
 
@@ -250,18 +262,18 @@ function tickStand(f, opp, dt) {
   f.mesh.rotation.y = faceYaw(f, opp);
   let px = f.x;
   let pz = f.z;
-  let lean = 0;
+  let jab = 0;
   if (f.punch > 0) {
     f.punch = Math.max(0, f.punch - dt);
-    const u = Math.sin((1 - f.punch / 0.16) * Math.PI);
+    jab = Math.sin((1 - f.punch / 0.16) * Math.PI);
     const fx = Math.sin(f.mesh.rotation.y);
     const fz = Math.cos(f.mesh.rotation.y);
-    px += fx * u * 0.38;
-    pz += fz * u * 0.38;
-    lean = u * 0.14;
+    px += fx * jab * 0.22;
+    pz += fz * jab * 0.22;
   }
   f.mesh.position.set(px, 0, pz);
-  f.mesh.rotation.x = lean;
+  f.mesh.rotation.x = 0;
+  poseStand(f, jab);
 }
 
 function tickRagdoll(f, dt) {
@@ -297,8 +309,10 @@ function makeFighter(scene, x, z, yaw, look) {
     cool: rand(PUNCH_MIN, PUNCH_MAX),
     punch: 0,
     acc: 0,
+    lead: Math.random() < 0.5 ? -1 : 1,
     state: "stand",
   };
+  poseStand(f, 0);
   return f;
 }
 

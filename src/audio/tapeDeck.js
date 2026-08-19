@@ -57,11 +57,25 @@ function distXZ(a, b) {
   return Math.hypot((a.x ?? 0) - (b.x ?? 0), (a.z ?? 0) - (b.z ?? 0));
 }
 
+function armUnlock() {
+  if (typeof window === "undefined" || armUnlock._on) return;
+  armUnlock._on = true;
+  const go = () => {
+    if (!acquireCtx._c) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      acquireCtx._c = new AC();
+    }
+    if (acquireCtx._c.state === "suspended") acquireCtx._c.resume();
+  };
+  window.addEventListener("pointerdown", go);
+  window.addEventListener("keydown", go);
+  window.addEventListener("touchstart", go);
+}
+
 export function acquireCtx(passed) {
-  if (passed) {
-    if (passed.state === "suspended") passed.resume();
-    return passed;
-  }
+  armUnlock();
+  if (passed) acquireCtx._c = passed;
   if (!acquireCtx._c) {
     const AC = (typeof window !== "undefined" && (window.AudioContext || window.webkitAudioContext)) || null;
     if (!AC) return null;
@@ -70,6 +84,8 @@ export function acquireCtx(passed) {
   if (acquireCtx._c.state === "suspended") acquireCtx._c.resume();
   return acquireCtx._c;
 }
+
+armUnlock();
 
 export function makePattern(bpm = 118) {
   const p = { steps: 16, bpm };

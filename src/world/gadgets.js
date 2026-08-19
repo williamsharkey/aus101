@@ -293,25 +293,31 @@ function canHold(npc) {
   return npc.ageBand === "adult" || npc.kind === "ken" || npc.kind === "babe" || npc.kind === "sigma_07" || npc.kind === "goth";
 }
 
-function armPivot(npc, side) {
-  const parts = [];
-  for (const c of [...npc.children]) {
-    if (side * c.position.x > 0.15 && c.position.y > 0.85) parts.push(c);
+function findArm(mesh, side) {
+  const name = side < 0 ? "armL" : "armR";
+  const body = mesh.userData?.body;
+  if (body) {
+    if (name === "armR" && body.armR) return body.armR;
+    if (name === "armL" && body.armL) return body.armL;
+    if (Array.isArray(body.arms)) {
+      const hit = body.arms.find((a) => a?.name === name);
+      if (hit) return hit;
+    }
   }
-  const pivot = new THREE.Group();
-  if (!parts.length) return { pivot: null, hand: null };
-  const shoulder = parts.reduce((a, b) => (a.position.y >= b.position.y ? a : b));
-  pivot.position.copy(shoulder.position);
-  npc.add(pivot);
-  for (const p of parts) {
-    p.position.sub(pivot.position);
-    pivot.add(p);
+  return mesh.getObjectByName?.(name) || null;
+}
+
+function findHand(arm) {
+  if (!arm?.children?.length) return null;
+  const named = arm.getObjectByName?.("hand") || arm.children.find((c) => /hand/i.test(c.name || ""));
+  if (named) return named;
+  for (let i = arm.children.length - 1; i >= 0; i--) {
+    const c = arm.children[i];
+    if (!c?.children?.length) continue;
+    const palm = c.children.some((ch) => /palm/i.test(ch.name || "") || ch.isMesh);
+    if (palm) return c;
   }
-  let hand = pivot.children[0];
-  for (const c of pivot.children) {
-    if (c.position.y < hand.position.y) hand = c;
-  }
-  return { pivot, hand };
+  return null;
 }
 
 function makeHandset(kind, tex) {
@@ -326,16 +332,15 @@ function makeHandset(kind, tex) {
 
 function attachHandset(npc, kind, tex, side) {
   const mesh = npc.mesh;
-  const { pivot, hand } = armPivot(mesh, side);
   const { group, mat } = makeHandset(kind, tex);
-  if (pivot && hand) {
-    pivot.rotation.set(-1.28, side * 0.12, side * -0.32);
-    group.position.copy(hand.position);
-    group.position.z += 0.04;
-    group.position.y += 0.012;
-    group.position.x += side * 0.008;
-    group.rotation.set(-1.02, side * 0.16, side * 0.06);
-    pivot.add(group);
+  const arm = findArm(mesh, side);
+  const hand = findHand(arm);
+  if (arm && hand) {
+    arm.rotation.x = -0.95;
+    const tablet = kind === "tablet";
+    group.position.set(0, tablet ? -0.08 : -0.07, tablet ? 0.03 : 0.026);
+    group.rotation.set(0, 0, 0);
+    hand.add(group);
   } else {
     const h = mesh.userData?.body?.shoulderY || 1.36;
     group.position.set(side * 0.16, h - 0.16, 0.2);

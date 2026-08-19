@@ -1,6 +1,6 @@
 /**
  * Exclusive music mixer. Carpenter is the default bed.
- * Near a local source (piano / DJ / boombox / guitar), fade Carpenter down
+ * Near a local source (piano ~14m / DJ / boombox / guitar), fade Carpenter down
  * and that source up. Never two beds at full volume.
  */
 
@@ -23,7 +23,7 @@ export function createMusicDirector({ carpenter, shades, locals = [] } = {}) {
 
   function radiusOf(l) {
     if (l.radius != null) return l.radius;
-    if (shades && l.bed === shades) return 12;
+    if (l.id === "piano" || (shades && l.bed === shades)) return Math.max(l.radius ?? 0, 14);
     return 0;
   }
 

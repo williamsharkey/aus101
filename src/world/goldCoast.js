@@ -2,7 +2,7 @@
  * Gold Coast playable level.
  * Starting kit: Coconuts prop factories (Steve / a-better-internet/coconuts).
  * Everything is restyled: timber esplanade, surf club, SLS tower, turquoise water,
- * harsh noon, no Maryland / no terracotta patio as the identity.
+ * cascading sunset sky, no Maryland / no terracotta patio as the identity.
  *
  * Spawn: x=0, z=10, yaw=0 (facing ocean −Z).
  */
@@ -26,6 +26,8 @@ import {
   signTex,
   metalRoofTex,
 } from "./coconutsHelpers.js";
+import { pianoPulse } from "../audio/shades.js";
+import { ken, babe } from "../chars/npcs.js";
 
 export const GC = {
   width: 90,
@@ -42,16 +44,20 @@ export const BOUNDS = {
   maxZ: GC.depth / 2 - 1,
 };
 
+/** Canvas y=0 is zenith on SphereGeometry (flipY + uv v = 1−row). */
 function skyGradient() {
   const c = document.createElement("canvas");
   c.width = 4;
   c.height = 256;
   const x = c.getContext("2d");
   const g = x.createLinearGradient(0, 0, 0, 256);
-  g.addColorStop(0, "#6ec4ff");
-  g.addColorStop(0.45, "#b8e0ff");
-  g.addColorStop(0.72, "#ffe2a8");
-  g.addColorStop(1, "#f0c070");
+  g.addColorStop(0, "#1a7480");
+  g.addColorStop(0.16, "#2a5a8c");
+  g.addColorStop(0.3, "#6a3a9a");
+  g.addColorStop(0.42, "#d4508c");
+  g.addColorStop(0.5, "#ff7a48");
+  g.addColorStop(0.62, "#e09060");
+  g.addColorStop(1, "#8a5048");
   x.fillStyle = g;
   x.fillRect(0, 0, 4, 256);
   const t = new THREE.CanvasTexture(c);
@@ -60,13 +66,51 @@ function skyGradient() {
   return t;
 }
 
+function stripAlphaTex() {
+  const c = document.createElement("canvas");
+  c.width = 8;
+  c.height = 64;
+  const x = c.getContext("2d");
+  const g = x.createLinearGradient(0, 0, 0, 64);
+  g.addColorStop(0, "rgba(255,255,255,0)");
+  g.addColorStop(0.32, "rgba(255,255,255,1)");
+  g.addColorStop(0.68, "rgba(255,255,255,1)");
+  g.addColorStop(1, "rgba(255,255,255,0)");
+  x.fillStyle = g;
+  x.fillRect(0, 0, 8, 64);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.needsUpdate = true;
+  return t;
+}
+
+function glowTex() {
+  const c = document.createElement("canvas");
+  c.width = 64;
+  c.height = 64;
+  const x = c.getContext("2d");
+  const g = x.createRadialGradient(32, 32, 0, 32, 32, 32);
+  g.addColorStop(0, "rgba(255,255,255,1)");
+  g.addColorStop(0.22, "rgba(255,236,190,0.9)");
+  g.addColorStop(0.5, "rgba(255,140,70,0.35)");
+  g.addColorStop(1, "rgba(255,60,80,0)");
+  x.fillStyle = g;
+  x.fillRect(0, 0, 64, 64);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.needsUpdate = true;
+  return t;
+}
+
+const SUN_POS = new THREE.Vector3(36, 26, -148);
+
 export function setupGoldCoastLights(scene) {
-  scene.background = new THREE.Color(0x87c8ef);
-  scene.fog = new THREE.Fog(0xd8c8a0, 28, 95);
-  const hemi = new THREE.HemisphereLight(0xfff1c8, 0xc4a06a, 0.95);
+  scene.background = new THREE.Color(0xc45c68);
+  scene.fog = new THREE.Fog(0xe89a72, 26, 100);
+  const hemi = new THREE.HemisphereLight(0x2e8c94, 0xd4784a, 0.88);
   scene.add(hemi);
-  const sun = new THREE.DirectionalLight(0xffe8c0, 2.2);
-  sun.position.set(22, 48, 6);
+  const sun = new THREE.DirectionalLight(0xffc080, 2.15);
+  sun.position.copy(SUN_POS).setLength(72);
   sun.castShadow = true;
   sun.shadow.mapSize.set(1024, 1024);
   sun.shadow.camera.near = 2;
@@ -78,6 +122,130 @@ export function setupGoldCoastLights(scene) {
   sun.shadow.bias = -0.0005;
   scene.add(sun);
   return { hemi, sun };
+}
+
+const STRIP_COLS = [0xb25cff, 0xff6aa8, 0x4ec4ff, 0x4ee0a0];
+
+function makeStripMat(map, color) {
+  return new THREE.MeshBasicMaterial({
+    map,
+    color,
+    transparent: true,
+    opacity: 0,
+    depthWrite: false,
+    fog: false,
+    side: THREE.DoubleSide,
+  });
+}
+
+function buildSunsetSky(scene) {
+  const strips = [];
+  const clouds = [];
+  const glares = [];
+
+  const sky = new THREE.Mesh(
+    new THREE.SphereGeometry(180, 16, 12),
+    new THREE.MeshBasicMaterial({ map: skyGradient(), side: THREE.BackSide, fog: false, depthWrite: false })
+  );
+  sky.renderOrder = -10;
+  scene.add(sky);
+
+  const alpha = stripAlphaTex();
+  const stripGeo = new THREE.PlaneGeometry(230, 14);
+  for (let i = 0; i < 12; i++) {
+    const s = new THREE.Mesh(stripGeo, makeStripMat(alpha, STRIP_COLS[i % STRIP_COLS.length]));
+    const overhead = i >= 8;
+    s.userData.y0 = overhead ? 108 - (i - 8) * 8 : 122 - i * 7;
+    s.userData.dieY = overhead ? 36 : 20 + (i % 3) * 5;
+    s.userData.spd = (overhead ? 3.4 : 4.6) + i * 0.18;
+    s.userData.peak = overhead ? 0.34 : 0.5;
+    s.position.set((i % 2 ? 10 : -10) + (i - 5) * 2, s.userData.y0 - i * 3.2, overhead ? -8 - (i - 8) * 10 : -46 - (i % 5) * 7);
+    s.rotation.x = overhead ? 0.72 + (i % 3) * 0.1 : 0.14 + (i % 4) * 0.05;
+    s.rotation.y = (i % 2 ? -0.05 : 0.05);
+    s.rotation.z = (i % 3) * 0.02 - 0.02;
+    s.renderOrder = -1;
+    scene.add(s);
+    strips.push(s);
+  }
+
+  const disc = new THREE.Mesh(
+    new THREE.SphereGeometry(7.2, 16, 12),
+    new THREE.MeshBasicMaterial({ color: 0xfff4c4, fog: false, depthWrite: false })
+  );
+  disc.position.copy(SUN_POS);
+  disc.renderOrder = 1;
+  scene.add(disc);
+
+  const glow = glowTex();
+  const flares = [
+    [0xfff6d0, 56, 0.95],
+    [0xffb060, 92, 0.55],
+    [0xff6a88, 140, 0.32],
+  ];
+  for (const [color, size, op] of flares) {
+    const spr = new THREE.Sprite(
+      new THREE.SpriteMaterial({
+        map: glow,
+        color,
+        transparent: true,
+        opacity: op,
+        depthWrite: false,
+        fog: false,
+        blending: THREE.AdditiveBlending,
+      })
+    );
+    spr.position.copy(SUN_POS);
+    spr.scale.set(size, size, 1);
+    spr.userData.baseOp = op;
+    spr.renderOrder = 2;
+    scene.add(spr);
+    glares.push(spr);
+  }
+
+  const streak = new THREE.Mesh(
+    new THREE.PlaneGeometry(110, 5.5),
+    new THREE.MeshBasicMaterial({
+      map: glow,
+      color: 0xffe8b0,
+      transparent: true,
+      opacity: 0.42,
+      depthWrite: false,
+      fog: false,
+      blending: THREE.AdditiveBlending,
+      side: THREE.DoubleSide,
+    })
+  );
+  streak.position.copy(SUN_POS);
+  streak.lookAt(0, 12, 0);
+  streak.userData.baseOp = 0.42;
+  streak.renderOrder = 2;
+  scene.add(streak);
+  glares.push(streak);
+
+  const cloudGeo = new THREE.SphereGeometry(1, 8, 6);
+  const cloudMat = new THREE.MeshStandardMaterial({ color: 0xffd2c4, roughness: 1, metalness: 0, fog: false });
+  const cloudSpots = [
+    [18, 38, -88, 11, 2.6, 5.5],
+    [52, 34, -96, 9, 2.2, 4.8],
+    [-28, 42, -80, 10, 2.4, 5.2],
+    [8, 48, -60, 7.5, 2.0, 4.2],
+    [-48, 36, -70, 8.5, 2.1, 4.6],
+    [40, 30, -54, 6.5, 1.8, 3.6],
+    [-12, 44, -110, 12, 2.8, 6.0],
+    [64, 40, -40, 7, 1.9, 3.8],
+  ];
+  for (const [x, y, z, sx, sy, sz] of cloudSpots) {
+    const cl = new THREE.Mesh(cloudGeo, cloudMat);
+    cl.position.set(x, y, z);
+    cl.scale.set(sx, sy, sz);
+    cl.userData.spd = 0.18 + Math.abs(x) * 0.002;
+    cl.userData.y0 = y;
+    cl.userData.ph = x * 0.07;
+    scene.add(cl);
+    clouds.push(cl);
+  }
+
+  return { strips, clouds, glares };
 }
 
 /**
@@ -92,13 +260,7 @@ export function buildGoldCoast(scene, colliders) {
   const gulls = [];
   const balls = [];
   const waves = [];
-
-  // Sky dome
-  const sky = new THREE.Mesh(
-    new THREE.SphereGeometry(180, 16, 12),
-    new THREE.MeshBasicMaterial({ map: skyGradient(), side: THREE.BackSide, fog: false, depthWrite: false })
-  );
-  scene.add(sky);
+  const { strips, clouds, glares } = buildSunsetSky(scene);
 
   // Sand — Gold Coast blonde, not OC grey-tan
   const sandMap = canvasTex(sandCanvas());
@@ -481,6 +643,28 @@ export function buildGoldCoast(scene, colliders) {
         }
       }
 
+      for (const s of strips) {
+        s.position.y -= s.userData.spd * 0.016;
+        const span = s.userData.y0 - s.userData.dieY;
+        const u = (s.userData.y0 - s.position.y) / Math.max(0.001, span);
+        const peak = s.userData.peak;
+        if (u < 0.12) s.material.opacity = (u / 0.12) * peak;
+        else if (u > 0.72) s.material.opacity = Math.max(0, 1 - (u - 0.72) / 0.28) * peak;
+        else s.material.opacity = peak;
+        if (s.position.y <= s.userData.dieY) {
+          s.position.y = s.userData.y0;
+          s.material.opacity = 0;
+        }
+      }
+
+      for (const cl of clouds) {
+        cl.position.x += cl.userData.spd * 0.016;
+        cl.position.y = cl.userData.y0 + Math.sin(t * 0.22 + cl.userData.ph) * 0.8;
+        if (cl.position.x > 80) cl.position.x = -72;
+      }
+      const pulse = 0.82 + Math.sin(t * 1.35) * 0.18;
+      for (const g of glares) g.material.opacity = g.userData.baseOp * pulse;
+
       for (const g of gulls) {
         const p = g.userData.phase;
         g.position.x += Math.sin(t * 0.4 + p) * 0.02;
@@ -499,20 +683,71 @@ export function buildGoldCoast(scene, colliders) {
   };
 }
 
+/** Knee sphere sits between hip and ankle; shin/foot live below it. */
+function kneeY(leg) {
+  let y = -0.46;
+  let best = -Infinity;
+  for (const c of leg.children) {
+    if (!c.isMesh || c.geometry?.type !== "SphereGeometry") continue;
+    if (c.position.y >= -0.15) continue;
+    if (c.position.y > best) {
+      best = c.position.y;
+      y = c.position.y;
+    }
+  }
+  return y;
+}
+
+/** Reparent meshes below `cutY` onto a hinge so a sit/bend can rotate them. */
+function wrapBelow(parent, cutY) {
+  const pivot = new THREE.Group();
+  pivot.position.y = cutY;
+  parent.add(pivot);
+  for (const c of [...parent.children]) {
+    if (c === pivot) continue;
+    if (c.position.y < cutY - 1e-3) {
+      c.position.y -= cutY;
+      pivot.add(c);
+    }
+  }
+  return pivot;
+}
+
+/** Fold a planted biped onto a bench. Origin stays at the soles. */
+function sitBiped(npc, seatY, { thigh = 1.18, shin = -1.32 } = {}) {
+  const b = npc.userData.body;
+  if (!b) return;
+  for (const [leg, side] of [
+    [b.legL, -1],
+    [b.legR, 1],
+  ]) {
+    if (!leg) continue;
+    const hinge = wrapBelow(leg, kneeY(leg));
+    hinge.rotation.x = shin;
+    for (const c of hinge.children) {
+      if (c.isGroup) c.rotation.x = -(thigh + shin);
+    }
+    leg.rotation.x = thigh;
+    leg.rotation.z = side * 0.05;
+  }
+  npc.position.y = seatY - b.hipY;
+}
+
 function buildPianoMan() {
   const g = new THREE.Group();
-  const skin = mat(0xc9b09a);
   const black = mat(0x141414);
-  const body = box(0.38, 0.55, 0.22, mat(0x1c1c22));
-  body.position.y = 1.05;
-  g.add(body);
-  const head = new THREE.Mesh(new THREE.SphereGeometry(0.12, 10, 8), skin);
-  head.position.y = 1.48;
-  g.add(head);
-  const hair = new THREE.Mesh(new THREE.SphereGeometry(0.13, 8, 6), black);
-  hair.position.set(0, 1.54, -0.02);
-  hair.scale.set(1, 0.7, 1);
-  g.add(hair);
+  const benchY = 0.66;
+  const man = ken({ hair: 0x1a1410, shorts: 0x141418, skin: 0xc9b09a });
+  man.name = "piano-ken";
+  man.userData.paintTarget = false;
+  sitBiped(man, benchY);
+  man.position.x = 0;
+  man.position.z = -0.02;
+  const { armL, armR } = man.userData.body;
+  armL.rotation.set(-1.12, 0.08, 0.38);
+  armR.rotation.set(-1.16, -0.06, -0.34);
+  g.add(man);
+
   const piano = box(1.35, 0.18, 0.55, black);
   piano.position.set(0.15, 0.78, 0.42);
   g.add(piano);
@@ -527,8 +762,13 @@ function buildPianoMan() {
   bench.position.set(0, 0.62, 0);
   g.add(bench);
   g.userData.tick = (t) => {
-    head.position.y = 1.48 + Math.sin(t * 1.3) * 0.015;
-    keys.position.y = 0.89 + Math.abs(Math.sin(t * 6)) * 0.008;
+    const age = pianoPulse.at ? (performance.now() - pianoPulse.at) / 1000 : 99;
+    const hit = age < 0.22 ? 1 - age / 0.22 : 0;
+    const idle = Math.abs(Math.sin(t * 6)) * 0.35;
+    const pulse = Math.max(hit, idle);
+    armL.rotation.x = -1.12 + pulse * 0.05;
+    armR.rotation.x = -1.16 + Math.max(hit, Math.abs(Math.sin(t * 6 + 0.8)) * 0.35) * 0.05;
+    keys.position.y = 0.89 + pulse * 0.012;
     g.position.y = 0.12 + Math.sin(t * 0.7) * 0.06;
   };
   return g;
@@ -586,15 +826,22 @@ function buildDjBooth(scene, add) {
     platter.position.set(sx, 1.2, 0.05);
     g.add(platter);
   }
-  const dj = box(0.36, 0.7, 0.22, mat(0x222));
-  dj.position.set(0, 1.55, -0.15);
-  g.add(dj);
-  const head = new THREE.Mesh(new THREE.SphereGeometry(0.13, 10, 8), mat(0xc68642));
-  head.position.set(0, 2.05, -0.15);
-  g.add(head);
-  const phones = box(0.38, 0.08, 0.08, mat(0x111));
-  phones.position.set(0, 2.12, -0.15);
-  g.add(phones);
+  const djKen = ken({ hair: 0x1a1a12, shorts: 0x1a1a22, skin: 0xc68642 });
+  djKen.name = "dj-ken";
+  djKen.position.set(0, 0, -0.32);
+  djKen.userData.paintTarget = false;
+  const db = djKen.userData.body;
+  db.armL.rotation.set(-1.18, 0.06, 0.42);
+  db.armR.rotation.set(-1.14, -0.06, -0.4);
+  const phones = box(0.32, 0.06, 0.1, mat(0x111));
+  phones.position.set(0, db.headY + 0.02, 0);
+  djKen.add(phones);
+  for (const s of [-1, 1]) {
+    const cup = box(0.04, 0.08, 0.08, mat(0x111));
+    cup.position.set(s * 0.13, db.headY - 0.01, 0);
+    djKen.add(cup);
+  }
+  g.add(djKen);
 
   const slides = slideCanvas();
   const screen = new THREE.Mesh(
@@ -615,7 +862,9 @@ function buildDjBooth(scene, add) {
   let last = 0;
   return {
     tick(t) {
-      head.position.y = 2.05 + Math.sin(t * 4) * 0.03;
+      djKen.position.y = Math.abs(Math.sin(t * 4)) * 0.03;
+      db.armL.rotation.x = -1.18 + Math.sin(t * 4) * 0.06;
+      db.armR.rotation.x = -1.14 + Math.sin(t * 4 + 1.2) * 0.06;
       if (t - last > 4.2) {
         last = t;
         slides.paint();
@@ -634,23 +883,33 @@ function spawnDancers(scene) {
     [-23.6, 9.2],
     [-20.4, 6.2],
   ];
-  const cols = [0xe23d7a, 0x1f6f78, 0xf2c12e, 0x2f7fd0, 0x141414];
+  const looks = [
+    { fn: babe, hair: 0xc9a227, bikini: 0xe23d7a, skin: 0xe0b08a },
+    { fn: ken, hair: 0x3a2218, shorts: 0x1f6f78, skin: 0xd4a06a },
+    { fn: babe, hair: 0xf2c12e, bikini: 0xf2c12e, skin: 0xe8b898 },
+    { fn: ken, hair: 0x5ec8ff, shorts: 0x2f7fd0, skin: 0xd4924a },
+    { fn: babe, hair: 0x1a1210, bikini: 0x141414, skin: 0xc98a62 },
+  ];
   spots.forEach(([x, z], i) => {
-    const d = new THREE.Group();
-    const body = box(0.28, 0.5, 0.16, mat(cols[i % cols.length]));
-    body.position.y = 1.0;
-    d.add(body);
-    const hd = new THREE.Mesh(new THREE.SphereGeometry(0.11, 8, 6), mat(0xd4a06a));
-    hd.position.y = 1.38;
-    d.add(hd);
+    const look = looks[i % looks.length];
+    const d = look.fn(look);
+    d.name = look.fn === babe ? `dj-babe-${i}` : `dj-ken-${i}`;
+    d.userData.paintTarget = false;
     d.position.set(x, 0, z);
     scene.add(d);
+    const b = d.userData.body;
     const ph = i * 0.9;
     out.push({
       tick(t) {
-        d.position.y = Math.abs(Math.sin(t * 5 + ph)) * 0.18;
+        const hop = Math.abs(Math.sin(t * 5 + ph));
+        d.position.y = hop * 0.18;
         d.rotation.y = Math.sin(t * 2 + ph) * 0.4;
-        body.rotation.z = Math.sin(t * 5 + ph) * 0.15;
+        d.rotation.z = Math.sin(t * 5 + ph) * 0.12;
+        if (!b) return;
+        b.armL.rotation.set(-0.35 + hop * 0.55, 0.08, 0.35 + hop * 0.85);
+        b.armR.rotation.set(-0.35 + (1 - hop) * 0.55, -0.08, -0.35 - hop * 0.85);
+        b.legL.rotation.x = hop * 0.38;
+        b.legR.rotation.x = (1 - hop) * 0.28;
       },
     });
   });
