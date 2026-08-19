@@ -28,6 +28,8 @@ const only = arg("--only", "")
   .split(",")
   .map((s) => s.trim())
   .filter(Boolean);
+/** Ad hoc cameras, so a shot does not need a code edit: --custom '[{"name":"x","orbit":{...}}]' */
+const custom = JSON.parse(arg("--custom", "[]"));
 
 /** Camera setups. `orbit` shots sweep the listed angles around a point. */
 export const SHOTS = [
@@ -58,8 +60,19 @@ export const SHOTS = [
 
 async function bundle(dir) {
   fs.mkdirSync(dir, { recursive: true });
+  const extrasDir = path.join(root, "tools/shots/extras");
+  const extras = fs.existsSync(extrasDir)
+    ? fs.readdirSync(extrasDir).filter((f) => f.endsWith(".js"))
+    : [];
+  const entry = path.join(dir, "entry.js");
+  fs.writeFileSync(
+    entry,
+    ['import "../tools/shots/harness.js";']
+      .concat(extras.map((f) => `import "../tools/shots/extras/${f}";`))
+      .join("\n")
+  );
   await esbuild.build({
-    entryPoints: [path.join(root, "tools/shots/harness.js")],
+    entryPoints: [entry],
     bundle: true,
     outfile: path.join(dir, "harness.js"),
     format: "esm",
@@ -114,7 +127,8 @@ await page.goto(`http://127.0.0.1:${port}/index.html`);
 await page.waitForFunction("window.__ready === true", null, { timeout: 60000 });
 
 fs.mkdirSync(OUT, { recursive: true });
-const list = only.length ? SHOTS.filter((s) => only.includes(s.name)) : SHOTS;
+const base = only.length ? SHOTS.filter((s) => only.includes(s.name)) : custom.length ? [] : SHOTS;
+const list = [...base, ...custom];
 for (const s of list) {
   await page.evaluate(
     ([spec]) => (spec.orbit ? window.__orbit(spec.orbit) : window.__shot(spec.shot)),
