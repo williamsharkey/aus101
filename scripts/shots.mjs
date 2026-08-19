@@ -58,6 +58,9 @@ export const SHOTS = [
   { name: "synth-rig", orbit: { at: [15.6, 1.2, 4.2], radius: 5, height: 2.2, deg: 180, fov: 48 } },
   { name: "fight-site", orbit: { at: [16, 1.0, 2], radius: 5.5, height: 2.0, deg: 30, fov: 46, t: 9 } },
   { name: "psa-kiosk", orbit: { at: [0, 1.4, 16], radius: 6, height: 2.6, deg: 180, fov: 48 } },
+  { name: "surf-club", shot: { pos: [-13, 6.5, 27], target: [-18, 1.8, 14], fov: 55 } },
+  { name: "surf-club-inside", shot: { pos: [-15.9, 1.6, 16.2], target: [-19, 1.4, 12], fov: 72 } },
+  { name: "change-rooms", shot: { pos: [-26.5, 2.0, 32], target: [-26.5, 1.5, 25], fov: 58 } },
   { name: "overview", shot: { pos: [0, 14, 34], target: [0, 1, -6], fov: 55 } },
   { name: "boardwalk", shot: { pos: [2, 3.2, 26], target: [0, 1.4, 14], fov: 55 } },
 ];

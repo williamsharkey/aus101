@@ -46,7 +46,7 @@ The gag is systemic, not overlay copy:
 
 - Coverage is UV-space paint. Turning the body cannot fake a win.
 - Cloth paint triggers chase. That is the overpaint joke.
-- Punch / laser instantly wanted the beach. That is the Terminator joke.
+- Hurting someone wants the beach. That is the Terminator joke.
 - The bottle empties. That is the clock.
 
 Radio (Reticule FM 101.7) and a John Carpenter–adjacent D-minor bed (original sequence, Juno-106 chorus) sell the holiday-slasher tone without licensed scores.
@@ -211,7 +211,7 @@ Comedy is the state machine, not overlay copy.
 - **T-101.** Chrome-and-flesh applicator. Does not tan or burn. It paints. 14 voice one-shots, event-triggered (`bottleEmpty`, `subjectComplete`, `overpaintChase`, `laserLock`). No joke timer.
 - **Twelve subjects.** Each slot = mesh + `CoverageMap` + `ClothMask` + mood FSM (`idle → wary → chase | complete`). They sunbake until covered, then leave the bay.
 - **Overpaint swimwear.** `ClothMask == 1` increments `overpaintMl`. 8 ml: he notices. 12 ml: `chase`. He path-follows T-101; camera stays in apply-mode until finish or grab.
-- **Punch / laser.** Always legal, always fatal. Sets `world.wanted = true`, spawns a T-101 helicopter swarm. **Cap:** `min(8, liveSubjects + 2)` instanced hulls (not a hard 12 — see perf). Game over after 2.4 s lock-on.
+- **Punch / laser.** Always legal, always fatal — *when they connect*. The input starts a swing or a ray; the hit test resolves mid-animation against adults only. A whiff harms nobody and summons nothing. A genuine hit reports `onHarm({ kind, victim, lethal, point })`, which is the only path to consequence: any hit raises **ALERT** (one spotter ship on station), and a lethal hit or 3 accumulated heat raises **RECALL** — the flight comes in from off-map, holds over a drop ring, and fast-ropes units that then run you down. **Cap:** 6–8 hulls. Game over on capture (a unit within 1.45 m held for 0.75 s), with a 30 s outer backstop so the sequence always resolves.
 
 Constants in `src/sim/rules.js`:
 
@@ -221,8 +221,11 @@ export const RULES = Object.freeze({
   winMinPatch: 0.40,
   overpaintNoticeMl: 8,
   overpaintChaseMl: 12,
-  punchToSwarmS: 0.0,
-  swarmLockS: 2.4,
+  harmAlertHeat: 1,
+  harmRecallHeat: 3,
+  harmLethalHeat: 3,
+  swarmCaptureR: 1.45,
+  swarmFailS: 30,
   swarmHullCap: 8,
   bottleMl: 200,
   handMinMl: 4,
@@ -424,9 +427,10 @@ Tapping a pip yaws the camera at that subject (0.3 s), no teleport. UV-track mar
 | `sunburn` | any slot `uvDose ≥ 1` for 3 s | that subject leaves angry; slot `gone`; if 3 gone this way, lose | no |
 | `overpaint-chase` | `overpaintMl ≥ 12` | guy chases; grab on contact (`dist < 0.55 m` for 0.4 s) | yes, if you finish other 11 and never get grabbed |
 | `grabbed` | chase contact | game over, 1.2 s hold, then restart prompt | no |
-| `punch` | `input.punch` | `wanted = true`, swarm arm in 0 s | no |
-| `laser` | `input.laser` | same as punch, red beam first | no |
-| `swarm-lock` | `wanted` for 2.4 s | ≤8 heli instances, game over card | no |
+| `punch` | `input.punch` | swing; hit test at mid-animation, adults only. Miss = nothing happens | — |
+| `laser` | `input.laser` | ray from the eyes; beam draws and scorches on a miss, harms only what it hits | — |
+| `harm` | punch or laser connects | `onHarm` → ALERT; lethal or 3 heat → RECALL | no |
+| `swarm-lock` | a unit reaches you | capture hold 0.75 s, game over card | no |
 | `bottle-dry` | `bottleMl == 0` and mean coverage < 0.92 | lose (text: “200 ml. That’s the joke.”) | no |
 | `drown-drip` | 40 ml dripped to sand | warning only; not a lose | — |
 
@@ -1479,7 +1483,7 @@ No staged server rollout — ship is a git tag of `dist/` on laserbarf (or equiv
 3. **Coverage is UV-space via WebGLRenderTarget** (R8/RGBA), applying-subject 256 resident; not screen decals; FramebufferTexture non-normative.
 4. **`100vh` + `innerHeight`, never `100dvh`, never recreate WebGL** after boot.
 5. **Finite 200 ml / 4–6 ml hand;** bottle viewmodel before lotion FSM. The bottle is the clock.
-6. **Punch and laser are first-class instant lose** → wanted 2.4 s → ≤8 heli hulls + recall/panic VO + heli SFX.
+6. **Punch and laser are first-class lose conditions, but only on contact.** Superseded the original instant-on-keypress rule: pressing the key is not the crime, hurting someone is. Swing and ray both hit-test; harm escalates ALERT → RECALL; ≤8 heli hulls fly in and must physically reach you + recall/panic VO + heli SFX.
 7. **ClothMask is a paint reject for coverage, not a pick reject** — painting trunks triggers chase.
 8. **Port Coconuts patterns (Steve); rewrite ES modules; delete the OC level.** Not “extract modules” from the IIFE. Vendor/bundle Three r160; no r128 CDN.
 9. **Noon is the product.** Optional continuous `dayTime` + **`KeyT`** fast-forward leftover — **no KeyN**.

@@ -16,6 +16,7 @@ import { spawnPsaKiosks } from "../../src/world/psa.js";
 import { createArtist } from "../../src/chars/artist.js";
 import { spawnSynthRig } from "../../src/world/synthRig.js";
 import { attachGadgets } from "../../src/world/gadgets.js";
+import { spawnInteriors } from "../../src/world/interiors.js";
 
 const canvas = document.getElementById("game");
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
@@ -38,6 +39,7 @@ const psa = spawnPsaKiosks(scene);
 const artist = createArtist(scene);
 const synth = spawnSynthRig(scene);
 const gadgets = attachGadgets(cast, scene);
+const interiors = spawnInteriors(scene, colliders);
 
 const aus101 = createAus101();
 aus101.position.set(0, 0, 8);
@@ -72,6 +74,7 @@ function step(t) {
   fights.tick(1 / 60);
   psa.tick(aus101.position, false);
   gadgets.tick(t, aus101.position);
+  interiors.tick(t, aus101.position);
   synth.tick(t);
   poseAus101(aus101, { walkPhase: t * 6, speed: 0 });
   artist.tick(renderer, scene, t * 1000);
