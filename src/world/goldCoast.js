@@ -224,6 +224,97 @@ export function buildGoldCoast(scene, colliders) {
   scene.add(kiosk);
   add(6.2, 9.8, GC.boardwalkZ - 2.3, GC.boardwalkZ + 0.3);
 
+  // Ice-cream van
+  const van = new THREE.Group();
+  const cab = box(2.4, 2.0, 2.2, mat(0xf7f4ea));
+  cab.position.set(-2.0, 1.15, 0);
+  van.add(cab);
+  const body = box(4.2, 2.3, 2.4, mat(0xfff7fb));
+  body.position.set(1.1, 1.3, 0);
+  van.add(body);
+  const stripe = box(4.25, 0.28, 2.42, mat(0xff6b9a));
+  stripe.position.set(1.1, 1.55, 0);
+  van.add(stripe);
+  const win = box(1.4, 0.7, 0.08, mat(0x8ec8e8, { roughness: 0.2, metalness: 0.3 }));
+  win.position.set(1.3, 1.85, 1.22);
+  van.add(win);
+  const hatch = box(1.6, 0.08, 0.7, mat(0xff6b9a));
+  hatch.position.set(1.3, 1.42, 1.35);
+  van.add(hatch);
+  for (const wx of [-2.3, 2.9]) {
+    for (const wz of [-0.85, 0.85]) {
+      const tire = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.38, 0.22, 12), mat(0x1a1a1a));
+      tire.rotation.z = Math.PI / 2;
+      tire.position.set(wx, 0.38, wz);
+      van.add(tire);
+    }
+  }
+  const cone = new THREE.Mesh(new THREE.ConeGeometry(0.28, 0.7, 8), mat(0xf2c12e));
+  cone.position.set(1.1, 3.0, 0);
+  van.add(cone);
+  const scoop = new THREE.Mesh(new THREE.SphereGeometry(0.26, 10, 8), mat(0xffb6c8));
+  scoop.position.set(1.1, 3.38, 0);
+  van.add(scoop);
+  const vsign = new THREE.Mesh(
+    new THREE.PlaneGeometry(2.2, 0.55),
+    new THREE.MeshBasicMaterial({ map: signTex("SOFT SERVE", "GOLD COAST"), side: THREE.DoubleSide })
+  );
+  vsign.position.set(1.1, 2.35, 1.24);
+  van.add(vsign);
+  van.position.set(-6, 0, GC.boardwalkZ + 6.6);
+  van.rotation.y = -0.15;
+  scene.add(van);
+  add(-9.2, -2.2, GC.boardwalkZ + 4.8, GC.boardwalkZ + 8.4);
+
+  // Spray-tan tent
+  const tent = new THREE.Group();
+  const canvas = mat(0xff8a3d, { roughness: 0.85, side: THREE.DoubleSide });
+  const wallsT = box(2.6, 2.2, 2.4, canvas);
+  wallsT.position.y = 1.15;
+  tent.add(wallsT);
+  const flap = box(1.1, 1.8, 0.06, mat(0xffc07a, { roughness: 0.8 }));
+  flap.position.set(0.4, 0.95, 1.24);
+  flap.rotation.y = -0.35;
+  tent.add(flap);
+  const peak = new THREE.Mesh(new THREE.ConeGeometry(1.9, 0.7, 4), mat(0xe85d4c));
+  peak.rotation.y = Math.PI / 4;
+  peak.position.y = 2.55;
+  tent.add(peak);
+  const tsign = new THREE.Mesh(
+    new THREE.PlaneGeometry(2.0, 0.5),
+    new THREE.MeshBasicMaterial({ map: signTex("SPRAY TAN", "$29"), side: THREE.DoubleSide })
+  );
+  tsign.position.set(0, 2.05, 1.28);
+  tent.add(tsign);
+  tent.position.set(26, 0, 8);
+  tent.rotation.y = -0.6;
+  scene.add(tent);
+  add(24.6, 27.4, 6.6, 9.4);
+
+  // Inflatable palm + bins + camcorder tourist stand
+  const infl = new THREE.Group();
+  const tube = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.28, 1.8, 8), mat(0x3cb878));
+  tube.position.y = 0.95;
+  infl.add(tube);
+  for (let i = 0; i < 5; i++) {
+    const fr = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.06, 0.22), mat(0x2f9e4a));
+    fr.position.set(Math.cos((i / 5) * Math.PI * 2) * 0.35, 1.85, Math.sin((i / 5) * Math.PI * 2) * 0.35);
+    fr.rotation.y = (i / 5) * Math.PI * 2;
+    infl.add(fr);
+  }
+  infl.position.set(4.5, 0, 11);
+  scene.add(infl);
+
+  for (const [bx, bz] of [
+    [12.5, GC.boardwalkZ + 3.4],
+    [-1.5, GC.boardwalkZ + 3.4],
+  ]) {
+    const bin = box(0.55, 0.85, 0.55, mat(0x2a6b3c));
+    bin.position.set(bx, 0.42, bz);
+    scene.add(bin);
+    add(bx - 0.32, bx + 0.32, bz - 0.32, bz + 0.32);
+  }
+
   stringLights(scene, -22, GC.boardwalkZ + 3.8, 22, GC.boardwalkZ + 3.8, 3.1, 18);
 
   // Palms along esplanade + sand

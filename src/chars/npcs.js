@@ -350,6 +350,30 @@ export function spawnBeachCast(scene) {
     },
     { mesh: place(kid(), -3.5, deckY, 15.5, 0.8), kind: "kid", ageBand: "child" },
     { mesh: place(seagull(), 8.0, 1.2, railZ, -0.3), kind: "gull", ageBand: "gull" },
+    {
+      mesh: place(ken({ hair: 0xf4e27a, shorts: 0xe23b3b, skin: 0xe0a060 }), -7.2, 0.38, WORLD.boardwalkZ + 6.2, 1.4),
+      kind: "ken",
+      ageBand: "adult",
+    },
+    {
+      mesh: place(babe({ hair: 0xf2c12e, bikini: 0xff6b9a, skin: 0xe8b898 }), 25.2, 0, 7.4, -2.2),
+      kind: "babe",
+      ageBand: "adult",
+    },
+    {
+      mesh: place(ken({ hair: 0x5ec8ff, shorts: 0xf2c12e, skin: 0xd4924a }), -14.0, 0, 3.2, 0.9),
+      kind: "ken",
+      ageBand: "adult",
+    },
+    {
+      mesh: place(babe({ hair: 0x8b3a2a, bikini: 0xffffff, skin: 0xc98a62 }), 1.4, 0, -4.6, 2.8),
+      kind: "babe",
+      ageBand: "adult",
+    },
+    { mesh: place(goth(), -22.0, 0, 9.5, 0.3), kind: "goth", ageBand: "adult" },
+    { mesh: place(sigma07(), 15.5, 0, 9.0, -1.8), kind: "sigma_07", ageBand: "adult" },
+    { mesh: place(seagull(), -10.0, 1.2, railZ, 0.8), kind: "gull", ageBand: "gull" },
+    { mesh: place(kid(), 10.2, 0, 4.8, -0.4), kind: "kid", ageBand: "child" },
   ];
 
   for (const npc of cast) {

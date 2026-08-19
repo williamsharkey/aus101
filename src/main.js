@@ -22,6 +22,7 @@ import { installTouchControls } from "./input/touchControls.js";
 import { buildGoldCoast, setupGoldCoastLights, BOUNDS } from "./world/goldCoast.js";
 import { createAus101, poseAus101 } from "./chars/aus101.js";
 import { spawnBeachCast } from "./chars/npcs.js";
+import { createWalkbyDirector } from "./audio/walkby.js";
 
 const BG = 0x0b1210;
 
@@ -54,13 +55,14 @@ player.yaw = 0;
 
 const aus101 = createAus101();
 scene.add(aus101);
-spawnBeachCast(scene);
+const cast = spawnBeachCast(scene);
 
 const voice = new VoiceBank();
 voice.loadManifest().catch(() => {});
 const sfx = new SfxBank();
 const lotionFoley = installLotionFoley(sfx, null);
 const steps = createFootstepPlayer(sfx);
+const walkby = createWalkbyDirector(voice, cast);
 
 let carpenter = null;
 let oceanBed = null;
@@ -154,6 +156,7 @@ function frame() {
     });
     if (input.keys.Space) carpenter?.setState("apply");
     else carpenter?.setState("boardwalk");
+    if (audioOn) walkby.tick(performance.now(), player.pos, speed);
   } else if (!playing) {
     camera.position.set(8, 6.5, 22);
     camera.lookAt(0, 1.2, 4);
