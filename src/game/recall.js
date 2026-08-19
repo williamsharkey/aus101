@@ -8,7 +8,7 @@ import * as THREE from "three";
 const COPPER = 0xb87333;
 const GOLD = 0xd4a017;
 const EYE = 0xff1010;
-const LOCK_S = 2.4;
+const LOCK_S = 4.6;
 const HULL_MIN = 6;
 const HULL_MAX = 8;
 const SPRINT = 9.4;

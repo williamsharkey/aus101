@@ -159,22 +159,22 @@ function makePainter() {
   crown.position.y = 1.65;
   g.add(brim, crown);
 
-  // Left arm + palette (static)
-  const lUpper = cyl(0.036, 0.04, 0.26, shirt);
-  lUpper.position.set(-0.2, 1.2, 0.02);
-  lUpper.rotation.z = 0.35;
-  const lFore = cyl(0.03, 0.034, 0.22, skin);
-  lFore.position.set(-0.28, 1.0, 0.08);
-  lFore.rotation.z = 0.55;
-  lFore.rotation.x = -0.4;
-  const lHand = sphere(0.03, skin, 8, 6);
-  lHand.position.set(-0.32, 0.9, 0.16);
-  g.add(lUpper, lFore, lHand);
+  // Right arm + palette (static) — left hand paints
+  const rUpper = cyl(0.036, 0.04, 0.26, shirt);
+  rUpper.position.set(0.2, 1.2, 0.02);
+  rUpper.rotation.z = -0.35;
+  const rForeP = cyl(0.03, 0.034, 0.22, skin);
+  rForeP.position.set(0.28, 1.0, 0.08);
+  rForeP.rotation.z = -0.55;
+  rForeP.rotation.x = -0.4;
+  const rHandP = sphere(0.03, skin, 8, 6);
+  rHandP.position.set(0.32, 0.9, 0.16);
+  g.add(rUpper, rForeP, rHandP);
 
   const palette = shadow(new THREE.Mesh(new THREE.CircleGeometry(0.08, 10), std(0xcbb896, { roughness: 0.7 })));
-  palette.position.set(-0.3, 0.88, 0.2);
+  palette.position.set(0.3, 0.88, 0.2);
   palette.rotation.x = -1.15;
-  palette.rotation.z = 0.4;
+  palette.rotation.z = -0.4;
   g.add(palette);
   for (const [ox, oy, col] of [
     [-0.025, 0.02, 0xc8402e],
@@ -183,27 +183,27 @@ function makePainter() {
     [-0.02, -0.018, 0x3a7a3a],
   ]) {
     const dab = new THREE.Mesh(new THREE.CircleGeometry(0.016, 6), std(col, { roughness: 0.55 }));
-    dab.position.set(-0.3 + ox, 0.882, 0.2 + oy);
+    dab.position.set(0.3 + ox, 0.882, 0.2 + oy);
     dab.rotation.copy(palette.rotation);
     g.add(dab);
   }
 
-  // Right arm aims along +Z after lookAt
+  // Left arm aims along +Z after lookAt (brush)
   const arm = new THREE.Group();
-  arm.position.set(0.18, 1.34, 0.04);
-  const rShoulder = sphere(0.042, shirt, 8, 6);
-  arm.add(rShoulder);
-  const rUpper = cyl(0.034, 0.038, 0.28, shirt);
-  rUpper.rotation.x = Math.PI / 2;
-  rUpper.position.z = 0.14;
-  arm.add(rUpper);
-  const rFore = cyl(0.028, 0.032, 0.24, skin);
-  rFore.rotation.x = Math.PI / 2;
-  rFore.position.z = 0.38;
-  arm.add(rFore);
-  const rHand = sphere(0.03, skin, 8, 6);
-  rHand.position.z = 0.52;
-  arm.add(rHand);
+  arm.position.set(-0.18, 1.34, 0.04);
+  const lShoulder = sphere(0.042, shirt, 8, 6);
+  arm.add(lShoulder);
+  const lUpperB = cyl(0.034, 0.038, 0.28, shirt);
+  lUpperB.rotation.x = Math.PI / 2;
+  lUpperB.position.z = 0.14;
+  arm.add(lUpperB);
+  const lForeB = cyl(0.028, 0.032, 0.24, skin);
+  lForeB.rotation.x = Math.PI / 2;
+  lForeB.position.z = 0.38;
+  arm.add(lForeB);
+  const lHandB = sphere(0.03, skin, 8, 6);
+  lHandB.position.z = 0.52;
+  arm.add(lHandB);
 
   const brush = new THREE.Group();
   const stick = cyl(0.009, 0.011, 0.26, std(0x5a3a1a, { roughness: 0.7 }), 6);
@@ -273,8 +273,8 @@ export function createArtist(scene, pose = { x: 4.5, z: -6.2, yaw: -2.6 }) {
 
   const { group: easel, board } = makeEasel();
   const painter = makePainter();
-  painter.position.set(-0.4, 0, 0.34);
-  painter.rotation.y = Math.PI + 0.32;
+  painter.position.set(0.42, 0, 0.32);
+  painter.rotation.y = Math.PI - 0.28;
   root.add(easel, painter);
   scene.add(root);
   root.updateMatrixWorld(true);

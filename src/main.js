@@ -29,6 +29,7 @@ import { createLotion } from "./game/lotion.js";
 import { runApplyFrame } from "./game/applyFlow.js";
 import { bindBottle, tickBottle } from "./view/bottle.js";
 import { createRecall } from "./game/recall.js";
+import { createPanic } from "./game/panic.js";
 import { createReticuleBay } from "./hud/reticule.js";
 import { createRadioHud } from "./hud/radio.js";
 import { createApplyMinigame } from "./hud/applyMinigame.js";
@@ -103,6 +104,11 @@ const bay = createReticuleBay();
 document.body.appendChild(bay.html);
 const applyUx = createApplyMinigame();
 
+const panic = createPanic({
+  scene,
+  cast,
+  play: (id) => voice.play(id),
+});
 const recall = createRecall({
   scene,
   play: (id) => voice.play(id),
@@ -113,11 +119,21 @@ const recall = createRecall({
 });
 let radio = null;
 
+function commitViolence(kind) {
+  if (!playing || paused) return;
+  const fired = recall.tryFire(kind);
+  if (fired) panic.trigger(player.pos);
+}
+
 window.addEventListener("keydown", (e) => {
   if (!playing || paused) return;
   if (e.code === "KeyF") {
     e.preventDefault();
-    recall.tryFire("laser");
+    commitViolence("laser");
+  }
+  if (e.code === "KeyG") {
+    e.preventDefault();
+    commitViolence("punch");
   }
 });
 
@@ -311,6 +327,7 @@ function frame() {
     tapes.tick(player.pos);
     radio?.tick?.();
     recall.tick(raw || TICK, player.pos);
+    panic.tick(raw || TICK, player.pos);
     const speed = Math.hypot(player.vel.x, player.vel.z);
     aus101.position.set(player.pos.x, player.pos.y, player.pos.z);
     // Rig face is +Z; locomotion forward is −Z at yaw=0 (Coconuts convention).
