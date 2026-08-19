@@ -125,11 +125,10 @@ const _a = new THREE.Vector3();
 const _b = new THREE.Vector3();
 
 /** Unit-Z bar stretched between two points — straps, patch leads, guy wires. */
-function strut(from, to, geo, mat, twist = 0) {
+function strut(from, to, geo, mat) {
   const m = shadow(new THREE.Mesh(geo, mat));
   m.position.copy(from).lerp(to, 0.5);
   m.lookAt(to);
-  m.rotateZ(twist);
   m.scale.z = from.distanceTo(to);
   return m;
 }

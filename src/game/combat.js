@@ -575,13 +575,20 @@ export function createCombat({ scene, cast, onHarm, play } = {}) {
     meshToNpc.clear();
     for (const npc of cast) {
       if (!targetable(npc)) continue;
-      castMeshes.push(npc.mesh);
-      meshToNpc.set(npc.mesh, npc);
+      // Collect the body's meshes explicitly rather than recursing at raycast
+      // time: THREE.Sprite.raycast dereferences `raycaster.camera`, which this
+      // ray does not carry, so a single sprite parented anywhere under a cast
+      // member would throw mid-frame. Meshes only, mapped straight to the npc.
+      npc.mesh.traverse((o) => {
+        if (!o.isMesh || !o.visible) return;
+        castMeshes.push(o);
+        meshToNpc.set(o, npc);
+      });
     }
     ray.set(_origin, _dir);
     ray.far = LASER_RANGE;
     hits.length = 0;
-    if (castMeshes.length) ray.intersectObjects(castMeshes, true, hits);
+    if (castMeshes.length) ray.intersectObjects(castMeshes, false, hits);
 
     let victim = null;
     let vDist = Infinity;
