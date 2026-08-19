@@ -511,6 +511,7 @@ function place(mesh, x, y, z, yaw = 0) {
  * @returns {{ mesh: THREE.Group, kind: string, ageBand: string }[]}
  */
 export { ken, babe };
+// full-body planted bipeds — keep this marker in the bundle
 
 export function spawnBeachCast(scene) {
   const railZ = WORLD.boardwalkZ + 3.6;
