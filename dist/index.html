@@ -2,9 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover, shrink-to-fit=no" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="format-detection" content="telephone=no" />
   <meta name="theme-color" content="#0b1210" />
   <meta property="og:title" content="AUS101" />
   <meta property="og:description" content="I'll Be Back With SPF 50+" />
@@ -21,17 +23,26 @@
       background: #0b1210;
       overflow: hidden;
       touch-action: none;
-      -webkit-user-select: none;
-      user-select: none;
       overscroll-behavior: none;
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
     }
-    #game {
+    html, body, #game, canvas, html *, body * {
+      -webkit-user-select: none !important;
+      user-select: none !important;
+      -webkit-touch-callout: none !important;
+      -webkit-tap-highlight-color: transparent !important;
+      -webkit-user-drag: none !important;
+    }
+    #game, canvas {
       position: fixed;
       inset: 0;
       width: 100%;
       height: 100%;
       display: block;
       background: #0b1210;
+      touch-action: none;
+      outline: none;
     }
   </style>
 </head>

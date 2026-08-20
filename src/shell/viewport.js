@@ -2,6 +2,36 @@
 
 const BG = "#0b1210";
 
+const ARCADE_CSS = `
+html, body {
+  height: 100vh;
+  margin: 0;
+  overflow: hidden;
+  background: ${BG};
+  touch-action: none;
+  overscroll-behavior: none;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+html, body, #game, #poster-root, #aus101-touch, canvas,
+html *, body * {
+  -webkit-user-select: none !important;
+  user-select: none !important;
+  -webkit-touch-callout: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+  -webkit-user-drag: none !important;
+}
+input, textarea, [contenteditable] {
+  -webkit-user-select: auto;
+  user-select: auto;
+  font-size: 16px;
+}
+#game, canvas {
+  touch-action: none;
+  outline: none;
+}
+`;
+
 export function applyDocumentShell() {
   document.documentElement.style.height = "100vh";
   document.body.style.height = "100vh";
@@ -12,6 +42,45 @@ export function applyDocumentShell() {
   document.body.style.touchAction = "none";
   document.body.style.userSelect = "none";
   document.body.style.webkitUserSelect = "none";
+  document.body.style.webkitTouchCallout = "none";
+  document.documentElement.style.webkitTouchCallout = "none";
+  document.documentElement.style.webkitUserSelect = "none";
+  if (!document.getElementById("aus101-arcade-css")) {
+    const s = document.createElement("style");
+    s.id = "aus101-arcade-css";
+    s.textContent = ARCADE_CSS;
+    document.head.appendChild(s);
+  }
+  document.documentElement.setAttribute("translate", "no");
+}
+
+/** Kill Safari document-browser chrome: loupe, callout, pinch/double-tap zoom, long-press, back-swipe. */
+export function installArcadeLock() {
+  const block = (e) => {
+    e.preventDefault();
+  };
+  document.addEventListener("gesturestart", block, { passive: false });
+  document.addEventListener("gesturechange", block, { passive: false });
+  document.addEventListener("gestureend", block, { passive: false });
+  document.addEventListener("selectstart", block, { passive: false });
+  document.addEventListener("contextmenu", block, { passive: false });
+  document.addEventListener(
+    "touchstart",
+    (e) => {
+      if (e.touches.length > 1) block(e);
+    },
+    { passive: false, capture: true }
+  );
+  let lastTap = 0;
+  document.addEventListener(
+    "touchend",
+    (e) => {
+      const now = performance.now();
+      if (now - lastTap < 320) block(e);
+      lastTap = now;
+    },
+    { passive: false, capture: true }
+  );
 }
 
 export function createSafeAreaProbe() {
@@ -67,4 +136,5 @@ export function installEdgeSwipeGuard() {
     }
   };
   document.addEventListener("touchstart", onStart, { passive: false });
+  installArcadeLock();
 }
