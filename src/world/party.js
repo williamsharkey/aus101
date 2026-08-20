@@ -314,7 +314,7 @@ function poseDancer(d, t) {
       b.shoulderY + 0.16 + Math.sin(ph) * 0.2,
       0.13 + Math.cos(ph) * 0.07
     );
-    armIK(d.mesh, side, _reach, side * 0.5);
+    armIK(d.mesh, side, _reach, -side * 0.5);
   }
 
   if (b.head) {

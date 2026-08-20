@@ -1236,8 +1236,8 @@ function spawnDancers(scene) {
         d.rotation.y = yaw0 + Math.sin(t * 2 + ph) * 0.35;
         d.rotation.z = Math.sin(t * 5 + ph) * 0.1;
         if (!b) return;
-        b.armL.rotation.set(-0.35 + hop * 0.55, 0.08, 0.35 + hop * 0.85);
-        b.armR.rotation.set(-0.35 + (1 - hop) * 0.55, -0.08, -0.35 - hop * 0.85);
+        b.armL.rotation.set(-0.35 + hop * 0.55, -0.08, -0.35 - hop * 0.85);
+        b.armR.rotation.set(-0.35 + (1 - hop) * 0.55, 0.08, 0.35 + hop * 0.85);
         b.legL.rotation.x = hop * 0.34;
         b.legR.rotation.x = (1 - hop) * 0.26;
       },
