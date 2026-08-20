@@ -13,7 +13,7 @@ html, body {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
 }
-html, body, #game, #poster-root, #aus101-touch, canvas,
+html, body, #game, #aus101-touch, canvas,
 html *, body * {
   -webkit-user-select: none !important;
   user-select: none !important;

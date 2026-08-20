@@ -4,7 +4,6 @@
  */
 import * as THREE from "three";
 import { applyDocumentShell, createSafeAreaProbe, sizeRenderer, installEdgeSwipeGuard } from "./shell/viewport.js";
-import { PosterOverlay } from "./poster/PosterOverlay.js";
 
 import { VoiceBank } from "./audio/voice.js";
 import { SfxBank, installLotionFoley } from "./audio/sfx.js";
@@ -208,7 +207,7 @@ const combat = createCombat({
 });
 
 window.addEventListener("keydown", (e) => {
-  if (!playing || paused || arrest.active || e.repeat) return;
+  if (!playing || arrest.active || e.repeat) return;
   if (e.code === "KeyF") {
     e.preventDefault();
     if (combat.hasLaser) sfx.laser();
@@ -229,27 +228,18 @@ let guitarBed = null;
 let djBed = null;
 
 let playing = false;
-let paused = false;
 let acc = 0;
 const clock = new THREE.Clock(false);
 
 const input = installInput({
   dom: canvas,
-  isPlaying: () => playing && !paused && !arrest.active,
+  isPlaying: () => playing && !arrest.active,
   blockLock: () => synth.isOpen?.() === true,
-  onEscapePause: () => {
-    if (playing && !paused) {
-      paused = true;
-      poster.showAsPause();
-      carpenter?.setState("menu");
-      if (document.pointerLockElement) document.exitPointerLock();
-    }
-  },
 });
 input.bindPlayer(player);
 installTouchControls({
   keys: input.keys,
-  isPlaying: () => playing && !paused && !arrest.active,
+  isPlaying: () => playing && !arrest.active,
   onPunch: () => combat.punch(player.pos, player.yaw, player.pitch),
   onLaser: () => {
     if (combat.hasLaser) sfx.laser();
@@ -268,7 +258,7 @@ window.addEventListener("orientationchange", () => setTimeout(resize, 300));
 
 let audioOn = true;
 const hint = document.createElement("div");
-hint.textContent = "WASD move · mouse look · Space lotion · G punch · F laser (if found) · E sequencer · Esc pause";
+hint.textContent = "WASD move · mouse look · Space lotion · G punch · F laser (if found) · E sequencer · Esc free mouse";
 Object.assign(hint.style, {
   position: "fixed",
   left: "50%",
@@ -285,7 +275,7 @@ Object.assign(hint.style, {
 document.body.appendChild(hint);
 
 canvas.addEventListener("mousedown", (e) => {
-  if (!playing || paused || arrest.active) return;
+  if (!playing || arrest.active) return;
   if (synth.isOpen?.()) return;
   voice.unlock().catch(() => {});
   sfx.unlock().catch(() => {});
@@ -308,7 +298,6 @@ window.addEventListener("keydown", (e) => {
 let booted = false;
 async function beginPlay() {
   playing = true;
-  paused = false;
   if (!booted) {
     recall.reset();
     booted = true;
@@ -387,16 +376,6 @@ async function beginPlay() {
   }
 }
 
-const poster = new PosterOverlay({
-  autostart: true,
-  onStart: () => {
-    voice.unlock().then(() => {
-      if (audioOn) voice.play("dj_open_01");
-    }).catch(() => {});
-    beginPlay();
-  },
-});
-
 const billboardTex = new THREE.TextureLoader().load("assets/media/ads/billboard_terminate_uv.png", (tex) => {
   tex.colorSpace = THREE.SRGBColorSpace;
 });
@@ -410,10 +389,10 @@ scene.add(board);
 
 function frame() {
   requestAnimationFrame(frame);
-  const raw = paused || !playing ? 0 : Math.min(0.05, clock.getDelta());
+  const raw = !playing ? 0 : Math.min(0.05, clock.getDelta());
   acc += raw;
   while (acc >= TICK) {
-    if (playing && !paused && !arrest.active) {
+    if (playing && !arrest.active) {
       const lk = getLookStick();
       if (lk.mag > 0.04) {
         player.yaw -= lk.x * 2.35 * TICK;
@@ -422,11 +401,11 @@ function frame() {
       }
       fixedUpdate(player, input.keys, colliders.COL, BOUNDS, TICK);
     }
-    if (playing && !paused) arrest.tick(TICK);
+    if (playing) arrest.tick(TICK);
     acc -= TICK;
   }
 
-  if (playing && !paused) {
+  if (playing) {
     const t = performance.now() * 0.001;
     level.update(t);
     interiors.tick(t, player.pos);
@@ -495,10 +474,8 @@ function frame() {
     if (audioOn) walkby.tick(performance.now(), player.pos);
     music?.tick(player.pos, audioOn);
     artist.tick(renderer, scene, performance.now());
-  } else if (!playing) {
-    camera.position.set(8, 6.5, 22);
-    camera.lookAt(0, 1.2, 4);
   }
   renderer.render(scene, camera);
 }
+beginPlay();
 frame();

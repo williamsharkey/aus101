@@ -39,13 +39,11 @@ export function blocked(COL, x, z, radius) {
  * @param {object} opts
  * @param {HTMLElement} opts.dom
  * @param {() => boolean} opts.isPlaying
- * @param {() => void} [opts.onEscapePause]
  */
-export function installInput({ dom, isPlaying, onEscapePause, blockLock }) {
+export function installInput({ dom, isPlaying, blockLock }) {
   const keys = Object.create(null);
   let locked = false;
   let dragging = false;
-  let wasLocked = false;
 
   const tryLock = () => {
     if (!isPlaying()) return;
@@ -59,8 +57,6 @@ export function installInput({ dom, isPlaying, onEscapePause, blockLock }) {
 
   document.addEventListener("pointerlockchange", () => {
     locked = document.pointerLockElement === dom;
-    if (wasLocked && !locked && isPlaying() && !blockLock?.()) onEscapePause?.();
-    wasLocked = locked;
   });
 
   document.addEventListener("mousemove", (e) => {
@@ -115,7 +111,6 @@ export function installInput({ dom, isPlaying, onEscapePause, blockLock }) {
 
   addEventListener("keydown", (e) => {
     keys[e.code] = true;
-    if (e.code === "Escape" && isPlaying()) onEscapePause?.();
     if (e.code === "Space" || e.code === "Tab" || e.code.indexOf("Arrow") === 0) e.preventDefault();
   });
   addEventListener("keyup", (e) => {
