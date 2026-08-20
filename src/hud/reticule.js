@@ -55,20 +55,18 @@ function installCss() {
   pointer-events:none;
   left:max(8px, env(safe-area-inset-left, 0px));
   top:max(8px, env(safe-area-inset-top, 0px));
-  display:grid;
-  grid-template-columns:repeat(6, minmax(86px, 1fr));
+  display:none;
+  flex-direction:column;
   gap:4px;
-  max-width:min(920px, calc(100vw - 16px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)));
+  max-width:min(280px, 42vw);
   font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
   -webkit-user-select:none;
   user-select:none;
   -webkit-tap-highlight-color:transparent;
 }
+#aus101-reticule.is-on{display:flex;}
 @media (orientation:landscape){
   #aus101-reticule{top:max(20px, env(safe-area-inset-top, 0px));}
-}
-@media (max-width:699px){
-  #aus101-reticule{grid-template-columns:minmax(112px, 44vw);}
 }
 .aus101-ret-slot{
   pointer-events:none;
@@ -87,11 +85,6 @@ function installCss() {
   overflow:hidden;
   text-overflow:ellipsis;
   cursor:pointer;
-}
-.aus101-ret-slot.is-empty{
-  pointer-events:none;
-  opacity:0.22;
-  color:rgba(255,40,40,0.55);
 }
 .aus101-ret-slot.is-live{pointer-events:auto;}
 .aus101-ret-slot.is-applying{
@@ -179,19 +172,24 @@ export function createReticuleBay(opts = {}) {
   function paintSlot(i) {
     const slot = slots[i];
     const cell = cells[i];
-    cell.textContent = label(slot);
     const live = !!slot.mesh;
-    cell.className = "aus101-ret-slot";
-    if (!live) cell.classList.add("is-empty");
-    else cell.classList.add("is-live");
-    if (live && (slot.burn || slot.dose > 1)) cell.classList.add("is-burn");
-    else if (live && slot.coverage >= FREEZE_AT) cell.classList.add("is-locked");
-    if (live && slot.applying) cell.classList.add("is-applying");
-    if (live && selected === i) cell.classList.add("is-sel");
+    cell.style.display = live ? "block" : "none";
+    if (!live) return;
+    cell.textContent = label(slot);
+    cell.className = "aus101-ret-slot is-live";
+    if (slot.burn || slot.dose > 1) cell.classList.add("is-burn");
+    else if (slot.coverage >= FREEZE_AT) cell.classList.add("is-locked");
+    if (slot.applying) cell.classList.add("is-applying");
+    if (selected === i) cell.classList.add("is-sel");
   }
 
   function paintAll() {
-    for (let i = 0; i < MAX; i++) paintSlot(i);
+    let n = 0;
+    for (let i = 0; i < MAX; i++) {
+      paintSlot(i);
+      if (slots[i].mesh) n++;
+    }
+    root.classList.toggle("is-on", n > 0);
   }
 
   function occupy(slot, npc) {
@@ -207,7 +205,7 @@ export function createReticuleBay(opts = {}) {
     slot._prevCov = slot.coverage;
     ud.dose = slot.dose;
     if (slot.burn) ud.burn = true;
-    paintSlot(slot.id);
+    paintAll();
   }
 
   function clearSlot(slot) {

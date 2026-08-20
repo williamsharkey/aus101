@@ -186,7 +186,12 @@ const input = installInput({
   },
 });
 input.bindPlayer(player);
-installTouchControls({ keys: input.keys, isPlaying: () => playing && !paused });
+installTouchControls({
+  keys: input.keys,
+  isPlaying: () => playing && !paused,
+  onPunch: () => combat.punch(player.pos, player.yaw, player.pitch),
+  onLaser: () => combat.laser(player.pos, player.yaw, player.pitch),
+});
 
 function resize() {
   const { w, h } = sizeRenderer(renderer, canvas);

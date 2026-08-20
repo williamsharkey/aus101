@@ -182,7 +182,71 @@ function bindStick(pad, base, knob, radius, onMove, onEnd) {
   pad.addEventListener("lostpointercapture", end);
 }
 
-function mountPad(keys, isPlaying) {
+function tapButton(parent, size, icon, onTap) {
+  const btn = holdButton(parent, size, icon, () => {});
+  let fired = false;
+  btn.addEventListener(
+    "pointerdown",
+    (e) => {
+      if (!fired) {
+        fired = true;
+        onTap();
+      }
+      e.preventDefault();
+      e.stopPropagation();
+    },
+    true
+  );
+  const reset = () => {
+    fired = false;
+  };
+  btn.addEventListener("pointerup", reset);
+  btn.addEventListener("pointercancel", reset);
+  return btn;
+}
+
+function beamIcon() {
+  const g = el("div", {
+    width: "18px",
+    height: "18px",
+    position: "relative",
+  });
+  for (const x of [3, 11]) {
+    const d = el("div", {
+      position: "absolute",
+      left: `${x}px`,
+      top: "4px",
+      width: "4px",
+      height: "4px",
+      borderRadius: "50%",
+      background: "#ff3030",
+      boxShadow: "0 0 6px #ff1010",
+    });
+    g.appendChild(d);
+  }
+  const bar = el("div", {
+    position: "absolute",
+    left: "4px",
+    top: "11px",
+    width: "12px",
+    height: "2px",
+    background: "rgba(255,40,40,0.85)",
+  });
+  g.appendChild(bar);
+  return g;
+}
+
+function fistIcon() {
+  return el("div", {
+    width: "14px",
+    height: "14px",
+    borderRadius: "3px",
+    background: "rgba(251,246,234,0.9)",
+    boxShadow: "2px 2px 0 rgba(0,0,0,0.35)",
+  });
+}
+
+function mountPad(keys, isPlaying, onPunch, onLaser) {
   if (root) return root;
 
   const style = document.createElement("style");
@@ -334,19 +398,24 @@ function mountPad(keys, isPlaying) {
       position: "absolute",
       right: "max(16px, env(safe-area-inset-right))",
       bottom: `max(${18 + LOOK_PX + 12}px, calc(env(safe-area-inset-bottom) + ${LOOK_PX + 12}px))`,
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      gap: "12px",
+      display: "grid",
+      gridTemplateColumns: "1fr 1fr",
+      gap: "10px",
       pointerEvents: "none",
     },
     root
   );
 
+  holdButton(col, BTN, beamIcon(), (down) => {
+    if (down && isPlaying()) onLaser?.();
+  });
+  holdButton(col, BTN, fistIcon(), (down) => {
+    if (down && isPlaying()) onPunch?.();
+  });
   holdButton(col, BTN, dot(), (down) => {
     setOwned(keys, "ShiftLeft", "shift", down);
   });
-  holdButton(col, BTN + 6, droplet(), (down) => {
+  holdButton(col, BTN + 4, droplet(), (down) => {
     setOwned(keys, "Space", "space", down);
   });
 
@@ -379,7 +448,7 @@ function mountPad(keys, isPlaying) {
 /**
  * @param {{ keys: Record<string, any>, isPlaying: () => boolean }} opts
  */
-export function installTouchControls({ keys, isPlaying }) {
+export function installTouchControls({ keys, isPlaying, onPunch, onLaser }) {
   if (!keys || typeof isPlaying !== "function") return { getStick };
   writeAnalog(keys);
   if (!isTouchUi()) {
@@ -389,7 +458,7 @@ export function installTouchControls({ keys, isPlaying }) {
   }
   if (installed && root) return { getStick, root };
   installed = true;
-  mountPad(keys, isPlaying);
+  mountPad(keys, isPlaying, onPunch, onLaser);
   return { getStick, root };
 }
 
