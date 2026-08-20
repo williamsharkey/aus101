@@ -202,6 +202,7 @@ function poseStand(f, jab = 0) {
 }
 
 function resetFighter(f) {
+  if (f.mesh.userData.combatDown) return;
   f.x = f.home.x;
   f.z = f.home.z;
   f.vx = 0;
@@ -247,6 +248,7 @@ function punchToward(self, opp) {
 }
 
 function tickStand(f, opp, dt) {
+  if (f.mesh.userData.combatDown || f.mesh.visible === false) return;
   f.cool -= dt;
   if (f.cool <= 0) {
     f.cool = rand(PUNCH_MIN, PUNCH_MAX);
@@ -290,12 +292,15 @@ function tickRagdoll(f, dt) {
   f.z = t.z;
 }
 
-function makeFighter(scene, x, z, yaw, look) {
+function makeFighter(scene, x, z, yaw, look, name) {
   const mesh = ken(look);
+  mesh.name = name;
   mesh.position.set(x, 0, z);
   mesh.rotation.y = yaw;
   mesh.userData.fight = true;
-  mesh.userData.paintTarget = false;
+  mesh.userData.kind = "ken";
+  mesh.userData.ageBand = "adult";
+  mesh.userData.paintTarget = true;
   scene.add(mesh);
   const f = {
     mesh,
@@ -316,7 +321,7 @@ function makeFighter(scene, x, z, yaw, look) {
   return f;
 }
 
-function makePair(scene, site, lookA, lookB) {
+function makePair(scene, site, lookA, lookB, i) {
   const half = GAP * 0.5;
   let ax = site.x;
   let az = site.z;
@@ -336,8 +341,8 @@ function makePair(scene, site, lookA, lookB) {
     by = Math.PI;
   }
   return {
-    a: makeFighter(scene, ax, az, ay, lookA),
-    b: makeFighter(scene, bx, bz, by, lookB),
+    a: makeFighter(scene, ax, az, ay, lookA, `ken-fight-${i * 2}`),
+    b: makeFighter(scene, bx, bz, by, lookB, `ken-fight-${i * 2 + 1}`),
     down: 0,
   };
 }
@@ -345,10 +350,10 @@ function makePair(scene, site, lookA, lookB) {
 /**
  * Two Ken pairs on the sand. Call `tick(dt)` from the frame loop.
  * @param {THREE.Scene} scene
- * @returns {{ tick: (dt: number) => void }}
+ * @returns {{ tick: (dt: number) => void, meshes: THREE.Group[] }}
  */
 export function spawnFights(scene) {
-  const pairs = SITES.map((site, i) => makePair(scene, site, LOOKS[i * 2], LOOKS[i * 2 + 1]));
+  const pairs = SITES.map((site, i) => makePair(scene, site, LOOKS[i * 2], LOOKS[i * 2 + 1], i));
 
   function tick(dt) {
     if (!(dt > 0)) return;
@@ -369,5 +374,8 @@ export function spawnFights(scene) {
     }
   }
 
-  return { tick };
+  return {
+    tick,
+    meshes: pairs.flatMap((p) => [p.a.mesh, p.b.mesh]),
+  };
 }

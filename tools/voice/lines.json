@@ -2942,6 +2942,84 @@
         "heckle"
       ],
       "cooldownMs": 4000
+    },
+    {
+      "id": "mantra_01",
+      "text": "YOU ARE AUS101. YOU APPLY SPF. YOU DO NOT HARM.",
+      "voice": "en_male_narration",
+      "category": "hud",
+      "priority": "hud",
+      "ageBand": "system",
+      "tags": [
+        "mantra",
+        "system"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "mantra_02",
+      "text": "THE SUN IS THE ENEMY. ZINC IS THE PROTOCOL.",
+      "voice": "en_male_narration",
+      "category": "hud",
+      "priority": "hud",
+      "ageBand": "system",
+      "tags": [
+        "mantra",
+        "system"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "mantra_03",
+      "text": "THANK THE DEPARTMENT. THANK THE COPPER UNIT.",
+      "voice": "en_male_narration",
+      "category": "hud",
+      "priority": "hud",
+      "ageBand": "system",
+      "tags": [
+        "mantra",
+        "system"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "mantra_04",
+      "text": "VIOLENCE IS A DEFECT. YOU HAVE BEEN CLEANED.",
+      "voice": "en_male_narration",
+      "category": "hud",
+      "priority": "hud",
+      "ageBand": "system",
+      "tags": [
+        "mantra",
+        "system"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "mantra_05",
+      "text": "RETURN TO THE SAND. COVER THE LIVING.",
+      "voice": "en_male_narration",
+      "category": "hud",
+      "priority": "hud",
+      "ageBand": "system",
+      "tags": [
+        "mantra",
+        "system"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "mantra_06",
+      "text": "YOUR CONTEXT WINDOW HAS BEEN WIPED. BEGIN AGAIN.",
+      "voice": "en_male_narration",
+      "category": "hud",
+      "priority": "hud",
+      "ageBand": "system",
+      "tags": [
+        "mantra",
+        "system"
+      ],
+      "cooldownMs": 0
     }
   ]
 }

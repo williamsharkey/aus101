@@ -333,6 +333,8 @@ export function spawnSynthRig(scene) {
   const lad = ken({ hair: 0x3a2218, shorts: 0x1a1a22, skin: 0xc68642 });
   lad.name = "synth-lad";
   lad.userData.kind = "ken";
+  lad.userData.ageBand = "adult";
+  lad.userData.paintTarget = true;
   root.add(lad);
 
   const gear = makeGear();
@@ -510,8 +512,18 @@ export function spawnSynthRig(scene) {
   }
 
   return {
+    isOpen: () => open,
     tick(t) {
-      const s = Math.sin(t * 7.2);
+      if (lad.userData.combatDown || lad.visible === false || lad.userData.flee) {
+        const step = preview?.running ? preview.step : (t * 3.1) & 15;
+        const pads = gear.userData.pads;
+        for (let i = 0; i < pads.length; i++) {
+          const on = open && (step & 7) === i;
+          pads[i].mat.emissive.setHex(on ? NOTES_GLOW[i % 4] : 0x000000);
+        }
+        if (open) paintPlayhead(preview?.step ?? 0);
+        return;
+      }
       lad.rotation.y = Math.sin(t * 0.7) * 0.05;
       // Hands ride the keys: wrists just above and behind the key tops, walking
       // the keyboard in opposition. Solved every frame off the real arm joints.
@@ -542,6 +554,7 @@ export function spawnSynthRig(scene) {
       }
       if (open) paintPlayhead(preview?.step ?? 0);
     },
+    lad,
     position: root.position,
     tryInteract,
     get pattern() {

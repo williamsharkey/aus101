@@ -86,8 +86,21 @@ const props = createPropPhysics({
 });
 for (const ball of level.balls) props.add(ball);
 
-const player = createPlayer({ x: 0, y: 0, z: 10 });
-player.yaw = 0;
+// Canonical spawn is x=0, z=10 facing the ocean (−Z). ~10 ft (3 m) forward
+// plus a handful of open-sand seats so the follow cam is not in a prop.
+const SPAWNS = [
+  { x: 0, z: 7, yaw: 0 },
+  { x: 4.5, z: 6, yaw: -0.22 },
+  { x: -5.2, z: 8, yaw: 0.18 },
+  { x: 9, z: 4.2, yaw: 0.32 },
+  { x: -8.5, z: 5, yaw: -0.18 },
+  { x: 2.2, z: -1.4, yaw: 0.05 },
+  { x: -3.4, z: 3.2, yaw: 0.12 },
+  { x: 7.2, z: 9, yaw: 0.2 },
+];
+const spawn0 = SPAWNS[(Math.random() * SPAWNS.length) | 0];
+const player = createPlayer({ x: spawn0.x, y: 0, z: spawn0.z });
+player.yaw = spawn0.yaw;
 
 const aus101 = createAus101();
 scene.add(aus101);
@@ -102,13 +115,39 @@ const tapes = createTapeSystem({
   getBoomPos: () => party.musicSpots.find((s) => s.id === "boombox")?.position || { x: 12, z: 8 },
   getDjPos: () => ({ x: -24, z: 7 }),
 });
-// The guitar Kens are real bodies in the scene, so register the meshes themselves.
-// Pushing `{ mesh: { position } }` stand-ins here used to crash `ensureCoverageMap`,
-// which reads `mesh.userData` after `isPaintable` waves the stand-in through.
-for (const name of ["ken-guitar-a", "ken-guitar-b"]) {
-  const mesh = scene.getObjectByName(name);
-  if (mesh) cast.push({ mesh, kind: "ken", ageBand: "adult" });
+
+function enroll(mesh, kind, ageBand) {
+  if (!mesh || !mesh.isObject3D) return;
+  const k = kind || mesh.userData.kind || "ken";
+  const a = ageBand || mesh.userData.ageBand || "adult";
+  mesh.userData.kind = k;
+  mesh.userData.ageBand = a;
+  if (k !== "gull" && a !== "gull") mesh.userData.paintTarget = true;
+  if (cast.some((c) => c.mesh === mesh)) return;
+  cast.push({ mesh, kind: k, ageBand: a });
 }
+
+for (const mesh of party.people || []) enroll(mesh);
+for (const mesh of fights.meshes || []) enroll(mesh, "ken", "adult");
+if (artist.painter) enroll(artist.painter, "artist", "adult");
+if (synth.lad) enroll(synth.lad, "ken", "adult");
+for (const name of [
+  "ken-guitar-a",
+  "ken-guitar-b",
+  "babe-boom-a",
+  "babe-boom-b",
+  "piano-ken",
+  "dj-ken",
+  "synth-lad",
+  "artist-painter",
+]) {
+  enroll(scene.getObjectByName(name));
+}
+for (let i = 0; i < 5; i++) {
+  enroll(scene.getObjectByName(`dj-babe-${i}`));
+  enroll(scene.getObjectByName(`dj-ken-${i}`));
+}
+for (let i = 0; i < 4; i++) enroll(scene.getObjectByName(`ken-fight-${i}`), "ken", "adult");
 
 const voice = new VoiceBank();
 voice.loadManifest().catch(() => {});
@@ -126,7 +165,9 @@ const panic = createPanic({
   scene,
   cast,
   play: (id) => voice.play(id),
+  colliders,
 });
+for (const bot of panic.house?.robots || []) enroll(bot, "t101", "adult");
 const recall = createRecall({
   scene,
   play: (id) => voice.play(id),
@@ -137,11 +178,16 @@ const arrest = createArrest({
   player,
   play: (id) => voice.play(id),
   sfx,
+  cops: panic.cops,
   onReprogram: () => {
-    combat.hasLaser = false;
-    gun.hide();
     lotion.tick({ squeezeHeld: false, applying: false, dt: 0 });
+    panic.standDown();
   },
+  onTakeGun: () => {
+    combat.hasLaser = false;
+    gun.conceal();
+  },
+  hideGun: (pos) => gun.hide(pos),
 });
 let radio = null;
 
@@ -153,6 +199,7 @@ const combat = createCombat({
   cast,
   play: (id) => voice.play(id),
   onHarm: (info) => {
+    if (arrest.active) return;
     panic.onHarm(info);
     sfx.copWhoop();
     sfx.radioChatter();
@@ -189,6 +236,7 @@ const clock = new THREE.Clock(false);
 const input = installInput({
   dom: canvas,
   isPlaying: () => playing && !paused && !arrest.active,
+  blockLock: () => synth.isOpen?.() === true,
   onEscapePause: () => {
     if (playing && !paused) {
       paused = true;
@@ -219,6 +267,36 @@ window.addEventListener("resize", resize);
 window.addEventListener("orientationchange", () => setTimeout(resize, 300));
 
 let audioOn = true;
+const hint = document.createElement("div");
+hint.textContent = "WASD move · mouse look · Space lotion · G punch · F laser (if found) · E sequencer · Esc pause";
+Object.assign(hint.style, {
+  position: "fixed",
+  left: "50%",
+  bottom: "max(8px, env(safe-area-inset-bottom))",
+  transform: "translateX(-50%)",
+  zIndex: "8",
+  pointerEvents: "none",
+  font: "11px ui-sans-serif, system-ui, sans-serif",
+  color: "rgba(251,246,234,0.52)",
+  textShadow: "0 1px 3px #000",
+  display: "none",
+  whiteSpace: "nowrap",
+});
+document.body.appendChild(hint);
+
+canvas.addEventListener("mousedown", (e) => {
+  if (!playing || paused || arrest.active) return;
+  if (synth.isOpen?.()) return;
+  voice.unlock().catch(() => {});
+  sfx.unlock().catch(() => {});
+  if (e.button === 0) combat.punch(player.pos, player.yaw, player.pitch);
+  if (e.button === 2 && combat.hasLaser) {
+    sfx.laser();
+    combat.laser(player.pos, player.yaw, player.pitch);
+  }
+});
+canvas.addEventListener("contextmenu", (e) => e.preventDefault());
+
 window.addEventListener("keydown", (e) => {
   if (e.code === "KeyM" && playing) {
     audioOn = !audioOn;
@@ -227,14 +305,19 @@ window.addEventListener("keydown", (e) => {
   }
 });
 
+let booted = false;
 async function beginPlay() {
   playing = true;
   paused = false;
-  // Clear any wanted state left over from a previous run's game over.
-  recall.reset();
-  panic.dispose();
+  if (!booted) {
+    recall.reset();
+    booted = true;
+  }
   clock.start();
   follow.snap();
+  if (typeof matchMedia !== "function" || !matchMedia("(pointer: coarse)").matches) {
+    hint.style.display = "block";
+  }
   input.tryLock();
   try {
     await voice.unlock();
@@ -291,6 +374,12 @@ async function beginPlay() {
         "walkby_flirt_01",
         "interject_oi_01",
         "gull_01",
+        "mantra_01",
+        "mantra_02",
+        "mantra_03",
+        "mantra_04",
+        "mantra_05",
+        "mantra_06",
       ]).catch(() => {});
     }
   } catch (e) {
@@ -299,6 +388,7 @@ async function beginPlay() {
 }
 
 const poster = new PosterOverlay({
+  autostart: true,
   onStart: () => {
     voice.unlock().then(() => {
       if (audioOn) voice.play("dj_open_01");
@@ -375,10 +465,12 @@ function frame() {
       onWood: level.isWood(player.pos.x, player.pos.z),
       dt: raw || TICK,
     });
-    gun.tick(player.pos, () => {
-      combat.hasLaser = true;
-      sfx.radioChatter();
-    });
+    if (!arrest.active) {
+      gun.tick(player.pos, () => {
+        combat.hasLaser = true;
+        sfx.radioChatter();
+      });
+    }
     for (const npc of cast) {
       const f = npc.mesh?.userData?.flee;
       if (f) steps.tickOne(npc.mesh.id || npc.kind, f.spd || 5, false, raw || TICK);

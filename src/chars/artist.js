@@ -6,6 +6,7 @@
 import * as THREE from "three";
 import { createPaintBrain } from "../paint/brain.js";
 import { makePaintTabouret, syncWells } from "./paintTabouret.js";
+import { makeFramedPainting, downloadPainting, disposeFramedPainting } from "../world/paintings.js";
 
 const VIEW = 64;
 const PAINT = 256;
@@ -51,6 +52,67 @@ const LEAN_ROLL = 0.15;
 
 /** Painter's stance in easel-local space (easel sits at the artist root origin). */
 const STANCE = { x: 0.38, z: 0.72, turn: -0.2 };
+
+/** Look yaw in XZ: direction (sin, cos). Ocean is −Z. */
+function lookYaw(x, z, tx, tz) {
+  return Math.atan2(tx - x, tz - z);
+}
+
+/**
+ * Plein-air spots. yaw faces the subject (ocean, boardwalk, DJ, surf club / tower).
+ * World: ocean −Z, boardwalk z≈16, DJ (−24, 7), club (−18, 14), tower (20, 14).
+ */
+export const ARTIST_SPOTS = [
+  { x: 6, z: -5, yaw: Math.PI },
+  { x: -8, z: -6, yaw: Math.PI },
+  { x: 12, z: -4, yaw: Math.PI },
+  { x: -14, z: -5, yaw: Math.PI },
+  { x: 2, z: 6, yaw: lookYaw(2, 6, 2, 16) },
+  { x: -10, z: 8, yaw: lookYaw(-10, 8, -10, 16) },
+  { x: -18, z: 10, yaw: lookYaw(-18, 10, -24, 7) },
+  { x: -12, z: 4, yaw: lookYaw(-12, 4, -18, 14) },
+  { x: 16, z: 6, yaw: lookYaw(16, 6, 20, 14) },
+  { x: 8, z: -2, yaw: lookYaw(8, -2, 20, 14) },
+];
+
+export function pickArtistPose() {
+  const s = ARTIST_SPOTS[(Math.random() * ARTIST_SPOTS.length) | 0];
+  return { x: s.x, z: s.z, yaw: s.yaw };
+}
+
+/**
+ * WebGL `readRenderTargetPixels` origin is BOTTOM-LEFT (row 0 = sand / bottom of the view).
+ * Canvas 2D / linen stamps have y=0 at the TOP. Flip rows in place so sky maps to the
+ * TOP of the linen and sand to the BOTTOM before collectPatches / brain.step.
+ */
+function flipViewPixelsY(pix, w, h, scratch) {
+  const row = w * 4;
+  const tmp = scratch;
+  for (let y = 0, y2 = h - 1; y < y2; y++, y2--) {
+    const a = y * row;
+    const b = y2 * row;
+    tmp.set(pix.subarray(a, a + row));
+    pix.copyWithin(a, b, b + row);
+    pix.set(tmp, b);
+  }
+}
+
+const hookedRenderers = new WeakSet();
+const pickNdc = new THREE.Vector2();
+const pickRay = new THREE.Raycaster();
+const pickHits = [];
+let pickCam = null;
+
+function hookPickCamera(renderer) {
+  if (hookedRenderers.has(renderer)) return;
+  hookedRenderers.add(renderer);
+  const orig = renderer.render;
+  renderer.render = function (sc, cam) {
+    // Artist's view RT render sets a target; the game camera renders to the default FB.
+    if (cam && cam.isCamera && this.getRenderTarget() == null) pickCam = cam;
+    return orig.call(this, sc, cam);
+  };
+}
 
 const QUAD_VERT = `
 varying vec2 vUv;
@@ -508,11 +570,15 @@ function makePainter() {
 
   const eye = new THREE.Vector3(0, 0.014, headR * 0.85).applyEuler(head.rotation).add(head.position);
 
+  g.name = "artist-painter";
   g.userData.arm = arm;
   g.userData.brush = brush;
   g.userData.limb = limb;
   g.userData.eye = eye;
-  g.userData.paintTarget = false;
+  g.userData.body = { scale: 1, skinM: skin, head };
+  g.userData.skinMats = [skin];
+  g.userData.bareColor = skin.color.clone();
+  g.userData.paintTarget = true;
   g.userData.kind = "artist";
   g.userData.ageBand = "adult";
   return g;
@@ -539,7 +605,7 @@ function maxErrorUV(pix) {
  * @param {THREE.Scene} scene
  * @param {{x:number,z:number,yaw:number}} [pose]
  */
-export function createArtist(scene, pose = { x: 4.5, z: -6.2, yaw: -2.6 }) {
+export function createArtist(scene, pose = pickArtistPose()) {
   const root = new THREE.Group();
   root.name = "artist";
   root.position.set(pose.x, 0, pose.z);
@@ -547,7 +613,7 @@ export function createArtist(scene, pose = { x: 4.5, z: -6.2, yaw: -2.6 }) {
   root.rotation.y = pose.yaw + Math.PI;
   root.userData.kind = "artist";
   root.userData.ageBand = "adult";
-  root.userData.paintTarget = false;
+  root.userData.paintTarget = false; // easel/kit — the painter mesh is the target
 
   const { group: easel, board } = makeEasel();
   const tabouret = makePaintTabouret();
@@ -592,6 +658,9 @@ export function createArtist(scene, pose = { x: 4.5, z: -6.2, yaw: -2.6 }) {
   eye.updateProjectionMatrix();
 
   const viewPix = new Uint8Array(VIEW * VIEW * 4);
+  const flipScratch = new Uint8Array(VIEW * 4);
+  const hangLocal = new THREE.Vector3();
+  const hung = [];
   const wellMeshes = [];
   if (painter.userData.palette) {
     for (let i = 0; i < 10; i++) {
@@ -648,11 +717,16 @@ export function createArtist(scene, pose = { x: 4.5, z: -6.2, yaw: -2.6 }) {
       renderer.render(scene3, eye);
       root.visible = true;
       renderer.readRenderTargetPixels(viewRT, 0, 0, VIEW, VIEW, viewPix);
+      flipViewPixelsY(viewPix, VIEW, VIEW, flipScratch);
       const act = brain.step(viewPix, VIEW, VIEW);
       lastAct = act || lastAct;
       if (act.patch) {
         targetUV.set(act.patch.u, act.patch.v);
         jab = 1;
+      }
+      if (sittingDone(act)) {
+        hangCurrent();
+        brain.resetLinen();
       }
       paintTex.needsUpdate = true;
       syncWells(tabouret, brain.studio);
@@ -684,13 +758,14 @@ export function createArtist(scene, pose = { x: 4.5, z: -6.2, yaw: -2.6 }) {
     } else if (lastAct.type === "knife") {
       tabouret.knife.getWorldPosition(strokeWorld);
     } else {
-      strokeLocal.set((targetUV.x - 0.5) * CANVAS_W, (targetUV.y - 0.5) * CANVAS_H, 0.006);
+      // targetUV.v=0 is canvas top (sky). Plane local +Y is the top of the linen.
+      strokeLocal.set((targetUV.x - 0.5) * CANVAS_W, (0.5 - targetUV.y) * CANVAS_H, 0.006);
       canvasMesh.localToWorld(strokeWorld.copy(strokeLocal));
     }
 
     // Weight shift: he stoops into low strokes and rocks across for wide ones,
     // which is both alive and worth ~0.12 m of extra reach at the corners.
-    leanX += (LEAN_PITCH * (0.44 - targetUV.y) - leanX) * 0.07;
+    leanX += (LEAN_PITCH * (targetUV.y - 0.44) - leanX) * 0.07;
     leanZ += (LEAN_ROLL * (targetUV.x - 0.5) - leanZ) * 0.07;
     painter.rotation.x = leanX;
     painter.rotation.z = leanZ;
@@ -712,10 +787,85 @@ export function createArtist(scene, pose = { x: 4.5, z: -6.2, yaw: -2.6 }) {
     poseLimb(limb, reach, ELBOW_ROLL);
   }
 
+  function sittingDone(act) {
+    if (!act || act.paints == null) return false;
+    if (act.paints >= 180) return true;
+    if (act.paints < 48) return false;
+    return act.nPatches === 0 || act.meanErr < 18;
+  }
+
+  function hangCurrent() {
+    if (!brain.canvas) return;
+    const framed = makeFramedPainting(brain.canvas);
+    const side = Math.random() < 0.5 ? -1 : 1;
+    const dist = 1 + Math.random();
+    hangLocal.set(side * dist, 0, (Math.random() - 0.5) * 0.8);
+    root.localToWorld(hangLocal);
+    framed.group.position.set(hangLocal.x, 0.7, hangLocal.z);
+    framed.group.rotation.y = root.rotation.y + (Math.random() - 0.5) * 0.6;
+    scene.add(framed.group);
+    hung.push(framed);
+    while (hung.length > 8) disposeFramedPainting(hung.shift());
+  }
+
+  /**
+   * Click/tap a hung painting to download `painting-aus101.png`.
+   * Main may call this with a raycaster from the player camera.
+   * A capture-phase pointerdown on the renderer canvas also picks, using the
+   * last camera that rendered to the default framebuffer (see hookPickCamera).
+   */
+  function tryPickup(raycaster) {
+    if (!hung.length || !raycaster) return false;
+    pickHits.length = 0;
+    raycaster.intersectObjects(
+      hung.map((h) => h.group),
+      true,
+      pickHits
+    );
+    if (!pickHits.length) return false;
+    let o = pickHits[0].object;
+    while (o && o.userData.kind !== "finished-painting") o = o.parent;
+    if (!o?.userData.canvas) return false;
+    downloadPainting(o.userData.canvas);
+    return true;
+  }
+
+  let swallowMouse = false;
+  function onPickPointer(e) {
+    if (!pickCam || !hung.length) return;
+    const el = e.currentTarget;
+    const r = el.getBoundingClientRect();
+    pickNdc.set(
+      ((e.clientX - r.left) / Math.max(1, r.width)) * 2 - 1,
+      -((e.clientY - r.top) / Math.max(1, r.height)) * 2 + 1
+    );
+    if (document.pointerLockElement === el) pickNdc.set(0, 0);
+    pickRay.setFromCamera(pickNdc, pickCam);
+    if (tryPickup(pickRay)) {
+      swallowMouse = true;
+      e.preventDefault();
+      e.stopImmediatePropagation();
+    }
+  }
+  function onPickMouse(e) {
+    if (!swallowMouse) return;
+    swallowMouse = false;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+  }
+
   return {
     root,
+    painter,
     pose,
+    tryPickup,
     tick(renderer, scene3, nowMs) {
+      hookPickCamera(renderer);
+      if (!renderer.domElement.__artistPick) {
+        renderer.domElement.__artistPick = onPickPointer;
+        renderer.domElement.addEventListener("pointerdown", onPickPointer, true);
+        renderer.domElement.addEventListener("mousedown", onPickMouse, true);
+      }
       const ios = /iP(hone|ad|od)/.test(navigator.userAgent);
       const prep = lastAct && lastAct.type && lastAct.type !== "paint" && lastAct.type !== "idle";
       const gap = ios ? (prep ? 520 : 380) : prep ? 420 : STROKE_MS;

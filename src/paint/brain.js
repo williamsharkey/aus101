@@ -8,12 +8,8 @@ export function createPaintBrain() {
   const canvas = typeof document !== "undefined" ? document.createElement("canvas") : null;
   let ctx = null;
   let paint = new Uint8ClampedArray(CANVAS * CANVAS * 4);
-  for (let i = 0; i < CANVAS * CANVAS; i++) {
-    paint[i * 4] = 244;
-    paint[i * 4 + 1] = 239;
-    paint[i * 4 + 2] = 228;
-    paint[i * 4 + 3] = 255;
-  }
+  let paints = 0;
+  fillLinen();
   if (canvas) {
     canvas.width = CANVAS;
     canvas.height = CANVAS;
@@ -71,12 +67,30 @@ export function createPaintBrain() {
     return out;
   }
 
+  function fillLinen() {
+    for (let i = 0; i < CANVAS * CANVAS; i++) {
+      paint[i * 4] = 244;
+      paint[i * 4 + 1] = 239;
+      paint[i * 4 + 2] = 228;
+      paint[i * 4 + 3] = 255;
+    }
+  }
+
+  function resetLinen() {
+    fillLinen();
+    paints = 0;
+    flush();
+  }
+
   function step(viewPix, vw, vh) {
     const W = vw || CANVAS;
     const H = vh || CANVAS;
     const pSmall = W === CANVAS ? paint : downsample(W, H);
     const patches = collectPatches(viewPix, pSmall, W, H, 2);
-    const act = chooseAction(studio, patches);
+    let errSum = 0;
+    for (const p of patches) errSum += p.err;
+    const meanErr = patches.length ? errSum / patches.length : 0;
+    const act = chooseAction(studio, patches, paints);
     if (act.type === "switch") studio.switchBrush(act.id);
     else if (act.type === "clean") studio.clean();
     else if (act.type === "load") studio.load(act.well, act.n);
@@ -87,12 +101,29 @@ export function createPaintBrain() {
       if (!studio.spend()) studio.clean();
       else {
         const rgb = studio.rgbOfBrush();
-        if (rgb) stamp(act.patch.u, act.patch.v, rgb, studio.spec.width, act.kind);
+        if (rgb) {
+          stamp(act.patch.u, act.patch.v, rgb, studio.spec.width, act.kind);
+          paints += 1;
+        }
       }
     }
     flush();
+    act.paints = paints;
+    act.meanErr = meanErr;
+    act.nPatches = patches.length;
     return act;
   }
 
-  return { studio, canvas, paint, step, flush, CANVAS };
+  return {
+    studio,
+    canvas,
+    paint,
+    step,
+    flush,
+    resetLinen,
+    get paints() {
+      return paints;
+    },
+    CANVAS,
+  };
 }

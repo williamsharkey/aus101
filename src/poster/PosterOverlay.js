@@ -8,7 +8,7 @@ const BG = "#0b1210";
 
 export class PosterOverlay {
   /**
-   * @param {{ onStart: () => void }} opts
+   * @param {{ onStart: () => void, autostart?: boolean }} opts
    */
   constructor(opts) {
     this.onStart = opts.onStart;
@@ -17,20 +17,22 @@ export class PosterOverlay {
     this.root.setAttribute("role", "button");
     this.root.setAttribute("aria-label", "Play AUS101");
     this.root.tabIndex = 0;
+    const bootHidden = !!opts.autostart;
     Object.assign(this.root.style, {
       position: "fixed",
       inset: "0",
       zIndex: "20",
       background: BG,
-      display: "flex",
+      display: bootHidden ? "none" : "flex",
       alignItems: "center",
       justifyContent: "center",
       cursor: "pointer",
-      opacity: "1",
+      opacity: bootHidden ? "0" : "1",
       transition: "opacity 400ms ease",
       touchAction: "none",
       userSelect: "none",
       webkitUserSelect: "none",
+      pointerEvents: bootHidden ? "none" : "auto",
     });
 
     // Full-bleed poster image — LCP / OG surface
@@ -72,6 +74,9 @@ export class PosterOverlay {
     document.body.appendChild(this.root);
 
     this._started = false;
+    if (bootHidden) {
+      queueMicrotask(() => this.start());
+    }
     this._onPointer = (e) => {
       e.preventDefault();
       this.start();

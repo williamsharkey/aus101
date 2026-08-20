@@ -10,7 +10,7 @@ export const MAP_SIZE = 128;
 const FILM = 6;
 const ZINC = new THREE.Color(0xf3efe4);
 
-const SKIP_KIND = new Set(["sigma_07", "goth", "kid", "gull"]);
+const SKIP_KIND = new Set(["gull"]);
 
 function meshOf(npc) {
   if (!npc) return null;
@@ -23,17 +23,18 @@ function kindOf(npc) {
 }
 
 /**
- * Kids, gulls, SIGMA_07, goth, and anything with paintTarget===false.
+ * Gulls and anything with paintTarget===false stay dry. Everyone else with
+ * a mesh can take zinc — kids keep ageBand "child" but still lather.
  */
 export function isPaintable(npc) {
   const mesh = meshOf(npc);
   if (!mesh) return false;
+  if (mesh.visible === false) return false;
   const ud = mesh.userData || {};
   const age = npc.ageBand ?? ud.ageBand;
   const kind = kindOf(npc);
-  if (age !== "adult") return false;
   if (ud.paintTarget === false) return false;
-  if (SKIP_KIND.has(kind)) return false;
+  if (SKIP_KIND.has(kind) || age === "gull") return false;
   return true;
 }
 

@@ -17,7 +17,7 @@ export const WELL_COUNT = 10;
 export const BRUSH_MAX = 6;
 
 export const BRUSHES = {
-  fat: { id: "fat", width: 1 / 12, use: 2, clean: 1.2 },
+  fat: { id: "fat", width: 1 / 10, use: 2, clean: 1.2 },
   thin: { id: "thin", width: 1 / 20, use: 0.45, clean: 0.55 },
 };
 
@@ -31,7 +31,7 @@ export function createStudio() {
     fat: { id: "fat", lin: null, load: 0, dirty: 0 },
     thin: { id: "thin", lin: null, load: 0, dirty: 0 },
   };
-  let active = "thin";
+  let active = "fat";
   const log = [];
   let t = 0;
 

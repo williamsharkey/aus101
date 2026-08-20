@@ -15,6 +15,8 @@ export const WEIGHTS = {
   /** Remix only if mean dE of the next cluster is worse than this. */
   remix: 48,
   cluster: 6,
+  /** ~40% of a ~180-mark sitting is fat blocking-in. */
+  blockIn: 72,
 };
 
 function meanTarget(patches) {
@@ -50,36 +52,49 @@ function regionSize(patches) {
   return Math.hypot(maxX - minX, maxY - minY);
 }
 
+function clusterMeanErr(patches) {
+  let s = 0;
+  for (const p of patches) s += p.err;
+  return s / (patches.length || 1);
+}
+
 /**
  * Pick the next action. Returns { type, ... }.
  * types: paint | load | squeeze | knife | clean | switch
+ * `paints` is marks on the current sitting (not lifetime studio.stats.strokes).
  */
-export function chooseAction(studio, patches) {
+export function chooseAction(studio, patches, paints = studio.stats.strokes) {
   const next = patches.slice(0, WEIGHTS.cluster);
   if (!next.length) return { type: "idle" };
   const mean = meanTarget(next);
   const span = regionSize(next);
-  const wantFat = span > 0.22 && next[0].err > 40;
-  const wantId = wantFat ? "fat" : "thin";
+  const meanErr = clusterMeanErr(next);
+  // Blocking-in: first ~40% of marks, or until mean error drops. Then thin dots.
+  const blocking = paints < WEIGHTS.blockIn && meanErr > 28;
+  const wantFat = blocking
+    ? span > 0.08 || next[0].err > 22
+    : span > 0.28 && next[0].err > 50 && paints < 100;
+  const wantId = blocking ? "fat" : "thin";
+  const kind = blocking || wantFat ? "dash" : "dot";
   const brush = studio.brush;
   const brushRgb = studio.rgbOfBrush();
   const curE = dEcol(brushRgb, mean);
 
   if (studio.active !== wantId && brush.load < 0.5) {
-    return { type: "switch", id: wantId, why: "region scale" };
+    return { type: "switch", id: wantId, why: blocking ? "block in" : "detail" };
   }
 
   if (brush.load >= studio.spec.use * 0.5 && curE < WEIGHTS.goodEnough) {
     return {
       type: "paint",
       patch: next[0],
-      kind: next[0].err > 90 && !wantFat ? "dot" : "dash",
+      kind,
       why: `use load dE=${curE.toFixed(1)}`,
     };
   }
 
   if (brush.load >= studio.spec.use * 0.5 && curE < WEIGHTS.remix) {
-    return { type: "paint", patch: next[0], kind: "dash", why: `keep going dE=${curE.toFixed(1)}` };
+    return { type: "paint", patch: next[0], kind, why: `keep going dE=${curE.toFixed(1)}` };
   }
 
   if (brush.load > 0.4 && curE > 55) {
@@ -123,26 +138,85 @@ export function chooseAction(studio, patches) {
   return { type: "paint", patch: next[0], kind: "dot", why: "fallback dab" };
 }
 
-export function collectPatches(view, paint, w, h, stride = 3) {
+function patchAt(view, paint, w, h, x, y) {
+  const i = (y * w + x) * 4;
+  const dr = view[i] - paint[i];
+  const dg = view[i + 1] - paint[i + 1];
+  const db = view[i + 2] - paint[i + 2];
+  const err = Math.sqrt(dr * dr + dg * dg + db * db);
+  const linen =
+    Math.abs(paint[i] - 244) + Math.abs(paint[i + 1] - 239) + Math.abs(paint[i + 2] - 228);
+  return {
+    u: (x + 0.5) / w,
+    v: (y + 0.5) / h,
+    r: view[i],
+    g: view[i + 1],
+    b: view[i + 2],
+    err,
+    linen,
+  };
+}
+
+/** Greedy max-error pixels. Sky vs linen always wins, so sand can starve. */
+export function collectPatchesGreedy(view, paint, w, h, stride = 3) {
   const out = [];
   for (let y = 1; y < h - 1; y += stride) {
     for (let x = 1; x < w - 1; x += stride) {
-      const i = (y * w + x) * 4;
-      const dr = view[i] - paint[i];
-      const dg = view[i + 1] - paint[i + 1];
-      const db = view[i + 2] - paint[i + 2];
-      const err = Math.sqrt(dr * dr + dg * dg + db * db);
-      if (err < 12) continue;
-      out.push({
-        u: (x + 0.5) / w,
-        v: (y + 0.5) / h,
-        r: view[i],
-        g: view[i + 1],
-        b: view[i + 2],
-        err,
-      });
+      const p = patchAt(view, paint, w, h, x, y);
+      if (p.err < 12) continue;
+      out.push(p);
     }
   }
   out.sort((a, b) => b.err - a.err);
   return out;
+}
+
+/**
+ * One candidate per tile, scored by view-error plus leftover linen so the
+ * bottom half (sand ≈ linen) still gets blocking-in strokes.
+ */
+export function collectPatchesTiled(view, paint, w, h, stride = 2, tiles = 4) {
+  const out = [];
+  const tw = Math.max(1, (w / tiles) | 0);
+  const th = Math.max(1, (h / tiles) | 0);
+  for (let ty = 0; ty < tiles; ty++) {
+    for (let tx = 0; tx < tiles; tx++) {
+      const x0 = tx * tw;
+      const y0 = ty * th;
+      const x1 = tx === tiles - 1 ? w - 1 : Math.min(w - 1, x0 + tw);
+      const y1 = ty === tiles - 1 ? h - 1 : Math.min(h - 1, y0 + th);
+      let best = null;
+      let linenN = 0;
+      let n = 0;
+      for (let y = Math.max(0, y0); y < y1; y += stride) {
+        for (let x = Math.max(0, x0); x < x1; x += stride) {
+          const p = patchAt(view, paint, w, h, x, y);
+          n += 1;
+          if (p.linen > 18) linenN += 1;
+          const score = p.err + (p.linen > 18 ? 36 : 0);
+          if (!best || score > best.score) best = { ...p, score };
+        }
+      }
+      if (!best) continue;
+      const linenFrac = n ? linenN / n : 0;
+      best.score = best.err + linenFrac * 48;
+      if (best.err < 8 && linenFrac < 0.12) continue;
+      out.push(best);
+    }
+  }
+  out.sort((a, b) => b.score - a.score);
+  return out;
+}
+
+/** Coverage-boosted greedy: leftover linen is treated as work still to do. */
+export function collectPatchesCoverage(view, paint, w, h, stride = 2) {
+  const out = collectPatchesGreedy(view, paint, w, h, stride);
+  for (const p of out) p.score = p.err + (p.linen > 18 ? 40 : 0);
+  out.sort((a, b) => b.score - a.score);
+  return out;
+}
+
+/** Default: greedy max-error. Lab: MAE 17.8 vs tiled 64 / coverage 31. */
+export function collectPatches(view, paint, w, h, stride = 2) {
+  return collectPatchesGreedy(view, paint, w, h, stride);
 }

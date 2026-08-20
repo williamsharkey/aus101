@@ -1,6 +1,6 @@
 /**
- * Hold-Space apply: zinc stamps on the facing side of the nearest adult.
- * Kids / gulls / clothed SIGMA / goth never receive coverage.
+ * Hold-Space apply: zinc stamps on the facing side of the nearest paint target.
+ * Gulls stay dry. Nested rigs (piano, DJ, synth, artist) use world XZ.
  */
 import {
   applyCoverageToMats,
@@ -36,6 +36,30 @@ function wrap01(u) {
   return u - Math.floor(u);
 }
 
+const _wp = { x: 0, y: 0, z: 0 };
+
+function worldPos(mesh, out = _wp) {
+  if (mesh && typeof mesh.updateWorldMatrix === "function") mesh.updateWorldMatrix(true, false);
+  const e = mesh?.matrixWorld?.elements;
+  if (e) {
+    out.x = e[12];
+    out.y = e[13];
+    out.z = e[14];
+    return out;
+  }
+  const p = mesh?.position;
+  out.x = p?.x || 0;
+  out.y = p?.y || 0;
+  out.z = p?.z || 0;
+  return out;
+}
+
+function worldYaw(mesh) {
+  const e = mesh?.matrixWorld?.elements;
+  if (e) return Math.atan2(e[8], e[10]);
+  return mesh?.rotation?.y || 0;
+}
+
 /**
  * Fake body UV. Front = (0.5, 0.4). Sides from yaw delta or player azimuth.
  * @param {{ x: number, z: number }} playerPos
@@ -43,13 +67,14 @@ function wrap01(u) {
  * @param {number} [playerYaw]
  */
 export function facingUV(playerPos, mesh, playerYaw) {
-  const npcYaw = mesh.rotation.y || 0;
+  const npcYaw = worldYaw(mesh);
   let delta;
   if (playerYaw != null && Number.isFinite(playerYaw)) {
     delta = wrapPi(playerYaw - npcYaw);
   } else if (playerPos) {
-    const dx = playerPos.x - mesh.position.x;
-    const dz = playerPos.z - mesh.position.z;
+    const p = worldPos(mesh);
+    const dx = playerPos.x - p.x;
+    const dz = playerPos.z - p.z;
     delta = wrapPi(Math.atan2(dx, dz) - npcYaw);
   } else {
     delta = 0;
@@ -58,7 +83,7 @@ export function facingUV(playerPos, mesh, playerYaw) {
 }
 
 /**
- * Nearest paintable adult inside REACH, or null.
+ * Nearest paint target inside REACH, or null.
  * @param {{ mesh: object, kind: string, ageBand: string }[]} cast
  * @param {{ x: number, z: number }} playerPos
  */
@@ -69,7 +94,7 @@ export function pickApplyTarget(cast, playerPos) {
     if (!isPaintable(npc)) continue;
     const mesh = npc.mesh;
     if (!mesh) continue;
-    const d = dist2(playerPos, mesh.position);
+    const d = dist2(playerPos, worldPos(mesh));
     if (d < bestD) {
       bestD = d;
       best = npc;

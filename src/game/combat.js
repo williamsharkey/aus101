@@ -9,7 +9,7 @@
  *
  * Victims are hidden and replaced by six Verlet boxes (same shape of code as
  * `src/phys/fights.js` — gravity, distance constraints, ground bounce) and they
- * stay down. Children and gulls are never valid targets.
+ * stay down. Anyone still standing in `cast` is a valid target.
  *
  * All geometry/materials are module-shared. `tick(dt)` is allocation-free.
  */
@@ -167,14 +167,25 @@ function looksOf(mesh) {
   return { skin, cover };
 }
 
-/** Adults only — kids and gulls are ambient, never targets. */
+function worldPos(mesh, out) {
+  if (mesh && typeof mesh.getWorldPosition === "function") return mesh.getWorldPosition(out);
+  const p = mesh?.position;
+  return out.set(p?.x || 0, p?.y || 0, p?.z || 0);
+}
+
+function worldYaw(mesh) {
+  const e = mesh?.matrixWorld?.elements;
+  if (e) return Math.atan2(e[8], e[10]);
+  return mesh?.rotation?.y || 0;
+}
+
+/** Anyone still standing with a mesh. Downed bodies stay down. */
 function targetable(npc) {
   if (!npc) return false;
-  if (npc.ageBand !== "adult") return false;
-  if (npc.kind === "gull") return false;
   const m = npc.mesh;
   if (!m || !m.isObject3D) return false;
   if (m.userData?.combatDown) return false;
+  if (m.visible === false) return false;
   return true;
 }
 
@@ -301,6 +312,7 @@ export function createCombat({ scene, cast, onHarm, play } = {}) {
   const _pt = new THREE.Vector3();
   const _n = new THREE.Vector3();
   const _tmp = new THREE.Vector3();
+  const _wp = new THREE.Vector3();
   const _player = new THREE.Vector3();
 
   let punchT = 0; // 0..1 across the whole swing, 0 when idle
@@ -372,17 +384,18 @@ export function createCombat({ scene, cast, onHarm, play } = {}) {
   function dropVictim(npc, nx, nz, power) {
     const mesh = npc.mesh;
     const s = (mesh.userData?.body?.scale ?? 1) || 1;
-    const yaw = mesh.rotation.y;
-    const groundY = mesh.position.y;
+    worldPos(mesh, _wp);
+    const yaw = worldYaw(mesh);
+    const groundY = _wp.y;
     const built = makeDoll(looksOf(mesh), s);
     // Enough to take them off their feet and a metre back — not launch them.
     const launch = 1.7 + power * 2.1;
     const lift = 1.7 + power * 1.3;
     for (const p of built.parts) {
       const w = rotY(p.ox, p.oz, yaw);
-      p.x = mesh.position.x + w.x;
+      p.x = _wp.x + w.x;
       p.y = groundY + p.oy;
-      p.z = mesh.position.z + w.z;
+      p.z = _wp.z + w.z;
       const jx = nx * launch + rand(-0.5, 0.5);
       const jy = lift + rand(0.1, 0.8);
       const jz = nz * launch + rand(-0.5, 0.5);
@@ -453,7 +466,7 @@ export function createCombat({ scene, cast, onHarm, play } = {}) {
 
   /**
    * Resolve the strike frame. Sweeps a short arc in front of the player and
-   * takes the nearest adult inside it. No one in the arc = just a swing.
+   * takes the nearest standing body inside it. No one in the arc = just a swing.
    */
   function resolvePunch() {
     aim(punchYaw, 0, _dir);
@@ -465,12 +478,12 @@ export function createCombat({ scene, cast, onHarm, play } = {}) {
     let bestDot = 0;
     for (const npc of cast) {
       if (!targetable(npc)) continue;
-      const p = npc.mesh.position;
-      const dx = p.x - _player.x;
-      const dz = p.z - _player.z;
+      worldPos(npc.mesh, _tmp);
+      const dx = _tmp.x - _player.x;
+      const dz = _tmp.z - _player.z;
       const d = Math.hypot(dx, dz);
       if (d > PUNCH_REACH || d < 1e-4) continue;
-      const chestY = p.y + 1.15 * ((npc.mesh.userData?.body?.scale ?? 1) || 1);
+      const chestY = _tmp.y + 1.15 * ((npc.mesh.userData?.body?.scale ?? 1) || 1);
       if (Math.abs(chestY - eyeY) > PUNCH_HEIGHT) continue;
       const nx = dx / d;
       const nz = dz / d;
@@ -488,11 +501,8 @@ export function createCombat({ scene, cast, onHarm, play } = {}) {
 
     const lethal = bestD <= PUNCH_SOLID_REACH && bestDot >= PUNCH_SOLID_COS;
     const scale = (best.mesh.userData?.body?.scale ?? 1) || 1;
-    _pt.set(
-      best.mesh.position.x - bestNx * 0.18,
-      best.mesh.position.y + 1.2 * scale,
-      best.mesh.position.z - bestNz * 0.18
-    );
+    worldPos(best.mesh, _tmp);
+    _pt.set(_tmp.x - bestNx * 0.18, _tmp.y + 1.2 * scale, _tmp.z - bestNz * 0.18);
     dropVictim(best, bestNx, bestNz, lethal ? 1 : 0.5);
     popFlash(_pt, lethal ? 0.11 : 0.075);
     say(lethal ? "panic_02" : "interject_oi_01");
@@ -576,6 +586,9 @@ export function createCombat({ scene, cast, onHarm, play } = {}) {
     meshToNpc.clear();
     for (const npc of cast) {
       if (!targetable(npc)) continue;
+      // World matrices must be current: piano/DJ/synth sit under a moving parent,
+      // and party.tick poses joints after last render.
+      if (typeof npc.mesh.updateWorldMatrix === "function") npc.mesh.updateWorldMatrix(true, true);
       // Collect the body's meshes explicitly rather than recursing at raycast
       // time: THREE.Sprite.raycast dereferences `raycaster.camera`, which this
       // ray does not carry, so a single sprite parented anywhere under a cast

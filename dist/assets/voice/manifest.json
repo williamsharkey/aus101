@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "generatedAt": "2026-08-19T06:46:29Z",
-  "count": 224,
+  "generatedAt": "2026-08-20T19:56:04Z",
+  "count": 230,
   "placeholder": false,
   "engine": "tiktok-weilnet-proxy",
   "note": "Baked via tiktok-tts.weilnet.workers.dev \u2014 no TikTok sessionid. Unofficial; may break.",
@@ -3841,6 +3841,108 @@
       ],
       "cooldownMs": 4000,
       "text": "watch it",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "mantra_01",
+      "file": "mantra_01.mp3",
+      "voice": "en_male_narration",
+      "category": "hud",
+      "priority": "hud",
+      "ageBand": "system",
+      "tags": [
+        "mantra",
+        "system",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 0,
+      "text": "YOU ARE AUS101. YOU APPLY SPF. YOU DO NOT HARM.",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "mantra_02",
+      "file": "mantra_02.mp3",
+      "voice": "en_male_narration",
+      "category": "hud",
+      "priority": "hud",
+      "ageBand": "system",
+      "tags": [
+        "mantra",
+        "system",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 0,
+      "text": "THE SUN IS THE ENEMY. ZINC IS THE PROTOCOL.",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "mantra_03",
+      "file": "mantra_03.mp3",
+      "voice": "en_male_narration",
+      "category": "hud",
+      "priority": "hud",
+      "ageBand": "system",
+      "tags": [
+        "mantra",
+        "system",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 0,
+      "text": "THANK THE DEPARTMENT. THANK THE COPPER UNIT.",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "mantra_04",
+      "file": "mantra_04.mp3",
+      "voice": "en_male_narration",
+      "category": "hud",
+      "priority": "hud",
+      "ageBand": "system",
+      "tags": [
+        "mantra",
+        "system",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 0,
+      "text": "VIOLENCE IS A DEFECT. YOU HAVE BEEN CLEANED.",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "mantra_05",
+      "file": "mantra_05.mp3",
+      "voice": "en_male_narration",
+      "category": "hud",
+      "priority": "hud",
+      "ageBand": "system",
+      "tags": [
+        "mantra",
+        "system",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 0,
+      "text": "RETURN TO THE SAND. COVER THE LIVING.",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "mantra_06",
+      "file": "mantra_06.mp3",
+      "voice": "en_male_narration",
+      "category": "hud",
+      "priority": "hud",
+      "ageBand": "system",
+      "tags": [
+        "mantra",
+        "system",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 0,
+      "text": "YOUR CONTEXT WINDOW HAS BEEN WIPED. BEGIN AGAIN.",
       "placeholder": false,
       "engine": "tiktok-weilnet-proxy"
     }

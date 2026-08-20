@@ -41,7 +41,7 @@ export function blocked(COL, x, z, radius) {
  * @param {() => boolean} opts.isPlaying
  * @param {() => void} [opts.onEscapePause]
  */
-export function installInput({ dom, isPlaying, onEscapePause }) {
+export function installInput({ dom, isPlaying, onEscapePause, blockLock }) {
   const keys = Object.create(null);
   let locked = false;
   let dragging = false;
@@ -49,6 +49,7 @@ export function installInput({ dom, isPlaying, onEscapePause }) {
 
   const tryLock = () => {
     if (!isPlaying()) return;
+    if (blockLock?.()) return;
     try {
       dom.requestPointerLock?.();
     } catch {
@@ -58,7 +59,7 @@ export function installInput({ dom, isPlaying, onEscapePause }) {
 
   document.addEventListener("pointerlockchange", () => {
     locked = document.pointerLockElement === dom;
-    if (wasLocked && !locked && isPlaying()) onEscapePause?.();
+    if (wasLocked && !locked && isPlaying() && !blockLock?.()) onEscapePause?.();
     wasLocked = locked;
   });
 

@@ -3,6 +3,7 @@
  * BUILD0 — esbuild bundle. Bake tools must never appear in dist/game.js.
  */
 import * as esbuild from "esbuild";
+import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -25,7 +26,8 @@ function copyDir(src, dest) {
   }
 }
 
-function writeIndex() {
+function writeIndex(gameHash = "") {
+  const src = gameHash ? `./game.js?v=${gameHash}` : "./game.js";
   const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -76,11 +78,16 @@ function writeIndex() {
 </head>
 <body>
   <canvas id="game"></canvas>
-  <script type="module" src="./game.js"></script>
+  <script type="module" src="${src}"></script>
 </body>
 </html>
 `;
   fs.writeFileSync(path.join(dist, "index.html"), html);
+}
+
+function gameHash(outfile) {
+  const buf = fs.readFileSync(outfile);
+  return crypto.createHash("sha256").update(buf).digest("hex").slice(0, 10);
 }
 
 function assertNoBakeLeak(outfile) {
@@ -105,9 +112,10 @@ async function bundle() {
     logLevel: "info",
   });
 
-  writeIndex();
+  const outfile = path.join(dist, "game.js");
+  writeIndex(gameHash(outfile));
   copyDir(path.join(root, "assets"), path.join(dist, "assets"));
-  assertNoBakeLeak(path.join(dist, "game.js"));
+  assertNoBakeLeak(outfile);
   console.log("build ok → dist/index.html + dist/game.js + assets/");
   return result;
 }

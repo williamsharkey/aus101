@@ -9,6 +9,7 @@
  * squad costs one material set, not one per body).
  */
 import * as THREE from "three";
+import { spawnPatrolHouse, PATROL_HOME } from "../world/patrolHouse.js";
 
 const FLEE = 6.2;
 const COP_SPEED = 7.4;
@@ -251,17 +252,25 @@ function poseCivilian(mesh, phase, amp) {
 }
 
 /**
- * @param {{ scene: THREE.Scene, cast?: any[], play?: (id: string) => unknown }} opts
+ * @param {{
+ *   scene: THREE.Scene,
+ *   cast?: any[],
+ *   play?: (id: string) => unknown,
+ *   colliders?: { addCollider?: Function, add?: Function, COL?: any[] },
+ * }} opts
  */
-export function createPanic({ scene, cast = [], play } = {}) {
+export function createPanic({ scene, cast = [], play, colliders } = {}) {
   let on = false;
+  let hunt = false;
   let level = 0; // 0 calm, 1 witnessed, 2 cops responding
   const _d = new THREE.Vector3();
   const _from = new THREE.Vector3();
-  /** @type {{ root: THREE.Group, x: number, z: number, phase: number, speed: number, reach: number }[]} */
+  /** @type {{ root: THREE.Group, x: number, z: number, phase: number, speed: number, reach: number, duty: string, tx: number, tz: number, offX: number, offZ: number, onArrive?: Function }[]} */
   const cops = [];
   const fleeing = [];
   let screamed = false;
+  const house = scene ? spawnPatrolHouse(scene, colliders) : null;
+  const HOME = house?.home || PATROL_HOME;
 
   function scream() {
     if (screamed) return;
@@ -278,6 +287,7 @@ export function createPanic({ scene, cast = [], play } = {}) {
     for (const npc of cast) {
       const m = npc?.mesh;
       if (!m || npc.kind === "gull" || !m.position) continue;
+      if (m.userData.combatDown || m.visible === false) continue;
       const dist = Math.hypot(m.position.x - from.x, m.position.z - from.z);
       if (dist > 34) continue;
       away(from, m.position, _d);
@@ -304,6 +314,12 @@ export function createPanic({ scene, cast = [], play } = {}) {
         phase: Math.random() * Math.PI * 2,
         speed: COP_SPEED * (0.88 + Math.random() * 0.2),
         reach: 0,
+        duty: hunt ? "chase" : "home",
+        tx: HOME.x,
+        tz: HOME.z,
+        offX: 0,
+        offZ: 0,
+        onArrive: null,
       });
     }
   }
@@ -313,9 +329,17 @@ export function createPanic({ scene, cast = [], play } = {}) {
    * @param {{x:number,z:number}} from
    */
   function trigger(from) {
-    if (on) return;
+    if (on && hunt) return;
     on = true;
+    hunt = true;
     level = 2;
+    for (const c of cops) {
+      if (c.duty === "stash") {
+        c.onArrive?.();
+      }
+      c.duty = "chase";
+      c.onArrive = null;
+    }
     _from.set(from?.x || 0, 0, from?.z || 0);
     scream();
     try {
@@ -340,6 +364,12 @@ export function createPanic({ scene, cast = [], play } = {}) {
     _from.set(p.x || 0, 0, p.z || 0);
     const first = level < 1;
     on = true;
+    hunt = true;
+    for (const c of cops) {
+      if (c.duty === "stash") c.onArrive?.();
+      c.duty = "chase";
+      c.onArrive = null;
+    }
     scream();
     scatter(_from);
     if (first) {
@@ -361,51 +391,126 @@ export function createPanic({ scene, cast = [], play } = {}) {
     return level;
   }
 
-  function tick(dt, playerPos) {
-    if (!on || !(dt > 0)) return;
-    const h = Math.min(dt, 0.05);
-
-    for (const m of fleeing) {
-      const f = m.userData.flee;
-      if (!f) continue;
-      const gone = Math.hypot(m.position.x - _from.x, m.position.z - _from.z);
-      const slow = gone > FLEE_MAX ? 0 : 1;
-      if (slow) {
-        m.position.x += f.x * f.spd * h;
-        m.position.z += f.z * f.spd * h;
-        m.rotation.y = Math.atan2(f.x, f.z); // npc bodies face +Z — face the way they bolt
-        m.userData.fleePhase += h * (5.2 + f.spd * 0.9);
-        m.position.y = Math.abs(Math.sin(m.userData.fleePhase)) * 0.055;
-      } else {
-        m.userData.fleePhase += h * 1.4;
-        m.position.y = 0;
-      }
-      poseCivilian(m, m.userData.fleePhase, slow ? 1 : 0.12);
+  /**
+   * Stop the chase. Cops walk to the patrol house unless they are already on a
+   * stash walk. `tick` keeps driving those duties — it does not sprint at the player.
+   * @param {{ clearFlee?: boolean }} [opts]
+   */
+  function standDown({ clearFlee = true } = {}) {
+    hunt = false;
+    screamed = false;
+    level = 0;
+    for (let i = 0; i < cops.length; i++) {
+      const c = cops[i];
+      if (c.duty === "stash") continue;
+      c.duty = "home";
+      c.tx = HOME.x + ((i % 3) - 1) * 0.65;
+      c.tz = HOME.z + ((i / 3) | 0) * 0.55;
+      c.reach = 0;
+      c.onArrive = null;
     }
+    if (clearFlee) {
+      for (const m of fleeing) delete m.userData.flee;
+      fleeing.length = 0;
+      on = false;
+    }
+  }
 
-    if (!playerPos) return;
-    for (const c of cops) {
+  function driveCop(c, playerPos, h) {
+    const duty = c.duty || (hunt ? "chase" : "home");
+    let tx = c.x;
+    let tz = c.z;
+    let want = 0;
+    let faceX = 0;
+    let faceZ = 1;
+    let reachTo = 0;
+
+    if (duty === "stash" || duty === "home" || duty === "hold") {
+      tx = Number.isFinite(c.tx) ? c.tx : HOME.x;
+      tz = Number.isFinite(c.tz) ? c.tz : HOME.z;
+      const dx = tx - c.x;
+      const dz = tz - c.z;
+      const d = Math.hypot(dx, dz) || 1;
+      want = d > 0.4 ? (duty === "stash" ? COP_WALK * 1.45 : COP_WALK) : 0;
+      faceX = dx;
+      faceZ = dz;
+      if (d < 0.45) {
+        const fn = c.onArrive;
+        if (fn) {
+          c.onArrive = null;
+          fn();
+        }
+      }
+    } else if (duty === "escort" && playerPos) {
+      tx = playerPos.x + (c.offX || 0);
+      tz = playerPos.z + (c.offZ || 0);
+      const dx = tx - c.x;
+      const dz = tz - c.z;
+      const d = Math.hypot(dx, dz) || 1;
+      want = d > 0.28 ? c.speed : 0;
+      faceX = playerPos.x - c.x;
+      faceZ = playerPos.z - c.z;
+      reachTo = d < 1.4 ? 1 : 0;
+    } else if (duty === "chase" && hunt && playerPos) {
       const dx = playerPos.x - c.x;
       const dz = playerPos.z - c.z;
       const d = Math.hypot(dx, dz) || 1;
-      // Sprint in, then hold a menacing ring — the recall units do the seizing.
-      const want = d > HOLD_R + 1.4 ? c.speed : d > HOLD_R ? COP_WALK : 0;
+      want = d > HOLD_R + 1.4 ? c.speed : d > HOLD_R ? COP_WALK : 0;
+      faceX = dx;
+      faceZ = dz;
+      reachTo = d < HOLD_R + 0.8 ? 1 : 0;
       if (want > 0) {
-        c.x += (dx / d) * want * h;
-        c.z += (dz / d) * want * h;
+        tx = playerPos.x;
+        tz = playerPos.z;
       }
-      const target = d < HOLD_R + 0.8 ? 1 : 0;
-      c.reach += (target - c.reach) * Math.min(1, h * 4);
-      c.phase += h * (2.2 + want * 1.15);
-      c.root.position.set(c.x, 0, c.z);
-      c.root.rotation.y = Math.atan2(dx, dz);
-      poseCop(c.root, { walkPhase: c.phase, speed: want, reach: c.reach });
     }
+
+    const dx = tx - c.x;
+    const dz = tz - c.z;
+    const d = Math.hypot(dx, dz) || 1;
+    if (want > 0 && d > 0.08) {
+      const step = Math.min(d, want * h);
+      c.x += (dx / d) * step;
+      c.z += (dz / d) * step;
+    }
+    c.reach += (reachTo - c.reach) * Math.min(1, h * 4);
+    c.phase += h * (2.2 + want * 1.15);
+    c.root.position.set(c.x, 0, c.z);
+    if (Math.hypot(faceX, faceZ) > 0.05) c.root.rotation.y = Math.atan2(faceX, faceZ);
+    poseCop(c.root, { walkPhase: c.phase, speed: want, reach: c.reach });
+  }
+
+  function tick(dt, playerPos) {
+    if (!(dt > 0)) return;
+    if (!on && cops.length === 0) return;
+    const h = Math.min(dt, 0.05);
+
+    if (on) {
+      for (const m of fleeing) {
+        const f = m.userData.flee;
+        if (!f) continue;
+        const gone = Math.hypot(m.position.x - _from.x, m.position.z - _from.z);
+        const slow = gone > FLEE_MAX ? 0 : 1;
+        if (slow) {
+          m.position.x += f.x * f.spd * h;
+          m.position.z += f.z * f.spd * h;
+          m.rotation.y = Math.atan2(f.x, f.z); // npc bodies face +Z — face the way they bolt
+          m.userData.fleePhase += h * (5.2 + f.spd * 0.9);
+          m.position.y = Math.abs(Math.sin(m.userData.fleePhase)) * 0.055;
+        } else {
+          m.userData.fleePhase += h * 1.4;
+          m.position.y = 0;
+        }
+        poseCivilian(m, m.userData.fleePhase, slow ? 1 : 0.12);
+      }
+    }
+
+    for (const c of cops) driveCop(c, playerPos, h);
   }
 
   /**
    * Remove every cop from the scene and stand the sim down. Civilians keep the
-   * pose they died on. Safe to call twice; a later trigger/onHarm restarts it.
+   * pose they died on. The patrol house stays. Safe to call twice.
    */
   function dispose() {
     for (const c of cops) scene?.remove(c.root);
@@ -413,6 +518,7 @@ export function createPanic({ scene, cast = [], play } = {}) {
     for (const m of fleeing) delete m.userData.flee;
     fleeing.length = 0;
     on = false;
+    hunt = false;
     level = 0;
     screamed = false;
   }
@@ -421,9 +527,12 @@ export function createPanic({ scene, cast = [], play } = {}) {
     trigger,
     onHarm,
     tick,
+    standDown,
     dispose,
+    cops,
+    house,
     get active() {
-      return on;
+      return on || hunt;
     },
     get level() {
       return level;

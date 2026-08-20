@@ -53,7 +53,7 @@ function mae(view, paint) {
   return s / (n * 3);
 }
 
-export function runSession(view, vw, vh, { maxSteps = 900, size = 160 } = {}) {
+export function runSession(view, vw, vh, { maxSteps = 900, size = 160, collect = collectPatches } = {}) {
   // Downsample view into size×size
   const V = new Uint8ClampedArray(size * size * 4);
   for (let y = 0; y < size; y++) {
@@ -72,7 +72,7 @@ export function runSession(view, vw, vh, { maxSteps = 900, size = 160 } = {}) {
   let paints = 0;
   while (steps < maxSteps) {
     steps += 1;
-    const patches = collectPatches(V, P, size, size, 2);
+    const patches = collect(V, P, size, size, 2);
     if (!patches.length) break;
     const act = chooseAction(studio, patches);
     if (act.type === "idle") break;

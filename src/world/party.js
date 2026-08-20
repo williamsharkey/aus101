@@ -224,8 +224,15 @@ function makeBoombox() {
 
 const _hand = new THREE.Vector3();
 
+function tagAdult(mesh, kind) {
+  mesh.userData.kind = kind;
+  mesh.userData.ageBand = "adult";
+  mesh.userData.paintTarget = true;
+  return mesh;
+}
+
 function placeGuitarKen(opts, x, y, z, yaw) {
-  const mesh = ken(opts);
+  const mesh = tagAdult(ken(opts), "ken");
   mesh.position.set(x, y, z);
   mesh.rotation.y = yaw;
 
@@ -247,6 +254,7 @@ function placeGuitarKen(opts, x, y, z, yaw) {
 
 /** Wrist targets, in guitar space, converted to character space for the solver. */
 function poseGuitarist(k, t, i) {
+  if (k.mesh.userData.combatDown || k.mesh.visible === false || k.mesh.userData.flee) return;
   const swing = Math.sin(t * 8.2 + i * 1.7);
   k.guitar.rotation.z = 1.0 + swing * 0.02;
   k.guitar.updateMatrix();
@@ -270,7 +278,7 @@ function poseGuitarist(k, t, i) {
 const _reach = new THREE.Vector3();
 
 function placeDancer(opts, x, z, yaw) {
-  const mesh = babe(opts);
+  const mesh = tagAdult(babe(opts), "babe");
   mesh.position.set(x, 0, z);
   mesh.rotation.y = yaw;
   const b = mesh.userData.body;
@@ -287,6 +295,7 @@ function placeDancer(opts, x, z, yaw) {
  * arms swing overhead and the head nods.
  */
 function poseDancer(d, t) {
+  if (d.mesh.userData.combatDown || d.mesh.visible === false || d.mesh.userData.flee) return;
   const b = d.body;
   const beat = t * 4.6 + d.phase;
   const s = Math.sin(beat);
@@ -369,5 +378,6 @@ export function spawnParty(scene) {
       { id: "boombox", position: boombox.position, radius: 8 },
       { id: "dj", position: new THREE.Vector3(-24, 0, 7), radius: 10 },
     ],
+    people: [kenA.mesh, kenB.mesh, dancerA.mesh, dancerB.mesh],
   };
 }

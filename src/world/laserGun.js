@@ -1,6 +1,6 @@
 import * as THREE from "three";
 
-const HIDES = [
+export const HIDES = [
   { x: -29.2, z: 17.4, y: 0.12 }, // behind far palm / rail
   { x: 21.6, z: 19.8, y: 0.18 }, // SLS tower shadow
   { x: 8.4, z: 14.6, y: 0.08 }, // under zinc kiosk lip
@@ -31,17 +31,37 @@ export function spawnLaserGun(scene) {
   let hid = true;
   let spot = HIDES[0];
 
-  function hide() {
+  function hide(at) {
     hid = true;
-    spot = HIDES[(Math.random() * HIDES.length) | 0];
+    if (at && Number.isFinite(at.x) && Number.isFinite(at.z)) {
+      spot = { x: at.x, y: at.y ?? 0.1, z: at.z };
+    } else {
+      spot = HIDES[(Math.random() * HIDES.length) | 0];
+    }
     g.position.set(spot.x, spot.y, spot.z);
     g.rotation.y = Math.random() * 6;
     g.visible = true;
   }
+  function stashAway() {
+    hid = true;
+    spot = HIDES[(Math.random() * HIDES.length) | 0];
+    g.position.set(spot.x, spot.y, spot.z);
+    g.rotation.y = Math.random() * 6;
+    g.visible = false;
+    return { x: spot.x, y: spot.y, z: spot.z };
+  }
+  function conceal() {
+    hid = true;
+    g.visible = false;
+  }
+  function reveal() {
+    g.visible = true;
+    hid = true;
+  }
   hide();
 
   function tick(playerPos, onPickup) {
-    if (!hid || !playerPos) return;
+    if (!g.visible || !hid || !playerPos) return;
     const d = Math.hypot(playerPos.x - g.position.x, playerPos.z - g.position.z);
     if (d < 1.15) {
       hid = false;
@@ -50,5 +70,5 @@ export function spawnLaserGun(scene) {
     }
   }
 
-  return { group: g, hide, tick, get hidden() { return hid; } };
+  return { group: g, hide, stashAway, conceal, reveal, tick, get hidden() { return hid; } };
 }

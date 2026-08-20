@@ -27,7 +27,7 @@ function isAdultPaintTarget(npc) {
   const kind = kindOf(npc);
   if (age !== "adult") return false;
   if (ud.paintTarget === false) return false;
-  if (kind === "sigma_07" || kind === "goth" || kind === "kid" || kind === "gull") return false;
+  if (kind === "kid" || kind === "gull") return false;
   return true;
 }
 

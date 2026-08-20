@@ -517,7 +517,7 @@ function sigma07() {
   }
   g.userData.kind = "sigma_07";
   g.userData.ageBand = "adult";
-  g.userData.paintTarget = false;
+  g.userData.paintTarget = true;
   g.name = "SIGMA_07";
   return g;
 }
@@ -568,7 +568,7 @@ function goth() {
   g.add(ember);
   g.userData.kind = "goth";
   g.userData.ageBand = "adult";
-  g.userData.paintTarget = false;
+  g.userData.paintTarget = true;
   g.name = "goth";
   return g;
 }
@@ -606,7 +606,7 @@ function kid() {
   g.add(brim, crown, dome);
   g.userData.kind = "kid";
   g.userData.ageBand = "child";
-  g.userData.paintTarget = false;
+  g.userData.paintTarget = true;
   g.name = "kid";
   return g;
 }
@@ -771,7 +771,8 @@ export function spawnBeachCast(scene) {
   for (const npc of cast) {
     npc.mesh.userData.kind = npc.kind;
     npc.mesh.userData.ageBand = npc.ageBand;
-    if (npc.ageBand !== "adult") npc.mesh.userData.paintTarget = false;
+    if (npc.kind === "gull" || npc.ageBand === "gull") npc.mesh.userData.paintTarget = false;
+    else npc.mesh.userData.paintTarget = true;
     scene.add(npc.mesh);
   }
   return cast;

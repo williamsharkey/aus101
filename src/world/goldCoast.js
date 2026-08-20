@@ -813,7 +813,9 @@ function buildPianoMan() {
   // ── the man ───────────────────────────────────────────────────────────────
   const man = ken({ hair: 0x1a1410, shorts: 0x141418, skin: 0xbb8f66 });
   man.name = "piano-ken";
-  man.userData.paintTarget = false;
+  man.userData.kind = "ken";
+  man.userData.ageBand = "adult";
+  man.userData.paintTarget = true;
   man.position.set(0, 0, P.manZ);
   const b = man.userData.body;
   const tux = mat(0x16161c, { roughness: 0.62 });
@@ -974,6 +976,7 @@ function buildPianoMan() {
 
   let lastLocal = 0;
   g.userData.tick = (t) => {
+    if (man.userData.combatDown || man.visible === false) return;
     const age = pianoPulse.at ? (performance.now() - pianoPulse.at) / 1000 : 99;
     const hit = age < 0.22 ? 1 - age / 0.22 : 0;
     const damp = pianoPulse.mix > 0.08 ? 0.35 : 1;
@@ -1155,7 +1158,9 @@ function buildDjBooth(scene, add) {
   const djKen = ken({ hair: 0x1a1a12, shorts: 0x1a1a22, skin: 0xc68642 });
   djKen.name = "dj-ken";
   djKen.position.set(0, 0.3, -0.38);
-  djKen.userData.paintTarget = false;
+  djKen.userData.kind = "ken";
+  djKen.userData.ageBand = "adult";
+  djKen.userData.paintTarget = true;
   const db = djKen.userData.body;
   // Elbows, so his hands land on the platters instead of hovering over them.
   const djArms = [];
@@ -1188,9 +1193,11 @@ function buildDjBooth(scene, add) {
   let last = 0;
   return {
     tick(t) {
-      djKen.position.y = 0.3 + Math.abs(Math.sin(t * 4)) * 0.035;
-      djArms[0].arm.rotation.x = -0.3 + Math.sin(t * 4) * 0.08;
-      djArms[1].arm.rotation.x = -0.3 + Math.sin(t * 4 + 1.2) * 0.08;
+      if (!djKen.userData.combatDown && djKen.visible !== false && !djKen.userData.flee) {
+        djKen.position.y = 0.3 + Math.abs(Math.sin(t * 4)) * 0.035;
+        djArms[0].arm.rotation.x = -0.3 + Math.sin(t * 4) * 0.08;
+        djArms[1].arm.rotation.x = -0.3 + Math.sin(t * 4 + 1.2) * 0.08;
+      }
       if (t - last > 4.2) {
         last = t;
         slides.paint();
@@ -1222,7 +1229,9 @@ function spawnDancers(scene) {
     const look = looks[i % looks.length];
     const d = look.fn(look);
     d.name = look.fn === babe ? `dj-babe-${i}` : `dj-ken-${i}`;
-    d.userData.paintTarget = false;
+    d.userData.kind = look.fn === babe ? "babe" : "ken";
+    d.userData.ageBand = "adult";
+    d.userData.paintTarget = true;
     d.position.set(x, 0, z);
     d.rotation.y = Math.atan2(-24 - x, 7 - z);
     scene.add(d);
@@ -1231,6 +1240,7 @@ function spawnDancers(scene) {
     const yaw0 = d.rotation.y;
     out.push({
       tick(t) {
+        if (d.userData.combatDown || d.visible === false || d.userData.flee) return;
         const hop = Math.abs(Math.sin(t * 5 + ph));
         d.position.y = hop * 0.16;
         d.rotation.y = yaw0 + Math.sin(t * 2 + ph) * 0.35;
