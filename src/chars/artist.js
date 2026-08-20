@@ -4,6 +4,7 @@
  * view-vs-canvas RGB error.
  */
 import * as THREE from "three";
+import { createPaintBrain } from "../paint/brain.js";
 
 const VIEW = 64;
 const PAINT = 256;
@@ -453,6 +454,7 @@ function makePainter() {
     palette.add(dab);
   }
   palHand.add(palette);
+  g.userData.palette = palette;
 
   // ---- legs --------------------------------------------------------------
   for (const [side, zOff, splay] of [
@@ -557,11 +559,12 @@ export function createArtist(scene, pose = { x: 4.5, z: -6.2, yaw: -2.6 }) {
   root.updateMatrixWorld(true);
 
   const viewRT = makeRT(VIEW, VIEW, { depth: true, colorSpace: THREE.SRGBColorSpace });
-  const paintRT = makeRT(PAINT, PAINT, { depth: false, colorSpace: THREE.SRGBColorSpace });
-  const errRT = makeRT(VIEW, VIEW, { depth: false, colorSpace: THREE.NoColorSpace });
-
+  const brain = createPaintBrain();
+  const paintTex = new THREE.CanvasTexture(brain.canvas);
+  paintTex.colorSpace = THREE.SRGBColorSpace;
+  paintTex.flipY = true;
   const paintMat = new THREE.MeshBasicMaterial({
-    map: paintRT.texture,
+    map: paintTex,
     toneMapped: false,
   });
   const canvasMesh = new THREE.Mesh(new THREE.PlaneGeometry(CANVAS_W, CANVAS_H), paintMat);
@@ -586,41 +589,20 @@ export function createArtist(scene, pose = { x: 4.5, z: -6.2, yaw: -2.6 }) {
   eye.layers.set(0);
   eye.updateProjectionMatrix();
 
-  const blitCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
-
-  const errMat = new THREE.ShaderMaterial({
-    uniforms: {
-      viewMap: { value: viewRT.texture },
-      paintMap: { value: paintRT.texture },
-    },
-    vertexShader: QUAD_VERT,
-    fragmentShader: ERR_FRAG,
-    depthTest: false,
-    depthWrite: false,
-    toneMapped: false,
-  });
-  const errScene = new THREE.Scene();
-  errScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), errMat));
-
-  const stampMat = new THREE.ShaderMaterial({
-    uniforms: {
-      viewMap: { value: viewRT.texture },
-      center: { value: new THREE.Vector2(0.5, 0.5) },
-      radius: { value: BRUSH_UV },
-      amount: { value: 0.7 },
-    },
-    vertexShader: QUAD_VERT,
-    fragmentShader: STAMP_FRAG,
-    transparent: true,
-    blending: THREE.NormalBlending,
-    depthTest: false,
-    depthWrite: false,
-    toneMapped: false,
-  });
-  const stampScene = new THREE.Scene();
-  stampScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), stampMat));
-
-  const errPix = new Uint8Array(VIEW * VIEW * 4);
+  const viewPix = new Uint8Array(VIEW * VIEW * 4);
+  const wellMeshes = [];
+  if (painter.userData.palette) {
+    for (let i = 0; i < 10; i++) {
+      const a = (i / 10) * Math.PI * 2;
+      const well = new THREE.Mesh(
+        new THREE.SphereGeometry(0.018, 8, 6),
+        new THREE.MeshStandardMaterial({ color: 0xf4efe4, roughness: 0.55 })
+      );
+      well.position.set(Math.cos(a) * 0.07, 0.012, Math.sin(a) * 0.055);
+      painter.userData.palette.add(well);
+      wellMeshes.push(well);
+    }
+  }
   const linen = new THREE.Color(LINEN);
   const sky = new THREE.Color(SKY);
   const prevClear = new THREE.Color();
@@ -657,38 +639,28 @@ export function createArtist(scene, pose = { x: 4.5, z: -6.2, yaw: -2.6 }) {
     try {
       renderer.autoClear = true;
       renderer.shadowMap.enabled = false;
-
       root.visible = false;
       renderer.setRenderTarget(viewRT);
       renderer.setClearColor(sky, 1);
       renderer.render(scene3, eye);
       root.visible = true;
-
-      if (!inited) {
-        renderer.setRenderTarget(paintRT);
-        renderer.setClearColor(linen, 1);
-        renderer.clear();
-        inited = true;
-        paintMat.needsUpdate = true;
+      renderer.readRenderTargetPixels(viewRT, 0, 0, VIEW, VIEW, viewPix);
+      const act = brain.step(viewPix, VIEW, VIEW);
+      if (act.patch) {
+        targetUV.set(act.patch.u, act.patch.v);
+        jab = 1;
       }
-
-      renderer.setRenderTarget(errRT);
-      renderer.setClearColor(0x000000, 1);
-      renderer.render(errScene, blitCam);
-      renderer.readRenderTargetPixels(errRT, 0, 0, VIEW, VIEW, errPix);
-
-      const hit = maxErrorUV(errPix);
-      targetUV.set(hit.u, hit.v);
-      jab = 1;
-
-      stampMat.uniforms.center.value.set(hit.u, hit.v);
-      stampMat.uniforms.radius.value = BRUSH_UV * (0.72 + Math.random() * 0.5);
-      stampMat.uniforms.amount.value = 0.58 + Math.min(0.36, hit.err / 90000);
-
-      renderer.autoClear = false;
-      renderer.setRenderTarget(paintRT);
-      renderer.render(stampScene, blitCam);
-      paintRT.texture.needsUpdate = true;
+      paintTex.needsUpdate = true;
+      const wells = brain.studio.wells;
+      for (let i = 0; i < wellMeshes.length; i++) {
+        const w = wells[i];
+        const m = wellMeshes[i].material;
+        if (w.vol < 0.15) m.color.setHex(0xf4efe4);
+        else {
+          const rgb = brain.studio.rgbOfWell(i);
+          m.color.setRGB(rgb.r / 255, rgb.g / 255, rgb.b / 255);
+        }
+      }
     } catch (e) {
       console.warn("artist stroke", e);
     }
