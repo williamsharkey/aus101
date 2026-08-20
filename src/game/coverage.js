@@ -200,6 +200,126 @@ export function hitsCloth(npc, u, v) {
   return isClothUV(kind, hasCloth, v);
 }
 
+/** Skin (not hair, shoes, or cloth) on the fake body atlas. */
+export function isPaintableUV(npc, u, v) {
+  const mesh = meshOf(npc);
+  if (!mesh) return false;
+  if (mesh.userData.paintTarget === false) return false;
+  const map = mesh.userData.coverageMap;
+  const kind = map?.kind ?? kindOf(npc);
+  const hasCloth = map ? map.hasCloth : hasClothGroup(mesh);
+  return isSkinUV(kind, hasCloth, v);
+}
+
+/** Mean film 0..1 in a small disk. Missing map → 0. */
+export function sampleThickness(npc, u, v, radius = 0.08) {
+  const mesh = meshOf(npc);
+  const map = mesh?.userData?.coverageMap;
+  if (!map?.data || !map.size) return 0;
+  const size = map.size;
+  const data = map.data;
+  const rPx = Math.max(1, radius * size);
+  const cx = (((u % 1) + 1) % 1) * size;
+  const cy = Math.min(1, Math.max(0, v)) * size;
+  const r2 = rPx * rPx;
+  const x0 = Math.floor(cx - rPx);
+  const x1 = Math.ceil(cx + rPx);
+  const y0 = Math.max(0, Math.floor(cy - rPx));
+  const y1 = Math.min(size - 1, Math.ceil(cy + rPx));
+  let sum = 0;
+  let n = 0;
+  for (let y = y0; y <= y1; y++) {
+    const dy = y + 0.5 - cy;
+    for (let x = x0; x <= x1; x++) {
+      const dx = x + 0.5 - cx;
+      if (dx * dx + dy * dy > r2) continue;
+      const xu = ((x % size) + size) % size;
+      sum += data[y * size + xu];
+      n++;
+    }
+  }
+  return n ? sum / (n * 255) : 0;
+}
+
+/** Belly / shoulder / cheek / shin plus a few wrap-around lobes. v=0 feet. */
+const BARE_SITES = [
+  [0.5, 0.48],
+  [0.22, 0.7],
+  [0.78, 0.7],
+  [0.42, 0.8],
+  [0.58, 0.8],
+  [0.42, 0.16],
+  [0.58, 0.16],
+  [0.0, 0.5],
+  [0.0, 0.74],
+  [0.28, 0.46],
+  [0.72, 0.46],
+  [0.5, 0.64],
+  [0.5, 0.28],
+  [0.0, 0.28],
+  [0.18, 0.56],
+  [0.82, 0.56],
+];
+
+function wrapDistU(a, b) {
+  let d = a - b;
+  d -= Math.round(d);
+  return Math.abs(d);
+}
+
+/**
+ * Least-covered skin UV on the fake atlas. Landmarks first, then a coarse
+ * scan, then a dart among the barest few so the hand does not freeze.
+ * @param {{ mesh?: object } | object} npc
+ * @param {{ salt?: number, avoidU?: number, avoidV?: number, faceU?: number }} [opts]
+ * @returns {{ u: number, v: number, thick: number } | null}
+ */
+export function findUnpaintedSample(npc, opts = {}) {
+  const map = ensureCoverageMap(npc);
+  if (!map) return null;
+  const salt = opts.salt | 0;
+  const avoidU = opts.avoidU;
+  const avoidV = opts.avoidV;
+  const faceU = opts.faceU;
+  const hits = [];
+
+  const consider = (u, v) => {
+    if (!isPaintableUV(npc, u, v)) return;
+    const thick = sampleThickness(npc, u, v, 0.07);
+    let score = thick;
+    if (faceU != null) score += wrapDistU(u, faceU) * 0.18 * (1 - thick);
+    if (avoidU != null) {
+      const du = wrapDistU(u, avoidU);
+      const dv = Math.abs(v - (avoidV || 0));
+      if (du + dv < 0.08) score += 0.35;
+    }
+    hits.push({ u, v, thick, score });
+  };
+
+  for (let i = 0; i < BARE_SITES.length; i++) consider(BARE_SITES[i][0], BARE_SITES[i][1]);
+
+  const size = map.size;
+  const stride = 8;
+  const inv = 1 / size;
+  for (let y = stride >> 1; y < size; y += stride) {
+    const v = (y + 0.5) * inv;
+    if (!isSkinUV(map.kind, map.hasCloth, v)) continue;
+    for (let x = stride >> 1; x < size; x += stride) {
+      consider((x + 0.5) * inv, v);
+    }
+  }
+  if (!hits.length) return { u: 0.5, v: 0.4, thick: 0 };
+
+  hits.sort((a, b) => a.score - b.score || a.thick - b.thick);
+  const floor = hits[0].score;
+  const pool = [];
+  for (let i = 0; i < hits.length && pool.length < 5; i++) {
+    if (hits[i].score <= floor + 0.12) pool.push(hits[i]);
+  }
+  const pick = pool[(salt >>> 0) % pool.length] || hits[0];
+  return { u: pick.u, v: pick.v, thick: pick.thick };
+}
+
 /**
  * Lerp skinMats toward zinc from map average.
  * Only skinMats — cloth groups keep their own materials.

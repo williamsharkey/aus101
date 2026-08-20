@@ -6,17 +6,20 @@ import * as THREE from "three";
 import { ken } from "../chars/npcs.js";
 
 const G = 16;
-const BOUNCE = 0.15;
+const BOUNCE = 0.18;
 const GROUND_Y = 0;
-const RAGDOLL_S = 4;
-const PUNCH_MIN = 0.4;
-const PUNCH_MAX = 0.8;
-const GAP = 2.2;
+const RAGDOLL_S = 4.2;
+const PUNCH_MIN = 0.55;
+const PUNCH_MAX = 1.15;
+const GAP = 1.85;
+const RANGE_IN = 1.55;
+const RANGE_OUT = 2.15;
 const STEP = 1 / 60;
-const DAMP = 0.984;
+const DAMP = 0.978;
 const HIT_HP = 1;
-const START_HP = 5;
-const CONSTRAINT_ITERS = 4;
+const START_HP = 9;
+const CONSTRAINT_ITERS = 6;
+const STUN = 0.28;
 
 const GEO = {
   torso: new THREE.BoxGeometry(0.34, 0.5, 0.18),
@@ -171,8 +174,10 @@ function ground(parts) {
     const vz = p.z - p.pz;
     p.y = floor;
     p.py = vy < 0 ? p.y + vy * BOUNCE : p.y;
-    p.px = p.x - vx * 0.7;
-    p.pz = p.z - vz * 0.7;
+    p.px = p.x - vx * 0.45;
+    p.pz = p.z - vz * 0.45;
+    p.rx *= 0.86;
+    p.rz *= 0.86;
   }
 }
 
@@ -192,13 +197,22 @@ function setMode(f, mode) {
 
 /** Guard / jab on the planted ken. Feet stay level on the sand. */
 function poseStand(f, jab = 0) {
+  poseBox(f, jab, 0);
+}
+
+function poseBox(f, jab = 0, hook = 0) {
   const b = f.mesh.userData.body;
   if (!b) return;
   const lead = f.lead || 1;
-  b.armL.rotation.set(-1.22 + (lead < 0 ? -jab * 0.5 : jab * 0.1), 0.1, 0.48);
-  b.armR.rotation.set(-1.22 + (lead > 0 ? -jab * 0.5 : jab * 0.1), -0.1, -0.48);
-  b.legL.rotation.set(0.1, 0, 0.05);
-  b.legR.rotation.set(0.06, 0, -0.05);
+  const g = 0.55 + (f.guard || 0.5) * 0.45;
+  const bounce = Math.sin((f.phase || 0) * 7.2) * 0.04;
+  b.legL.rotation.set((lead < 0 ? 0.22 : 0.06) + bounce * 0.15, lead * 0.04, 0.08);
+  b.legR.rotation.set((lead > 0 ? 0.22 : 0.06) - bounce * 0.15, -lead * 0.04, -0.08);
+  const jabL = lead < 0 ? jab : jab * 0.2;
+  const jabR = lead > 0 ? jab : jab * 0.2;
+  b.armL.rotation.set(-1.05 * g - jabL * 1.15 - hook * 0.2, 0.18 + hook * 0.5, 0.42 + hook * 0.35);
+  b.armR.rotation.set(-1.05 * g - jabR * 1.15 - hook * 0.55, -0.18 - hook * 0.4, -0.42 - hook * 0.2);
+  if (b.head) b.head.rotation.set(0.06 + (f.stun ? 0.12 : 0), 0, 0);
 }
 
 function resetFighter(f) {
@@ -210,6 +224,9 @@ function resetFighter(f) {
   f.hp = START_HP + ((Math.random() * 3) | 0);
   f.cool = rand(PUNCH_MIN, PUNCH_MAX);
   f.punch = 0;
+  f.punchSpec = null;
+  f.stun = 0;
+  f.guard = 0.8;
   f.acc = 0;
   f.mesh.position.set(f.home.x, 0, f.home.z);
   f.mesh.rotation.set(0, f.home.yaw, 0);
@@ -218,64 +235,121 @@ function resetFighter(f) {
 }
 
 function drop(f, nx, nz, power) {
-  const launch = 3.2 + power * 2.4;
-  placeParts(f, nx * launch, 3.4 + power * 2, nz * launch);
+  const launch = 1.4 + power * 1.6;
+  placeParts(f, nx * launch, 1.8 + power * 1.1, nz * launch);
+  const torso = f.doll.parts[0];
+  const head = f.doll.parts[1];
+  torso.px -= nx * 0.14 * power;
+  torso.pz -= nz * 0.14 * power;
+  torso.py -= 0.05 * power;
+  if (head) {
+    head.px -= nx * 0.18 * power;
+    head.pz -= nz * 0.18 * power;
+    head.py -= 0.08 * power;
+  }
   setMode(f, "ragdoll");
 }
 
-function punchToward(self, opp) {
+function pickPunch() {
+  const r = Math.random();
+  if (r < 0.55) return { kind: "jab", dur: 0.22, dmg: HIT_HP, power: 0.7, reach: 0.18 };
+  if (r < 0.82) return { kind: "cross", dur: 0.34, dmg: HIT_HP * 1.5, power: 1.05, reach: 0.28 };
+  return { kind: "hook", dur: 0.4, dmg: HIT_HP * 1.7, power: 1.2, reach: 0.32 };
+}
+
+function landHit(self, opp, spec) {
   const dx = opp.x - self.x;
   const dz = opp.z - self.z;
   const len = Math.hypot(dx, dz) || 1;
   const nx = dx / len;
   const nz = dz / len;
-  const hay = Math.random() < 0.14;
-  const power = hay ? 1.35 : rand(0.7, 1.05);
-  self.vx += nx * 1.6 * power;
-  self.vz += nz * 1.6 * power;
-  self.punch = 0.16;
-  if (opp.state === "stand") {
-    opp.vx += nx * 2.8 * power;
-    opp.vz += nz * 2.8 * power;
-    opp.hp -= hay ? HIT_HP * 2 : HIT_HP;
-    if (opp.hp <= 0) drop(opp, nx, nz, power);
-  } else {
+  self.vx -= nx * 0.6 * spec.power;
+  self.vz -= nz * 0.6 * spec.power;
+  if (opp.state !== "stand") {
     const t = opp.doll.parts[0];
-    t.px -= nx * 0.1 * power;
-    t.pz -= nz * 0.1 * power;
-    t.py -= 0.03 * power;
+    t.px -= nx * 0.12 * spec.power;
+    t.pz -= nz * 0.12 * spec.power;
+    t.py -= 0.04 * spec.power;
+    return;
   }
+  opp.vx += nx * 2.1 * spec.power;
+  opp.vz += nz * 2.1 * spec.power;
+  opp.stun = STUN + spec.power * 0.12;
+  opp.hp -= spec.dmg;
+  opp.guard = Math.max(0, (opp.guard || 0) - 0.35);
+  if (opp.hp <= 0) drop(opp, nx, nz, spec.power);
 }
 
 function tickStand(f, opp, dt) {
   if (f.mesh.userData.combatDown || f.mesh.visible === false) return;
+  f.phase = (f.phase || 0) + dt;
+  f.stun = Math.max(0, (f.stun || 0) - dt);
   f.cool -= dt;
-  if (f.cool <= 0) {
-    f.cool = rand(PUNCH_MIN, PUNCH_MAX);
-    punchToward(f, opp);
+  f.guard = Math.min(1, (f.guard || 0.7) + dt * 0.25);
+
+  const dx = opp.x - f.x;
+  const dz = opp.z - f.z;
+  const dist = Math.hypot(dx, dz) || 1;
+  const nx = dx / dist;
+  const nz = dz / dist;
+  const tx = f.home.x + (opp.home.x - f.home.x) * 0.12;
+  const tz = f.home.z + (opp.home.z - f.home.z) * 0.12;
+  let wantX = 0;
+  let wantZ = 0;
+  if (dist > RANGE_OUT) {
+    wantX = nx;
+    wantZ = nz;
+  } else if (dist < RANGE_IN) {
+    wantX = -nx;
+    wantZ = -nz;
+  } else {
+    wantX = -nz * (f.lead || 1) * 0.55;
+    wantZ = nx * (f.lead || 1) * 0.55;
   }
-  f.vx += (f.home.x - f.x) * 6 * dt;
-  f.vz += (f.home.z - f.z) * 6 * dt;
-  f.vx *= Math.max(0, 1 - 5.5 * dt);
-  f.vz *= Math.max(0, 1 - 5.5 * dt);
+  wantX += (tx - f.x) * 0.35;
+  wantZ += (tz - f.z) * 0.35;
+  const wl = Math.hypot(wantX, wantZ) || 1;
+  const spd = f.stun > 0 ? 0.4 : 1.55;
+  f.vx += (wantX / wl) * spd * 8 * dt;
+  f.vz += (wantZ / wl) * spd * 8 * dt;
+  f.vx *= Math.max(0, 1 - 7 * dt);
+  f.vz *= Math.max(0, 1 - 7 * dt);
+  const step = Math.hypot(f.vx, f.vz);
+  if (step > 2.4) {
+    f.vx *= 2.4 / step;
+    f.vz *= 2.4 / step;
+  }
   f.x += f.vx * dt;
   f.z += f.vz * dt;
 
   f.mesh.rotation.y = faceYaw(f, opp);
-  let px = f.x;
-  let pz = f.z;
-  let jab = 0;
-  if (f.punch > 0) {
-    f.punch = Math.max(0, f.punch - dt);
-    jab = Math.sin((1 - f.punch / 0.16) * Math.PI);
-    const fx = Math.sin(f.mesh.rotation.y);
-    const fz = Math.cos(f.mesh.rotation.y);
-    px += fx * jab * 0.22;
-    pz += fz * jab * 0.22;
+
+  if (f.stun <= 0 && f.cool <= 0 && dist < RANGE_OUT + 0.15 && dist > RANGE_IN - 0.25) {
+    f.punchSpec = pickPunch();
+    f.punch = f.punchSpec.dur;
+    f.cool = rand(PUNCH_MIN, PUNCH_MAX) + f.punchSpec.dur;
+    f.landed = false;
   }
-  f.mesh.position.set(px, 0, pz);
-  f.mesh.rotation.x = 0;
-  poseStand(f, jab);
+
+  let jab = 0;
+  let hook = 0;
+  if (f.punch > 0 && f.punchSpec) {
+    const dur = f.punchSpec.dur;
+    f.punch = Math.max(0, f.punch - dt);
+    const u = 1 - f.punch / dur;
+    jab = Math.sin(u * Math.PI);
+    if (f.punchSpec.kind === "hook") hook = Math.sin(u * Math.PI);
+    if (!f.landed && u > 0.42 && u < 0.72 && dist < RANGE_OUT + 0.1) {
+      f.landed = true;
+      landHit(f, opp, f.punchSpec);
+    }
+  }
+
+  const bounce = Math.abs(Math.sin(f.phase * 7.2)) * 0.018;
+  f.mesh.position.set(f.x, bounce, f.z);
+  f.mesh.rotation.x = f.stun > 0 ? -0.12 : 0;
+  f.mesh.rotation.z = f.stun > 0 ? 0.08 * (f.lead || 1) : 0;
+  poseBox(f, jab, hook);
 }
 
 function tickRagdoll(f, dt) {
@@ -313,6 +387,11 @@ function makeFighter(scene, x, z, yaw, look, name) {
     hp: START_HP,
     cool: rand(PUNCH_MIN, PUNCH_MAX),
     punch: 0,
+    punchSpec: null,
+    landed: false,
+    stun: 0,
+    guard: 0.8,
+    phase: Math.random() * 6,
     acc: 0,
     lead: Math.random() < 0.5 ? -1 : 1,
     state: "stand",

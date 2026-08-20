@@ -805,6 +805,7 @@ export function attachGadgets(cast, scene) {
         const ax = h.mesh.position.x;
         const az = h.mesh.position.z;
         const { amt, d2 } = nearAmt(ax, az, playerPos, FACE_R);
+        if (h.mesh?.userData?.posing) continue;
         poseHolder(h, t);
         faceScreen(h.yawNode, h.restQuat, playerPos, amt);
         if (h.kind !== "laptop") {

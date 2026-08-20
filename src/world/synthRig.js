@@ -2,7 +2,8 @@
  * Beach synth lad — physical synth + drum machine, 16-step overlay.
  * KeyE (or the unlabeled pad) opens the sequencer; preview bed plays while
  * open (createPatternBed start + setMix 0.4) and mutes when closed.
- * SAVE writes a tape clip.
+ * SAVE/TAKE write a tape clip immediately (onSave callback); grid edits mutate
+ * the live pattern the preview bed reads each step.
  */
 import * as THREE from "three";
 import { ken } from "../chars/npcs.js";
@@ -225,30 +226,46 @@ function el(tag, style, parent) {
   return n;
 }
 
+/** pointerdown+click so SAVE/grid fire with mouse and touch; pointerup is often swallowed. */
+function bindPress(node, fn) {
+  let last = 0;
+  const go = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.stopImmediatePropagation();
+    const now = typeof performance !== "undefined" ? performance.now() : Date.now();
+    if (now - last < 50) return;
+    last = now;
+    fn(e);
+  };
+  node.addEventListener("pointerdown", go);
+  node.addEventListener("click", go);
+}
+
 function installCss() {
   if (typeof document === "undefined") return;
   if (document.getElementById("aus101-seq-css")) return;
   const css = document.createElement("style");
   css.id = "aus101-seq-css";
   css.textContent =
-    "#aus101-seq,#aus101-seq *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}" +
-    "#aus101-seq{position:fixed;z-index:16;left:50%;bottom:max(18px,calc(env(safe-area-inset-bottom,0px) + 8px));" +
+    "#aus101-seq,#aus101-seq *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation}" +
+    "#aus101-seq{position:fixed;z-index:24;left:50%;bottom:max(18px,calc(env(safe-area-inset-bottom,0px) + 8px));" +
     "transform:translateX(-50%);display:none;pointer-events:auto;padding:8px 8px 7px;" +
     "background:rgba(11,18,16,.78);border:1px solid rgba(251,246,234,.22);border-radius:10px;" +
     "box-shadow:0 8px 28px rgba(0,0,0,.35);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}" +
     "#aus101-seq .grid{display:grid;grid-template-columns:10px repeat(16,14px);gap:3px;align-items:center}" +
     "#aus101-seq .sw{width:8px;height:8px;border-radius:2px}" +
     "#aus101-seq button.st{width:14px;height:14px;padding:0;margin:0;border:0;border-radius:2px;" +
-    "background:rgba(251,246,234,.12);cursor:pointer}" +
+    "background:rgba(251,246,234,.12);cursor:pointer;pointer-events:auto;touch-action:manipulation}" +
     "#aus101-seq button.st[data-on='1']{background:var(--c,#ffd76a)}" +
     "#aus101-seq button.st[data-now='1']{box-shadow:inset 0 0 0 1px #fff}" +
     "#aus101-seq .row{display:flex;gap:6px;justify-content:flex-end;margin-top:6px}" +
     "#aus101-seq .act{min-width:44px;height:22px;border:1px solid rgba(251,246,234,.28);border-radius:11px;" +
     "background:rgba(12,18,16,.5);color:#fbf6ea;font:600 10px/1 system-ui,sans-serif;letter-spacing:.04em;" +
-    "padding:0 8px;cursor:pointer}" +
-    "#aus101-seq-pad{position:fixed;z-index:15;left:50%;bottom:max(20px,calc(env(safe-area-inset-bottom,0px) + 10px));" +
+    "padding:0 8px;cursor:pointer;pointer-events:auto;touch-action:manipulation}" +
+    "#aus101-seq-pad{position:fixed;z-index:24;left:50%;bottom:max(20px,calc(env(safe-area-inset-bottom,0px) + 10px));" +
     "transform:translateX(-50%);width:68px;height:68px;border-radius:50%;display:none;pointer-events:auto;" +
-    "background:rgba(12,18,16,.4);border:1px solid rgba(251,246,234,.28);" +
+    "touch-action:manipulation;background:rgba(12,18,16,.4);border:1px solid rgba(251,246,234,.28);" +
     "box-shadow:0 4px 18px rgba(0,0,0,.28);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}" +
     "#aus101-seq-pad:active{background:rgba(255,215,106,.28)}";
   document.head.appendChild(css);
@@ -275,6 +292,7 @@ function mountUi(onToggle, onSave, onTake, onOpen) {
       b.style.setProperty("--c", PAD_COLS[ti]);
       b.dataset.tr = tr;
       b.dataset.s = String(s);
+      bindPress(b, () => onToggle(tr, s));
       row.push(b);
     }
     cells[tr] = row;
@@ -290,41 +308,24 @@ function mountUi(onToggle, onSave, onTake, onOpen) {
   take.className = "act";
   take.type = "button";
   take.textContent = "TAKE";
-  save.addEventListener("pointerup", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    onSave();
-  });
-  take.addEventListener("pointerup", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    onTake();
-  });
-  grid.addEventListener("pointerup", (e) => {
-    const t = e.target;
-    if (!(t instanceof HTMLElement) || !t.classList.contains("st")) return;
-    e.preventDefault();
-    e.stopPropagation();
-    onToggle(t.dataset.tr, parseInt(t.dataset.s, 10));
-  });
+  bindPress(save, () => onSave());
+  bindPress(take, () => onTake());
 
   pad = el("div", null, document.body);
   pad.id = "aus101-seq-pad";
   pad.title = "KeyE — open sequencer";
   pad.setAttribute("aria-label", "KeyE — open sequencer");
-  pad.addEventListener("pointerup", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    onOpen();
-  });
+  bindPress(pad, () => onOpen());
   return { root, pad, cells };
 }
 
 /**
  * @param {import("three").Scene} scene
+ * @param {{ onSave?: (pattern: object) => void }} [opts]
  * @returns {{ tick: (t:number) => void, position: import("three").Vector3, tryInteract: Function, pattern: object }}
  */
-export function spawnSynthRig(scene) {
+export function spawnSynthRig(scene, opts = {}) {
+  const onSaveTape = typeof opts.onSave === "function" ? opts.onSave : null;
   const root = new THREE.Group();
   root.name = "synth-rig";
   root.position.set(15.6, 0, 4.2);
@@ -401,6 +402,8 @@ export function spawnSynthRig(scene) {
     if (ctx.state === "suspended") ctx.resume();
     if (!preview) {
       preview = createPatternBed(ctx, ctx.destination, pattern, { peak: 0.48 });
+    } else {
+      preview.setPattern(pattern);
     }
     preview.setMix(0.4, 0.06);
     preview.start();
@@ -409,6 +412,25 @@ export function spawnSynthRig(scene) {
   function stopPreview() {
     preview?.setMix(0, 0.08);
     preview?.stop();
+  }
+
+  function commitTape(kind, latch) {
+    loose.visible = kind !== "take";
+    const snap = clonePattern(pattern);
+    if (onSaveTape) onSaveTape(snap);
+    else if (latch) pending = kind;
+    return kind;
+  }
+
+  function syncGear(t) {
+    const step = preview?.running ? preview.step : (t * 3.1) & 15;
+    const pads = gear.userData.pads;
+    for (let i = 0; i < pads.length; i++) {
+      const tr = TRACKS[i];
+      const hit = !!(open && tr && pattern[tr]?.[step]);
+      pads[i].mat.emissive.setHex(hit ? NOTES_GLOW[i % 4] : 0x000000);
+    }
+    if (open) paintPlayhead(step);
   }
 
   function setOpen(v) {
@@ -436,17 +458,15 @@ export function spawnSynthRig(scene) {
     typeof document !== "undefined"
       ? mountUi(
           (tr, s) => {
-            if (!pattern[tr]) return;
+            if (!pattern[tr] || s < 0 || s > 15) return;
             pattern[tr][s] = pattern[tr][s] ? 0 : 1;
             paintGrid();
           },
           () => {
-            pending = "save";
-            loose.visible = true;
+            commitTape("save", true);
           },
           () => {
-            pending = "take";
-            loose.visible = false;
+            commitTape("take", true);
           },
           () => {
             pending = "open";
@@ -473,6 +493,13 @@ export function spawnSynthRig(scene) {
     prevEnter = enterDown;
     prevT = tDown;
 
+    let act = null;
+    if (pending) {
+      act = pending;
+      pending = null;
+    }
+    if (act === "save" || act === "take") return act;
+
     if (!inRange) {
       if (open) setOpen(false);
       showPad(false);
@@ -481,11 +508,6 @@ export function spawnSynthRig(scene) {
     }
 
     showPad(!open);
-    let act = null;
-    if (pending) {
-      act = pending;
-      pending = null;
-    }
 
     if (eEdge) {
       if (!open) {
@@ -496,18 +518,17 @@ export function spawnSynthRig(scene) {
       return null;
     }
     if (open && enterEdge) {
-      loose.visible = true;
-      return "save";
+      const kind = commitTape("save", false);
+      return onSaveTape ? null : kind;
     }
     if (open && tEdge) {
-      loose.visible = false;
-      return "take";
+      const kind = commitTape("take", false);
+      return onSaveTape ? null : kind;
     }
     if (act === "open") {
       setOpen(true);
       return "open";
     }
-    if (act === "save" || act === "take") return act;
     return null;
   }
 
@@ -515,13 +536,7 @@ export function spawnSynthRig(scene) {
     isOpen: () => open,
     tick(t) {
       if (lad.userData.combatDown || lad.visible === false || lad.userData.flee) {
-        const step = preview?.running ? preview.step : (t * 3.1) & 15;
-        const pads = gear.userData.pads;
-        for (let i = 0; i < pads.length; i++) {
-          const on = open && (step & 7) === i;
-          pads[i].mat.emissive.setHex(on ? NOTES_GLOW[i % 4] : 0x000000);
-        }
-        if (open) paintPlayhead(preview?.step ?? 0);
+        syncGear(t);
         return;
       }
       lad.rotation.y = Math.sin(t * 0.7) * 0.05;
@@ -543,16 +558,11 @@ export function spawnSynthRig(scene) {
         body.head.rotation.z = Math.sin(t * 0.9) * 0.06;
       }
       const step = preview?.running ? preview.step : (t * 3.1) & 15;
-      const pads = gear.userData.pads;
-      for (let i = 0; i < pads.length; i++) {
-        const on = open && (step & 7) === i;
-        pads[i].mat.emissive.setHex(on ? NOTES_GLOW[i % 4] : 0x000000);
-      }
       const keys = gear.userData.keys;
       for (let i = 0; i < keys.length; i++) {
         keys[i].position.y = gear.userData.keyY - (open && step % keys.length === i ? 0.006 : 0);
       }
-      if (open) paintPlayhead(preview?.step ?? 0);
+      syncGear(t);
     },
     lad,
     position: root.position,

@@ -174,7 +174,8 @@ function tone(ctx, dest, t, midi) {
 }
 
 /**
- * Live-reading 16-step bed. `pattern` is mutated in place by the sequencer.
+ * Live-reading 16-step bed. Holds the caller's pattern object (no row clone);
+ * each pulse reads the same arrays, so sequencer toggles hit on the next 16th.
  * @returns {{ start: Function, setMix: Function, stop: Function, running: boolean, step: number }}
  */
 export function createPatternBed(ctx, dest, pattern, opts = {}) {
@@ -195,22 +196,24 @@ export function createPatternBed(ctx, dest, pattern, opts = {}) {
   let nextT = 0;
   let stepI = 0;
   let mix = 0;
+  let live = pattern;
 
   function pulse(t, i) {
     const e = i & 15;
-    const p = pattern || {};
-    if (p.kick?.[e]) kick(ctx, kickBus, t);
-    if (p.hat?.[e]) hat(ctx, hatBus, nbuf, t, e === 6 || e === 14);
-    if (p.snare?.[e]) snare(ctx, snareBus, nbuf, t);
-    if (p.n0?.[e]) tone(ctx, synBus, t, NOTES[0]);
-    if (p.n1?.[e]) tone(ctx, synBus, t, NOTES[1]);
-    if (p.n2?.[e]) tone(ctx, synBus, t, NOTES[2]);
-    if (p.n3?.[e]) tone(ctx, synBus, t, NOTES[3]);
+    const p = live;
+    if (!p) return;
+    if (p.kick && p.kick[e]) kick(ctx, kickBus, t);
+    if (p.hat && p.hat[e]) hat(ctx, hatBus, nbuf, t, e === 6 || e === 14);
+    if (p.snare && p.snare[e]) snare(ctx, snareBus, nbuf, t);
+    if (p.n0 && p.n0[e]) tone(ctx, synBus, t, NOTES[0]);
+    if (p.n1 && p.n1[e]) tone(ctx, synBus, t, NOTES[1]);
+    if (p.n2 && p.n2[e]) tone(ctx, synBus, t, NOTES[2]);
+    if (p.n3 && p.n3[e]) tone(ctx, synBus, t, NOTES[3]);
   }
 
   function clock() {
     if (!running) return;
-    const step = 15 / (pattern?.bpm || 118);
+    const step = 15 / (live?.bpm || 118);
     const hor = ctx.currentTime + 0.12;
     while (nextT < hor) {
       pulse(nextT, stepI++);
@@ -226,6 +229,13 @@ export function createPatternBed(ctx, dest, pattern, opts = {}) {
     },
     get step() {
       return stepI & 15;
+    },
+    get pattern() {
+      return live;
+    },
+    /** Swap the live object. Does not clone rows. */
+    setPattern(p) {
+      if (p) live = p;
     },
     start() {
       if (ctx.state === "suspended") ctx.resume();
@@ -328,6 +338,7 @@ export function createTapeSystem({ getBoomPos, getDjPos, ctx } = {}) {
     hasTape = true;
     api.hasTape = true;
     paintPip();
+    if (inserted) bootInner(clip);
     return clip;
   }
 

@@ -12,8 +12,15 @@ const DOOR = { x: -15.9, z: 17.6 };
 const INSIDE = { x: -15.9, z: 15.5 };
 
 const MANTRAS = ["mantra_01", "mantra_02", "mantra_03", "mantra_04", "mantra_05", "mantra_06"];
+const BROTHA = ["cop_brotha_01", "cop_brotha_02", "cop_brotha_03"];
+const SENSEI = ["cop_sensei_01", "cop_sensei_02", "cop_sensei_03"];
 const SILENCE = 1.65;
 const GAP = 0.22;
+const RING = 1.4;
+const STEP_IN = 0.78;
+const SLAP_DUR = 0.48;
+const SLAP_HIT = 0.5;
+const BEATS_MAX = 6;
 
 function listCops(cops) {
   if (!cops) return [];
@@ -78,8 +85,15 @@ export function createArrest({ player, play, sfx, onReprogram, onTakeGun, hideGu
   let path = null;
   let pathLen = 1;
   let mantraI = 0;
+  let brothaI = 0;
+  let senseiI = 0;
   let mantraWait = 0;
   let mantraBusy = false;
+  let roster = [];
+  let beatI = 0;
+  let beatPhase = "idle"; // idle | form | stepin | slap | talk | legacy
+  let beatT = 0;
+  let slapped = false;
 
   function squad() {
     return listCops(cops);
@@ -100,13 +114,64 @@ export function createArrest({ player, play, sfx, onReprogram, onTakeGun, hideGu
     }
   }
 
+  function placeCop(c, r) {
+    const list = squad();
+    const i = Math.max(0, list.indexOf(c));
+    const n = Math.max(1, list.length);
+    const ang = (i / n) * Math.PI * 2 + 0.4;
+    c.offX = Math.cos(ang) * r;
+    c.offZ = Math.sin(ang) * r;
+    c.tx = JACK.x + c.offX;
+    c.tz = JACK.z + c.offZ;
+  }
+
+  function voiceSet(c) {
+    return c.voiceSet || c.root?.userData?.voiceSet || "default";
+  }
+
+  function pickLine(c) {
+    const set = voiceSet(c);
+    if (set === "brotha") {
+      const id = BROTHA[brothaI % BROTHA.length];
+      brothaI += 1;
+      return id;
+    }
+    if (set === "sensei") {
+      const id = SENSEI[senseiI % SENSEI.length];
+      senseiI += 1;
+      return id;
+    }
+    const id = MANTRAS[mantraI % MANTRAS.length];
+    mantraI += 1;
+    return id;
+  }
+
+  function ringReady() {
+    for (const c of roster) {
+      const d = Math.hypot((c.tx ?? 0) - c.x, (c.tz ?? 0) - c.z);
+      if (d > 0.55) return false;
+    }
+    return true;
+  }
+
+  function resetBeats() {
+    mantraI = 0;
+    brothaI = 0;
+    senseiI = 0;
+    mantraWait = 0;
+    mantraBusy = false;
+    roster = [];
+    beatI = 0;
+    beatPhase = "idle";
+    beatT = 0;
+    slapped = false;
+  }
+
   function begin() {
     if (phase !== "idle" && phase !== "done") return;
     phase = "grab";
     t = 0;
-    mantraI = 0;
-    mantraWait = 0;
-    mantraBusy = false;
+    resetBeats();
     path = null;
     setDuty("escort", { offR: 0.9 });
     try {
@@ -136,6 +201,7 @@ export function createArrest({ player, play, sfx, onReprogram, onTakeGun, hideGu
     }
 
     const list = squad();
+    for (const c of list) c.slapT = 0;
     const hide = HIDES[(Math.random() * HIDES.length) | 0];
     const carrier = list[0] || null;
     if (carrier) {
@@ -176,14 +242,9 @@ export function createArrest({ player, play, sfx, onReprogram, onTakeGun, hideGu
     t = 0;
   }
 
-  function kickMantra() {
-    if (mantraI >= MANTRAS.length) {
-      finishClean();
-      return;
-    }
+  function speakLine(id) {
     if (mantraBusy) return;
     mantraBusy = true;
-    const id = MANTRAS[mantraI];
     let handle = null;
     try {
       handle = play?.(id);
@@ -193,7 +254,6 @@ export function createArrest({ player, play, sfx, onReprogram, onTakeGun, hideGu
     const settle = (secs) => {
       mantraWait = secs;
       mantraBusy = false;
-      mantraI += 1;
     };
     if (!handle?.ready) {
       settle(SILENCE);
@@ -205,6 +265,48 @@ export function createArrest({ player, play, sfx, onReprogram, onTakeGun, hideGu
         settle(ok ? d : SILENCE);
       })
       .catch(() => settle(SILENCE));
+  }
+
+  function kickMantra() {
+    if (mantraI >= MANTRAS.length) {
+      finishClean();
+      return;
+    }
+    const id = MANTRAS[mantraI];
+    mantraI += 1;
+    speakLine(id);
+  }
+
+  function startJackBeats() {
+    roster = squad()
+      .filter((c) => c.duty !== "stash")
+      .slice(0, BEATS_MAX);
+    beatI = 0;
+    beatT = 0;
+    slapped = false;
+    mantraBusy = false;
+    mantraWait = 0;
+    mantraI = 0;
+    brothaI = 0;
+    senseiI = 0;
+    if (roster.length === 0) {
+      beatPhase = "legacy";
+      return;
+    }
+    beatPhase = "form";
+  }
+
+  function kickBeat() {
+    if (beatI >= roster.length) {
+      finishClean();
+      return;
+    }
+    const cop = roster[beatI];
+    placeCop(cop, STEP_IN);
+    cop.slapT = 0;
+    slapped = false;
+    beatPhase = "stepin";
+    beatT = 0;
   }
 
   function tick(dt) {
@@ -233,13 +335,11 @@ export function createArrest({ player, play, sfx, onReprogram, onTakeGun, hideGu
       if (u >= 1) {
         phase = "jack";
         t = 0;
-        mantraI = 0;
-        mantraWait = 0;
-        mantraBusy = false;
         player.pos.x = JACK.x;
         player.pos.z = JACK.z;
         player.yaw = 0;
-        setDuty("hold", { tx: JACK.x, tz: JACK.z, offR: 1.35 });
+        setDuty("hold", { tx: JACK.x, tz: JACK.z, offR: RING });
+        startJackBeats();
         sfx?.radioChatter?.();
       }
       return;
@@ -248,8 +348,60 @@ export function createArrest({ player, play, sfx, onReprogram, onTakeGun, hideGu
       player.pos.x = JACK.x;
       player.pos.z = JACK.z;
       player.vel.set(0, 0, 0);
-      mantraWait -= dt;
-      if (mantraWait <= 0 && !mantraBusy) kickMantra();
+      player.pitch += (-0.05 - player.pitch) * Math.min(1, dt * 2.6);
+
+      if (beatPhase === "legacy") {
+        mantraWait -= dt;
+        if (mantraWait <= 0 && !mantraBusy) kickMantra();
+        return;
+      }
+      if (beatPhase === "form") {
+        beatT += dt;
+        if ((ringReady() && beatT > 0.18) || beatT > 1.6) kickBeat();
+        return;
+      }
+      if (beatPhase === "stepin") {
+        beatT += dt;
+        const cop = roster[beatI];
+        const d = Math.hypot((cop.tx ?? 0) - cop.x, (cop.tz ?? 0) - cop.z);
+        if (d < 0.28 || beatT > 1.1) {
+          beatPhase = "slap";
+          beatT = 0;
+          slapped = false;
+        }
+        return;
+      }
+      if (beatPhase === "slap") {
+        beatT += dt;
+        const cop = roster[beatI];
+        const u = Math.min(1, beatT / SLAP_DUR);
+        cop.slapT = u;
+        if (!slapped && u >= SLAP_HIT) {
+          slapped = true;
+          try {
+            sfx?.slapFace?.();
+          } catch {
+            /* optional */
+          }
+          player.pitch = Math.min(0.55, player.pitch + 0.26);
+        }
+        if (u >= 1) {
+          cop.slapT = 0;
+          placeCop(cop, RING);
+          beatPhase = "talk";
+          mantraWait = 0;
+          speakLine(pickLine(cop));
+        }
+        return;
+      }
+      if (beatPhase === "talk") {
+        mantraWait -= dt;
+        if (mantraWait <= 0 && !mantraBusy) {
+          beatI += 1;
+          beatPhase = "form";
+          beatT = 0.08;
+        }
+      }
     }
   }
 
@@ -261,6 +413,11 @@ export function createArrest({ player, play, sfx, onReprogram, onTakeGun, hideGu
     },
     get phase() {
       return phase;
+    },
+    get stepSpeed() {
+      if (phase === "drag") return 1.15;
+      if (phase === "grab") return 0.55;
+      return 0;
     },
   };
 }

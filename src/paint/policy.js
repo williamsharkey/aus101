@@ -15,7 +15,7 @@ export const WEIGHTS = {
   /** Remix only if mean dE of the next cluster is worse than this. */
   remix: 48,
   cluster: 6,
-  /** ~40% of a ~180-mark sitting is fat blocking-in. */
+  /** Fat blocking-in for the first ~72 marks; the rest of a ~360 sitting is thin detail. */
   blockIn: 72,
 };
 
@@ -69,11 +69,11 @@ export function chooseAction(studio, patches, paints = studio.stats.strokes) {
   const mean = meanTarget(next);
   const span = regionSize(next);
   const meanErr = clusterMeanErr(next);
-  // Blocking-in: first ~40% of marks, or until mean error drops. Then thin dots.
+  // Blocking-in: first ~72 marks, or until mean error drops. Then a long thin-dot phase.
   const blocking = paints < WEIGHTS.blockIn && meanErr > 28;
   const wantFat = blocking
     ? span > 0.08 || next[0].err > 22
-    : span > 0.28 && next[0].err > 50 && paints < 100;
+    : span > 0.28 && next[0].err > 50 && paints < 140;
   const wantId = blocking ? "fat" : "thin";
   const kind = blocking || wantFat ? "dash" : "dot";
   const brush = studio.brush;

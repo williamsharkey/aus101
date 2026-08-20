@@ -43,6 +43,26 @@ const MAT = {
   badge: std(0xd8b23a, { roughness: 0.35, metalness: 0.7 }),
 };
 
+/** Squad looks. First two seats are always brotha + sensei when 2+ cops spawn. */
+const COP_LOOKS = {
+  tan: { skin: 0xc9a07a, hair: 0x3a2818, scale: 1, voiceSet: "default", hairH: 0.04 },
+  brotha: { skin: 0x4a2c1c, hair: 0x140c08, scale: 1, voiceSet: "brotha", hairH: 0.075 },
+  sensei: { skin: 0xf0d5b8, hair: 0x1a1210, scale: 0.88, voiceSet: "sensei", hairH: 0.032 },
+};
+
+function pickCopLook(existing) {
+  let hasBrotha = false;
+  let hasSensei = false;
+  for (const c of existing) {
+    const v = c.voiceSet || c.root?.userData?.voiceSet;
+    if (v === "brotha") hasBrotha = true;
+    else if (v === "sensei") hasSensei = true;
+  }
+  if (!hasBrotha) return "brotha";
+  if (!hasSensei) return "sensei";
+  return "tan";
+}
+
 function part(mat, sx, sy, sz, geo = GEO.box) {
   const m = new THREE.Mesh(geo, mat);
   m.castShadow = true;
@@ -61,9 +81,14 @@ function away(from, pos, out) {
 /**
  * Beach-patrol cop. Origin at the soles, faces +Z, ~1.8 m.
  * `userData.rig` holds the joints `poseCop` drives.
+ * @param {keyof typeof COP_LOOKS} [lookName]
  * @returns {THREE.Group}
  */
-function makeCop() {
+function makeCop(lookName = "tan") {
+  const look = COP_LOOKS[lookName] || COP_LOOKS.tan;
+  const skinM = lookName === "tan" ? MAT.skin : std(look.skin, { roughness: 0.66 });
+  const hairM = std(look.hair, { roughness: 0.88 });
+
   const g = new THREE.Group();
   g.name = "panic-cop";
 
@@ -148,10 +173,10 @@ function makeCop() {
     foreGrp.position.y = -upperH;
     const elbow = part(MAT.navy, 0.052, 0.052, 0.052, GEO.sphere);
     foreGrp.add(elbow);
-    const fore = part(MAT.skin, 0.07, foreH, 0.07, GEO.cyl);
+    const fore = part(skinM, 0.07, foreH, 0.07, GEO.cyl);
     fore.position.y = -foreH * 0.5;
     foreGrp.add(fore);
-    const hand = part(MAT.skin, 0.075, 0.1, 0.06);
+    const hand = part(skinM, 0.075, 0.1, 0.06);
     hand.position.y = -foreH - 0.05;
     foreGrp.add(hand);
 
@@ -160,17 +185,20 @@ function makeCop() {
     arms.push({ arm, fore: foreGrp });
   }
 
-  const neck = part(MAT.skin, 0.05, 0.09, 0.05, GEO.cyl);
+  const neck = part(skinM, 0.05, 0.09, 0.05, GEO.cyl);
   neck.position.y = 0.58;
   torso.add(neck);
 
   const head = new THREE.Group();
   head.position.y = 0.72;
-  const skull = part(MAT.skin, 0.115, 0.13, 0.12, GEO.sphere);
+  const skull = part(skinM, 0.115, 0.13, 0.12, GEO.sphere);
   head.add(skull);
-  const jaw = part(MAT.skin, 0.1, 0.06, 0.11);
+  const jaw = part(skinM, 0.1, 0.06, 0.11);
   jaw.position.set(0, -0.07, 0.02);
   head.add(jaw);
+  const hair = part(hairM, 0.128, look.hairH, 0.132, GEO.sphere);
+  hair.position.y = 0.06;
+  head.add(hair);
   const cap = part(MAT.navyDark, 0.135, 0.055, 0.135, GEO.cyl);
   cap.position.y = 0.09;
   head.add(cap);
@@ -199,6 +227,9 @@ function makeCop() {
     hipY,
   };
   g.userData.kind = "cop";
+  g.userData.voiceSet = look.voiceSet;
+  g.userData.look = lookName;
+  if (look.scale !== 1) g.scale.setScalar(look.scale);
   poseCop(g, { walkPhase: 0, speed: 0 });
   return g;
 }
@@ -206,10 +237,11 @@ function makeCop() {
 /**
  * Contra-lateral gait. `speed` 0 idles, ≥6 reads as a run.
  * Limbs hang down −Y and the body faces +Z, so forward swing is −rotation.x.
+ * `slapT` 0..1: right-hand wind-up then palm to the face (~contact 0.5).
  * @param {THREE.Group} rig
- * @param {{ walkPhase?: number, speed?: number, reach?: number }} state
+ * @param {{ walkPhase?: number, speed?: number, reach?: number, slapT?: number }} state
  */
-function poseCop(rig, { walkPhase = 0, speed = 0, reach = 0 } = {}) {
+function poseCop(rig, { walkPhase = 0, speed = 0, reach = 0, slapT = 0 } = {}) {
   const r = rig?.userData?.rig;
   if (!r) return;
   const amp = Math.min(1, Math.max(0, speed) / 5.2);
@@ -233,11 +265,35 @@ function poseCop(rig, { walkPhase = 0, speed = 0, reach = 0 } = {}) {
   // `reach` folds the swing into a two-handed grab: arms out, elbows still bent.
   r.armL.rotation.x = swing * armSwing * (1 - reach) + 0.05 - reach * 0.95;
   r.armR.rotation.x = -swing * armSwing * (1 - reach) + 0.05 - reach * 0.95;
+  r.armL.rotation.y = 0;
+  r.armR.rotation.y = 0;
   r.armL.rotation.z = -0.08 - reach * 0.26;
   r.armR.rotation.z = 0.08 + reach * 0.26;
   r.foreL.rotation.x = -0.5 - run * 0.55 - Math.max(0, swing) * 0.3 * (1 - reach) + reach * 0.12;
   r.foreR.rotation.x = -0.5 - run * 0.55 - Math.max(0, -swing) * 0.3 * (1 - reach) + reach * 0.12;
   r.head.rotation.x = -run * 0.1;
+
+  const slap = Math.min(1, Math.max(0, slapT));
+  if (slap <= 0) return;
+  let wind = 0;
+  let hit = 0;
+  if (slap < 0.42) {
+    wind = slap / 0.42;
+  } else if (slap < 0.58) {
+    const u = (slap - 0.42) / 0.16;
+    wind = 1 - u;
+    hit = u;
+  } else {
+    hit = Math.max(0, 1 - (slap - 0.58) / 0.42);
+  }
+  const w = wind * wind * (3 - 2 * wind);
+  const h = hit * hit * (3 - 2 * hit);
+  r.armR.rotation.x = 0.55 * w - 1.55 * h;
+  r.armR.rotation.y = -0.18 * w - 0.55 * h;
+  r.armR.rotation.z = 0.12 + 0.28 * h;
+  r.foreR.rotation.x = -1.05 * w - 0.12 * h;
+  r.torso.rotation.y = r.torso.rotation.y - 0.22 * h + 0.08 * w;
+  r.head.rotation.x = -0.06 * h;
 }
 
 /** Swing a fleeing civilian's limbs — npcs.js exposes armL/armR/legL/legR groups. */
@@ -300,7 +356,8 @@ export function createPanic({ scene, cast = [], play, colliders } = {}) {
   function addCops(n, from) {
     const room = Math.min(n, COP_MAX - cops.length);
     for (let i = 0; i < room; i++) {
-      const root = makeCop();
+      const lookName = pickCopLook(cops);
+      const root = makeCop(lookName);
       const a = ((cops.length + i) / COP_MAX) * Math.PI * 2 + 0.4 + Math.random() * 0.3;
       const rad = COP_RING + Math.random() * 5;
       const x = from.x + Math.cos(a) * rad;
@@ -314,6 +371,8 @@ export function createPanic({ scene, cast = [], play, colliders } = {}) {
         phase: Math.random() * Math.PI * 2,
         speed: COP_SPEED * (0.88 + Math.random() * 0.2),
         reach: 0,
+        slapT: 0,
+        voiceSet: root.userData.voiceSet,
         duty: hunt ? "chase" : "home",
         tx: HOME.x,
         tz: HOME.z,
@@ -431,9 +490,13 @@ export function createPanic({ scene, cast = [], play, colliders } = {}) {
       const dx = tx - c.x;
       const dz = tz - c.z;
       const d = Math.hypot(dx, dz) || 1;
-      want = d > 0.4 ? (duty === "stash" ? COP_WALK * 1.45 : COP_WALK) : 0;
+      want = d > (duty === "hold" ? 0.16 : 0.4) ? (duty === "stash" ? COP_WALK * 1.45 : COP_WALK) : 0;
       faceX = dx;
       faceZ = dz;
+      if (duty === "hold" && playerPos && d < 0.85) {
+        faceX = playerPos.x - c.x;
+        faceZ = playerPos.z - c.z;
+      }
       if (d < 0.45) {
         const fn = c.onArrive;
         if (fn) {
@@ -477,7 +540,7 @@ export function createPanic({ scene, cast = [], play, colliders } = {}) {
     c.phase += h * (2.2 + want * 1.15);
     c.root.position.set(c.x, 0, c.z);
     if (Math.hypot(faceX, faceZ) > 0.05) c.root.rotation.y = Math.atan2(faceX, faceZ);
-    poseCop(c.root, { walkPhase: c.phase, speed: want, reach: c.reach });
+    poseCop(c.root, { walkPhase: c.phase, speed: want, reach: c.reach, slapT: c.slapT || 0 });
   }
 
   function tick(dt, playerPos) {

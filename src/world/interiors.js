@@ -27,6 +27,7 @@ import {
   metalRoofTex,
   makeSignPlane,
 } from "./coconutsHelpers.js";
+import { buildWisdomHouse } from "./wisdomHouse.js";
 
 /** Player radius from `createPlayer`. Doors are sized against this. */
 const PLAYER_R = 0.34;
@@ -892,7 +893,7 @@ export function spawnInteriors(scene, colliders) {
     if (!softCam) blockers.push({ minX, maxX, minZ, maxZ, y0: y0 ?? 0, y1: y1 ?? 3.2 });
   };
 
-  const buildings = [buildSurfClub(reg), buildShadeShack(reg), buildChangeRooms(reg)];
+  const buildings = [buildSurfClub(reg), buildShadeShack(reg), buildChangeRooms(reg), buildWisdomHouse(reg)];
   for (const b of buildings) scene.add(b.group);
 
   // Roofs occlude the camera from above too — one flat blocker per building.

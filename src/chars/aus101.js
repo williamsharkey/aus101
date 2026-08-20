@@ -97,10 +97,11 @@ export function createAus101() {
 
 /**
  * Delegates to the shared endoskeleton pose. `walkPhase` in radians, `speed`
- * in m/s (~0 holds idle). The combat channels are optional and pass through.
+ * in m/s (~0 holds idle). Combat and lotion-aim channels pass through.
  * @param {THREE.Group} rig
  * @param {{ walkPhase?: number, speed?: number, punchT?: number, laserT?: number,
- *           aimYaw?: number, aimPitch?: number }} [state]
+ *           aimYaw?: number, aimPitch?: number,
+ *           lotionAim?: { x: number, y: number, z: number }, applyT?: number }} [state]
  */
 export function poseAus101(rig, state = {}) {
   poseT101(rig, state);

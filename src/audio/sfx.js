@@ -20,6 +20,8 @@ export class SfxBank {
     this.master = null;
     this.cache = new Map();
     this._i = 0;
+    this._whoopAt = 0;
+    this._chatAt = 0;
   }
 
   async unlock() {
@@ -108,15 +110,102 @@ export class SfxBank {
     this._beep({ freq: 420, dur: 0.18, type: "square", gain: 0.08, slide: -200 });
   }
 
-  radioChatter() {
-    this._beep({ freq: 780, dur: 0.07, type: "square", gain: 0.06 });
-    setTimeout(() => this._beep({ freq: 520, dur: 0.09, type: "square", gain: 0.05 }), 90);
-    setTimeout(() => this._beep({ freq: 910, dur: 0.05, type: "square", gain: 0.04 }), 200);
+  async _noiseBurst({ dur = 0.1, gain = 0.04, freq = 800, type = "bandpass", Q = 2.4, rate = 1 } = {}) {
+    await this.unlock();
+    const t = this.ctx.currentTime;
+    const n = Math.max(32, Math.floor(this.ctx.sampleRate * dur));
+    const buf = this.ctx.createBuffer(1, n, this.ctx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 1.7);
+    const src = this.ctx.createBufferSource();
+    src.buffer = buf;
+    src.playbackRate.value = rate;
+    const filt = this.ctx.createBiquadFilter();
+    filt.type = type;
+    filt.frequency.setValueAtTime(freq, t);
+    filt.Q.value = Q;
+    const g = this.ctx.createGain();
+    g.gain.setValueAtTime(Math.max(0.0001, gain), t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    src.connect(filt);
+    filt.connect(g);
+    g.connect(this.master);
+    src.start(t);
   }
 
+  async _thump() {
+    await this.unlock();
+    const t = this.ctx.currentTime;
+    const o = this.ctx.createOscillator();
+    o.type = "sine";
+    o.frequency.setValueAtTime(170 + Math.random() * 50, t);
+    o.frequency.exponentialRampToValueAtTime(62, t + 0.09);
+    const g = this.ctx.createGain();
+    g.gain.setValueAtTime(0.22, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.12);
+    o.connect(g);
+    g.connect(this.master);
+    o.start(t);
+    o.stop(t + 0.14);
+  }
+
+  /** Short radio squelch — randomized, never a held tone. */
+  radioChatter() {
+    const now = typeof performance !== "undefined" ? performance.now() : 0;
+    if (now && now - this._chatAt < 420) return;
+    this._chatAt = now;
+    const hiss = 1600 + Math.random() * 1100;
+    const click = 420 + Math.random() * 260;
+    this._noiseBurst({
+      dur: 0.045 + Math.random() * 0.03,
+      gain: 0.032,
+      freq: hiss,
+      type: "highpass",
+      Q: 0.65,
+      rate: 0.9 + Math.random() * 0.3,
+    });
+    setTimeout(() => {
+      this._noiseBurst({
+        dur: 0.06 + Math.random() * 0.04,
+        gain: 0.024,
+        freq: click,
+        type: "bandpass",
+        Q: 2.8 + Math.random(),
+      });
+    }, 30 + Math.random() * 55);
+  }
+
+  /** Filtered-noise whoop. One chirp pair, then silence. */
   copWhoop() {
-    this._beep({ freq: 620, dur: 0.35, type: "sine", gain: 0.11, slide: 280 });
-    setTimeout(() => this._beep({ freq: 880, dur: 0.28, type: "sine", gain: 0.09, slide: -220 }), 320);
+    const now = typeof performance !== "undefined" ? performance.now() : 0;
+    if (now && now - this._whoopAt < 480) return;
+    this._whoopAt = now;
+    const base = 480 + Math.random() * 220;
+    const rate = 0.85 + Math.random() * 0.35;
+    this._noiseBurst({
+      dur: 0.16,
+      gain: 0.038,
+      freq: base,
+      type: "bandpass",
+      Q: 3.6,
+      rate,
+    });
+    setTimeout(() => {
+      this._noiseBurst({
+        dur: 0.12,
+        gain: 0.028,
+        freq: base * (1.2 + Math.random() * 0.25),
+        type: "bandpass",
+        Q: 3.1,
+        rate: rate * 1.05,
+      });
+    }, 140 + Math.random() * 80);
+  }
+
+  /** Palm-to-face. Lotion slap mp3s, quieter, pitched; osc thump if the file misses. */
+  slapFace() {
+    const rate = 0.82 + Math.random() * 0.38;
+    return this.play(LOTION.slap, { gain: 0.42, rate }).catch(() => this._thump());
   }
 }
 

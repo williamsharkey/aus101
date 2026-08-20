@@ -35,9 +35,8 @@ import { createCombat } from "./game/combat.js";
 import { createPropPhysics } from "./phys/props.js";
 import { createReticuleBay } from "./hud/reticule.js";
 import { createRadioHud } from "./hud/radio.js";
-import { createApplyMinigame } from "./hud/applyMinigame.js";
 
-import { createArtist } from "./chars/artist.js";
+import { createArtist, pickArtistPose } from "./chars/artist.js";
 import { spawnParty } from "./world/party.js";
 import { spawnFights } from "./phys/fights.js";
 import { spawnPsaKiosks } from "./world/psa.js";
@@ -76,6 +75,7 @@ const colliders = createColliders();
 const level = buildGoldCoast(scene, colliders);
 // Enterable buildings register their own wall AABBs, with a gap at each doorway.
 const interiors = spawnInteriors(scene, colliders);
+const wisdom = interiors.buildings.find((b) => b.id === "wisdom") || null;
 
 const props = createPropPhysics({
   scene,
@@ -107,12 +107,19 @@ const cast = spawnBeachCast(scene);
 const party = spawnParty(scene);
 const fights = spawnFights(scene);
 const psa = spawnPsaKiosks(scene);
-const artist = createArtist(scene);
+const voice = new VoiceBank();
+voice.loadManifest().catch(() => {});
+const artist = createArtist(scene, pickArtistPose(), {
+  play: (id, o) => voice.play(id, o),
+  cast,
+});
 const gadgets = attachGadgets(cast, scene);
-const synth = spawnSynthRig(scene);
 const tapes = createTapeSystem({
   getBoomPos: () => party.musicSpots.find((s) => s.id === "boombox")?.position || { x: 12, z: 8 },
   getDjPos: () => ({ x: -24, z: 7 }),
+});
+const synth = spawnSynthRig(scene, {
+  onSave: (p) => tapes.saveFromSynth(p),
 });
 
 function enroll(mesh, kind, ageBand) {
@@ -148,8 +155,6 @@ for (let i = 0; i < 5; i++) {
 }
 for (let i = 0; i < 4; i++) enroll(scene.getObjectByName(`ken-fight-${i}`), "ken", "adult");
 
-const voice = new VoiceBank();
-voice.loadManifest().catch(() => {});
 const sfx = new SfxBank();
 const lotionFoley = installLotionFoley(sfx, null);
 const steps = createFootstepPlayer(sfx);
@@ -158,7 +163,6 @@ const lotion = createLotion();
 bindBottle(aus101);
 const bay = createReticuleBay();
 document.body.appendChild(bay.html);
-const applyUx = createApplyMinigame();
 
 const panic = createPanic({
   scene,
@@ -229,6 +233,8 @@ let djBed = null;
 
 let playing = false;
 let acc = 0;
+let lotionAim = null;
+let applyT = 0;
 const clock = new THREE.Clock(false);
 
 const input = installInput({
@@ -274,11 +280,16 @@ Object.assign(hint.style, {
 });
 document.body.appendChild(hint);
 
+let wisdomClick = false;
 canvas.addEventListener("mousedown", (e) => {
   if (!playing || arrest.active) return;
   if (synth.isOpen?.()) return;
   voice.unlock().catch(() => {});
   sfx.unlock().catch(() => {});
+  if (wisdom && (wisdom.strapped || wisdom.inChairRange?.(player.pos))) {
+    wisdomClick = true;
+    return;
+  }
   if (e.button === 0) combat.punch(player.pos, player.yaw, player.pitch);
   if (e.button === 2 && combat.hasLaser) {
     sfx.laser();
@@ -369,6 +380,9 @@ async function beginPlay() {
         "mantra_04",
         "mantra_05",
         "mantra_06",
+        "pose_babe_01",
+        "pose_babe_02",
+        "pose_babe_03",
       ]).catch(() => {});
     }
   } catch (e) {
@@ -393,13 +407,17 @@ function frame() {
   acc += raw;
   while (acc >= TICK) {
     if (playing && !arrest.active) {
-      const lk = getLookStick();
-      if (lk.mag > 0.04) {
-        player.yaw -= lk.x * 2.35 * TICK;
-        player.pitch -= lk.y * 1.55 * TICK;
-        player.pitch = Math.max(-1.45, Math.min(1.45, player.pitch));
+      if (wisdom?.strapped) {
+        wisdom.tickChair(TICK, player);
+      } else {
+        const lk = getLookStick();
+        if (lk.mag > 0.04) {
+          player.yaw -= lk.x * 2.35 * TICK;
+          player.pitch -= lk.y * 1.55 * TICK;
+          player.pitch = Math.max(-1.45, Math.min(1.45, player.pitch));
+        }
+        fixedUpdate(player, input.keys, colliders.COL, BOUNDS, TICK);
       }
-      fixedUpdate(player, input.keys, colliders.COL, BOUNDS, TICK);
     }
     if (playing) arrest.tick(TICK);
     acc -= TICK;
@@ -407,8 +425,12 @@ function frame() {
 
   if (playing) {
     const t = performance.now() * 0.001;
+    if (arrest.active && wisdom?.strapped) wisdom.toggle(player, camera, follow);
     level.update(t);
     interiors.tick(t, player.pos);
+    wisdom?.tick?.(t, player.pos, audioOn);
+    wisdom?.tryChair?.(player, input.keys, camera, follow, wisdomClick);
+    wisdomClick = false;
     party.tick(t);
     fights.tick(raw || TICK);
     psa.tick(player.pos, audioOn);
@@ -434,13 +456,21 @@ function frame() {
       speed,
       punchT: combat.punchT,
       laserT: combat.laserT,
+      lotionAim,
+      applyT,
     });
-    updateFollowCam(camera, player, raw || 0.016);
-    // Pull the boom in and off the walls once the player is inside a building.
-    interiors.adjustCamera(camera, player);
+    if (wisdom?.strapped) {
+      aus101.visible = false;
+      wisdom.applyCamera(camera);
+    } else {
+      if (!aus101.visible) aus101.visible = true;
+      updateFollowCam(camera, player, raw || 0.016);
+      // Pull the boom in and off the walls once the player is inside a building.
+      interiors.adjustCamera(camera, player);
+    }
     lotionFoley.tick(performance.now(), speed > 0.4);
     steps.tick({
-      speed: arrest.active ? 2.8 : speed,
+      speed: arrest.active ? arrest.stepSpeed || 0 : speed,
       onWood: level.isWood(player.pos.x, player.pos.z),
       dt: raw || TICK,
     });
@@ -464,9 +494,20 @@ function frame() {
       playerYaw: player.yaw,
       squeezing,
       dt: raw || TICK,
-      applyUx,
       bay,
+      player,
+      keys: input.keys,
+      col: colliders.COL,
+      bounds: BOUNDS,
     });
+    const dtFrame = raw || TICK;
+    if (painted?.aim) {
+      lotionAim = painted.aim;
+      applyT += dtFrame;
+    } else {
+      applyT = Math.max(0, applyT - dtFrame * 4);
+      if (applyT <= 0) lotionAim = null;
+    }
     tickBottle(aus101, lotion, raw || TICK);
     if (painted && audioOn && !walkby.isTalking(performance.now()) && Math.random() < 0.012) {
       voice.play("rub_pleasure_01", { gain: 1.2 });

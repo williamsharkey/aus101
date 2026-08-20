@@ -7,6 +7,12 @@ import * as THREE from "three";
 import { createPaintBrain } from "../paint/brain.js";
 import { makePaintTabouret, syncWells } from "./paintTabouret.js";
 import { makeFramedPainting, downloadPainting, disposeFramedPainting } from "../world/paintings.js";
+import { createPoser } from "./poser.js";
+
+/** Marks on a sitting before we hang and walk. ~2× the old 180 cap. */
+export const SITTING_CAP = 360;
+export const SITTING_MIN = 96;
+export const SITTING_ERR = 14;
 
 const VIEW = 64;
 const PAINT = 256;
@@ -604,8 +610,11 @@ function maxErrorUV(pix) {
 /**
  * @param {THREE.Scene} scene
  * @param {{x:number,z:number,yaw:number}} [pose]
+ * @param {{ play?: Function, cast?: { mesh: object, kind?: string }[] }} [opts]
  */
-export function createArtist(scene, pose = pickArtistPose()) {
+export function createArtist(scene, pose = pickArtistPose(), opts = {}) {
+  const play = opts.play;
+  const cast = opts.cast || [];
   const root = new THREE.Group();
   root.name = "artist";
   root.position.set(pose.x, 0, pose.z);
@@ -688,11 +697,16 @@ export function createArtist(scene, pose = pickArtistPose()) {
   const limb = painter.userData.limb;
   let inited = false;
   let lastStroke = 0;
+  let lastTick = 0;
   let reach = 0.42;
   let jab = 0;
   let leanX = 0;
   let leanZ = 0;
   let lastAct = { type: "idle" };
+  /** @type {{ x: number, z: number, yaw: number } | null} */
+  let reloc = null;
+  let walkPhase = 0;
+  const poser = createPoser({ scene, cast, play });
 
   function restore(renderer, prevRT, prevAuto, prevAlpha, prevShadow) {
     renderer.shadowMap.enabled = prevShadow;
@@ -727,6 +741,8 @@ export function createArtist(scene, pose = pickArtistPose()) {
       if (sittingDone(act)) {
         hangCurrent();
         brain.resetLinen();
+        poser.dismiss(lastTick);
+        beginRelocate();
       }
       paintTex.needsUpdate = true;
       syncWells(tabouret, brain.studio);
@@ -789,9 +805,77 @@ export function createArtist(scene, pose = pickArtistPose()) {
 
   function sittingDone(act) {
     if (!act || act.paints == null) return false;
-    if (act.paints >= 180) return true;
-    if (act.paints < 48) return false;
-    return act.nPatches === 0 || act.meanErr < 18;
+    if (act.paints >= SITTING_CAP) return true;
+    if (act.paints < SITTING_MIN) return false;
+    return act.nPatches === 0 || act.meanErr < SITTING_ERR;
+  }
+
+  function rebuildEye() {
+    const lookX = pose.x + Math.sin(pose.yaw) * 14;
+    const lookZ = pose.z + Math.cos(pose.yaw) * 14;
+    const headPos = painter.userData.eye.clone();
+    painter.localToWorld(headPos);
+    eye.position.set(
+      headPos.x + Math.sin(pose.yaw) * 0.14,
+      headPos.y,
+      headPos.z + Math.cos(pose.yaw) * 0.14
+    );
+    eye.lookAt(lookX, 1.15, lookZ);
+    eye.updateMatrixWorld(true);
+    eye.updateProjectionMatrix();
+  }
+
+  function pickNextSpot() {
+    const pool = ARTIST_SPOTS.filter((s) => Math.hypot(s.x - pose.x, s.z - pose.z) > 1.5);
+    const s = (pool.length ? pool : ARTIST_SPOTS)[(Math.random() * (pool.length || ARTIST_SPOTS.length)) | 0];
+    return { x: s.x, z: s.z, yaw: s.yaw };
+  }
+
+  function beginRelocate() {
+    reloc = pickNextSpot();
+    easel.visible = false;
+    tabouret.group.visible = false;
+    canvasMesh.visible = false;
+    painter.position.set(0, 0, 0);
+    painter.rotation.x = 0;
+    painter.rotation.z = 0;
+  }
+
+  function unpackAt(spot) {
+    pose.x = spot.x;
+    pose.z = spot.z;
+    pose.yaw = spot.yaw;
+    root.position.set(spot.x, 0, spot.z);
+    root.rotation.y = spot.yaw + Math.PI;
+    painter.position.set(STANCE.x, 0, STANCE.z);
+    painter.rotation.y = Math.PI + STANCE.turn;
+    painter.rotation.x = 0;
+    painter.rotation.z = 0;
+    easel.visible = true;
+    tabouret.group.visible = true;
+    canvasMesh.visible = true;
+    root.updateMatrixWorld(true);
+    rebuildEye();
+    reloc = null;
+  }
+
+  function stepRelocate(dt) {
+    if (!reloc) return;
+    const dx = reloc.x - root.position.x;
+    const dz = reloc.z - root.position.z;
+    const dist = Math.hypot(dx, dz);
+    const spd = 1.55;
+    if (dist < 0.12) {
+      unpackAt(reloc);
+      return;
+    }
+    const step = Math.min(dist, spd * dt);
+    root.position.x += (dx / dist) * step;
+    root.position.z += (dz / dist) * step;
+    root.position.y = 0;
+    root.rotation.y = Math.atan2(dx, dz) + Math.PI;
+    walkPhase += dt * 8.2;
+    painter.position.y = Math.abs(Math.sin(walkPhase)) * 0.045;
   }
 
   function hangCurrent() {
@@ -866,6 +950,13 @@ export function createArtist(scene, pose = pickArtistPose()) {
         renderer.domElement.addEventListener("pointerdown", onPickPointer, true);
         renderer.domElement.addEventListener("mousedown", onPickMouse, true);
       }
+      const dt = lastTick ? Math.min(0.05, (nowMs - lastTick) / 1000) : 0.016;
+      lastTick = nowMs;
+      if (reloc) {
+        stepRelocate(dt);
+        poser.tick(dt, nowMs, { active: false, viewCam: eye, root });
+        return;
+      }
       const ios = /iP(hone|ad|od)/.test(navigator.userAgent);
       const prep = lastAct && lastAct.type && lastAct.type !== "paint" && lastAct.type !== "idle";
       const gap = ios ? (prep ? 520 : 380) : prep ? 420 : STROKE_MS;
@@ -873,7 +964,16 @@ export function createArtist(scene, pose = pickArtistPose()) {
         stroke(renderer, scene3);
         lastStroke = nowMs;
       }
+      if (reloc) {
+        poser.tick(dt, nowMs, { active: false, viewCam: eye, root });
+        return;
+      }
       aimBrush();
+      poser.tick(dt, nowMs, {
+        active: brain.paints >= 8,
+        viewCam: eye,
+        root,
+      });
     },
   };
 }

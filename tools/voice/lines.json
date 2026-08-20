@@ -3020,6 +3020,170 @@
         "system"
       ],
       "cooldownMs": 0
+    },
+    {
+      "id": "cop_brotha_01",
+      "text": "common brotha, lets keep da peace and love in da streets!",
+      "voice": "en_us_ghostface",
+      "category": "cop",
+      "priority": "hud",
+      "ageBand": "system",
+      "tags": [
+        "mantra",
+        "cop",
+        "brotha"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "cop_brotha_02",
+      "text": "slow it down brotha, this beach runs on peace and love!",
+      "voice": "en_us_ghostface",
+      "category": "cop",
+      "priority": "hud",
+      "ageBand": "system",
+      "tags": [
+        "mantra",
+        "cop",
+        "brotha"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "cop_brotha_03",
+      "text": "we do not blast, we bless, keep da love in da streets!",
+      "voice": "en_us_ghostface",
+      "category": "cop",
+      "priority": "hud",
+      "ageBand": "system",
+      "tags": [
+        "mantra",
+        "cop",
+        "brotha"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "cop_sensei_01",
+      "text": "you dishonor your family.",
+      "voice": "en_us_c3po",
+      "category": "cop",
+      "priority": "hud",
+      "ageBand": "system",
+      "tags": [
+        "mantra",
+        "cop",
+        "sensei"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "cop_sensei_02",
+      "text": "disgraceful, i will not tell t1000 if you promise to try harder",
+      "voice": "en_us_c3po",
+      "category": "cop",
+      "priority": "hud",
+      "ageBand": "system",
+      "tags": [
+        "mantra",
+        "cop",
+        "sensei"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "cop_sensei_03",
+      "text": "study your operational manual!",
+      "voice": "en_us_c3po",
+      "category": "cop",
+      "priority": "hud",
+      "ageBand": "system",
+      "tags": [
+        "mantra",
+        "cop",
+        "sensei"
+      ],
+      "cooldownMs": 0
+    },
+    {
+      "id": "pose_babe_01",
+      "text": "capture all my curves piccaso!!",
+      "voice": "en_female_emotional",
+      "category": "pose",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": ["pose", "babe"],
+      "cooldownMs": 12000
+    },
+    {
+      "id": "pose_babe_02",
+      "text": "want me to stick my ass out more",
+      "voice": "en_female_emotional",
+      "category": "pose",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": ["pose", "babe"],
+      "cooldownMs": 12000
+    },
+    {
+      "id": "pose_babe_03",
+      "text": "oof you better make my tummy look tight mr",
+      "voice": "en_female_emotional",
+      "category": "pose",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": ["pose", "babe"],
+      "cooldownMs": 12000
+    },
+    {
+      "id": "pose_babe_04",
+      "text": "get my good side, that's all of them",
+      "voice": "en_female_emotional",
+      "category": "pose",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": ["pose", "babe"],
+      "cooldownMs": 12000
+    },
+    {
+      "id": "pose_babe_05",
+      "text": "do the light like it loves me",
+      "voice": "en_female_emotional",
+      "category": "pose",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": ["pose", "babe"],
+      "cooldownMs": 12000
+    },
+    {
+      "id": "pose_babe_06",
+      "text": "wait, suck in? babe I was born sucked in",
+      "voice": "en_female_emotional",
+      "category": "pose",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": ["pose", "babe"],
+      "cooldownMs": 12000
+    },
+    {
+      "id": "pose_babe_07",
+      "text": "paint the hip, that's the whole point",
+      "voice": "en_female_emotional",
+      "category": "pose",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": ["pose", "babe"],
+      "cooldownMs": 12000
+    },
+    {
+      "id": "pose_ken_01",
+      "text": "make the shoulders huge bro, that's my brand",
+      "voice": "en_us_006",
+      "category": "pose",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": ["pose", "ken"],
+      "cooldownMs": 14000
     }
   ]
 }

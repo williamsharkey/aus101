@@ -438,6 +438,96 @@ function poseLeg(hip, knee, foot, th, g, rest, side) {
   return soleDrop(hipRot, kneeRot, footRot);
 }
 
+const _down = new THREE.Vector3(0, -1, 0);
+const _aim = new THREE.Vector3();
+const _dir = new THREE.Vector3();
+const _qAim = new THREE.Quaternion();
+const _eul = new THREE.Euler();
+
+function mix(a, b, w) {
+  return a * (1 - w) + b * w;
+}
+
+/**
+ * Slack IK: lean hips/knees/spine, then point the bottle hand at `lotionAim`.
+ * Punch keeps priority. `applyT` is seconds spent rubbing (dart + small circles).
+ */
+function poseLotion(root, r, state) {
+  const aim = state.lotionAim;
+  const applyT = state.applyT || 0;
+  if (!aim || applyT <= 0) return;
+  if ((state.punchT || 0) > 0.08) return;
+  if (typeof aim.x !== "number" || typeof aim.y !== "number" || typeof aim.z !== "number") return;
+  const w = clamp(applyT * 7, 0, 1);
+
+  root.updateMatrixWorld(true);
+  _aim.set(aim.x, aim.y, aim.z);
+  root.worldToLocal(_aim);
+  const rub = applyT * 15.5;
+  _aim.x += Math.sin(rub) * 0.038;
+  _aim.y += Math.sin(rub * 1.37) * 0.03;
+  _aim.z += Math.cos(rub * 0.91) * 0.032;
+  const lx = _aim.x;
+  const ly = _aim.y;
+  const lz = _aim.z;
+
+  const yawK = clamp(Math.atan2(lx, lz), -0.75, 0.75);
+  r.hips.rotation.y += yawK * 0.3 * w;
+  r.hips.rotation.z += clamp(lx * 0.18, -0.14, 0.14) * w;
+  r.spine.rotation.y += yawK * 0.22 * w;
+  r.chest.rotation.y += yawK * 0.4 * w;
+  r.head.rotation.y += yawK * 0.48 * w;
+
+  const look = clamp((ly - 1.42) * 0.55, -0.72, 0.48);
+  r.head.rotation.x += look * w;
+  r.neck.rotation.x += look * 0.32 * w;
+
+  const crouch = clamp((0.78 - ly) / 0.72, 0, 1) * w;
+  const reachUp = clamp((ly - 1.52) / 0.42, 0, 1) * w;
+  r.hips.position.y -= crouch * 0.22 - reachUp * 0.025;
+  r.hipL.rotation.x += crouch * 0.52 + reachUp * 0.08;
+  r.hipR.rotation.x += crouch * 0.6 + reachUp * 0.1;
+  r.kneeL.rotation.x += crouch * 0.86;
+  r.kneeR.rotation.x += crouch * 0.94;
+  r.spine.rotation.x += (ly < 0.95 ? 0.24 : ly > 1.58 ? -0.2 : 0.05) * w;
+  r.chest.rotation.x += (ly > 1.48 ? -0.14 : 0.07) * w;
+
+  root.updateMatrixWorld(true);
+  const sh = r.shoulderR;
+  const parent = sh.parent;
+  if (parent?.worldToLocal) {
+    _aim.set(aim.x, aim.y, aim.z);
+    parent.updateWorldMatrix(true, false);
+    parent.worldToLocal(_aim);
+    _dir.set(_aim.x - sh.position.x, _aim.y - sh.position.y, _aim.z - sh.position.z);
+  } else {
+    _dir.set(lx - sh.position.x, ly - (HIP_Y + 0.53), lz - sh.position.z);
+  }
+  _dir.x += Math.sin(rub * 1.1) * 0.02;
+  _dir.y += Math.cos(rub * 1.65) * 0.022;
+  const dist = _dir.length();
+  if (dist < 1e-4) return;
+  const u = UPPER_ARM;
+  const f = FOREARM + 0.07;
+  const d = clamp(dist, Math.abs(u - f) + 0.04, (u + f) * 0.995);
+  const cosE = clamp((u * u + f * f - d * d) / (2 * u * f), -1, 1);
+  const elbow = Math.PI - Math.acos(cosE);
+  _dir.normalize();
+  _qAim.setFromUnitVectors(_down, _dir);
+  _eul.setFromQuaternion(_qAim, "XYZ");
+  r.shoulderR.rotation.x = mix(r.shoulderR.rotation.x, _eul.x, w);
+  r.shoulderR.rotation.y = mix(r.shoulderR.rotation.y, _eul.y, w);
+  r.shoulderR.rotation.z = mix(r.shoulderR.rotation.z, _eul.z, w);
+  r.elbowR.rotation.x = mix(r.elbowR.rotation.x, clamp(elbow, 0.12, 2.45), w);
+  r.elbowR.rotation.y = mix(r.elbowR.rotation.y, 0, w);
+  r.handR.rotation.set(-0.18 + Math.sin(rub) * 0.14, 0.12, 0.22);
+
+  r.shoulderL.rotation.x = mix(r.shoulderL.rotation.x, -0.48 - reachUp * 0.45 + crouch * 0.28, w);
+  r.shoulderL.rotation.z = mix(r.shoulderL.rotation.z, -0.44, w);
+  r.elbowL.rotation.x = mix(r.elbowL.rotation.x, 0.82 + crouch * 0.38, w);
+  r.handL.rotation.set(0.08, 0, -0.12);
+}
+
 /** punch shape: -1 wind-up, +1 full extension, 0 neutral. */
 function punchCurve(p) {
   if (p <= 0) return 0;
@@ -459,7 +549,8 @@ function punchCurve(p) {
 /**
  * @param {THREE.Group} rig
  * @param {{ walkPhase?: number, speed?: number, punchT?: number, laserT?: number,
- *           aimYaw?: number, aimPitch?: number }} [state]
+ *           aimYaw?: number, aimPitch?: number,
+ *           lotionAim?: { x: number, y: number, z: number }, applyT?: number }} [state]
  */
 export function poseT101(rig, state = {}) {
   const r = rig?.userData?.rig;
@@ -587,4 +678,6 @@ export function poseT101(rig, state = {}) {
     r.head.rotation.x -= a * 0.75;
     r.chest.rotation.x -= a * 0.18;
   }
+
+  poseLotion(rig, r, state);
 }
