@@ -251,6 +251,7 @@ function motion(parts) {
  * }} opts
  */
 export function createCombat({ scene, cast, onHarm, play } = {}) {
+  let hasLaser = false;
   const fx = new THREE.Group();
   fx.name = "combat-fx";
   scene?.add(fx);
@@ -645,6 +646,7 @@ export function createCombat({ scene, cast, onHarm, play } = {}) {
    * @returns {boolean} true if the charge started
    */
   function laser(playerPos, yaw = 0, pitch = 0) {
+    if (!hasLaser) return false;
     if (punchTime >= 0 || laserTime >= 0) return false;
     if (playerPos) _player.set(playerPos.x, playerPos.y || 0, playerPos.z);
     laserYaw = yaw;
@@ -782,6 +784,12 @@ export function createCombat({ scene, cast, onHarm, play } = {}) {
     /** Number of bodies currently on the sand. */
     get downed() {
       return dolls.length;
+    },
+    get hasLaser() {
+      return hasLaser;
+    },
+    set hasLaser(v) {
+      hasLaser = !!v;
     },
   };
 }

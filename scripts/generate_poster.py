@@ -49,7 +49,7 @@ def main() -> None:
 
     def figure(cx, ground_y, kind):
         if kind == "aus101":
-            body = "#c8d0d8"
+            body = "#b87333"
             d.rounded_rectangle([cx - 22, ground_y - 110, cx + 22, ground_y - 20], radius=6, fill=body)
             d.ellipse([cx - 18, ground_y - 145, cx + 18, ground_y - 108], fill=body)
             d.rectangle([cx - 28, ground_y - 100, cx - 18, ground_y - 55], fill=body)
@@ -122,13 +122,11 @@ def main() -> None:
     logo = "AUS101"
     bbox = d.textbbox((0, 0), logo, font=font)
     tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]
-    lx, ly = (W - tw) // 2, 18
-    for ox, oy in [(-2, 0), (2, 0), (0, -2), (0, 2)]:
-        d.text((lx + ox, ly + oy), logo, font=font, fill="#0b1210")
+    lx, ly = (W - tw) // 2, 16
     d.text((lx, ly), logo, font=font, fill="#f4f7fb")
     tag = "TERMINATE UV"
     tb = d.textbbox((0, 0), tag, font=tag_font)
-    d.text(((W - (tb[2] - tb[0])) // 2, ly + th + 4), tag, font=tag_font, fill="#ffb040")
+    d.text(((W - (tb[2] - tb[0])) // 2, ly + th + 6), tag, font=tag_font, fill="#ffb040")
 
     overlay = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     od = ImageDraw.Draw(overlay)

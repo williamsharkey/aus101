@@ -150,6 +150,8 @@ export function createFootstepPlayer(sfxOrCtx) {
     if (loadDone && ctx && dest) synthStep(ctx, dest, onWood, rate);
   };
 
+  const crowd = new Map();
+
   return {
     tick({ speed = 0, onWood = false, dt = 0 } = {}) {
       load();
@@ -161,6 +163,19 @@ export function createFootstepPlayer(sfxOrCtx) {
       const prev = phase;
       phase += hs * Math.max(0, dt) * STEP_RATE;
       if (crossed(prev, phase)) fire(!!onWood, hs);
+    },
+    tickOne(id, speed, onWood, dt) {
+      load();
+      const hs = Math.max(0, speed);
+      if (hs < SPEED_GATE) {
+        crowd.delete(id);
+        return;
+      }
+      let ph = crowd.get(id) || 0;
+      const prev = ph;
+      ph += hs * Math.max(0, dt) * STEP_RATE;
+      crowd.set(id, ph);
+      if (crossed(prev, ph)) fire(!!onWood, hs * 0.85);
     },
   };
 }

@@ -30,6 +30,8 @@ import { runApplyFrame } from "./game/applyFlow.js";
 import { bindBottle, tickBottle } from "./view/bottle.js";
 import { createRecall } from "./game/recall.js";
 import { createPanic } from "./game/panic.js";
+import { createArrest } from "./game/arrest.js";
+import { spawnLaserGun } from "./world/laserGun.js";
 import { createCombat } from "./game/combat.js";
 import { createPropPhysics } from "./phys/props.js";
 import { createReticuleBay } from "./hud/reticule.js";
@@ -128,9 +130,17 @@ const panic = createPanic({
 const recall = createRecall({
   scene,
   play: (id) => voice.play(id),
-  onGameOver: () => {
-    playing = false;
-    carpenter?.setState("menu");
+  onGameOver: () => {},
+});
+const gun = spawnLaserGun(scene);
+const arrest = createArrest({
+  player,
+  play: (id) => voice.play(id),
+  sfx,
+  onReprogram: () => {
+    combat.hasLaser = false;
+    gun.hide();
+    lotion.tick({ squeezeHeld: false, applying: false, dt: 0 });
   },
 });
 let radio = null;
@@ -144,14 +154,17 @@ const combat = createCombat({
   play: (id) => voice.play(id),
   onHarm: (info) => {
     panic.onHarm(info);
-    recall.onHarm(info);
+    sfx.copWhoop();
+    sfx.radioChatter();
+    arrest.begin();
   },
 });
 
 window.addEventListener("keydown", (e) => {
-  if (!playing || paused || e.repeat) return;
+  if (!playing || paused || arrest.active || e.repeat) return;
   if (e.code === "KeyF") {
     e.preventDefault();
+    if (combat.hasLaser) sfx.laser();
     combat.laser(player.pos, player.yaw, player.pitch);
   }
   if (e.code === "KeyG") {
@@ -175,7 +188,7 @@ const clock = new THREE.Clock(false);
 
 const input = installInput({
   dom: canvas,
-  isPlaying: () => playing && !paused,
+  isPlaying: () => playing && !paused && !arrest.active,
   onEscapePause: () => {
     if (playing && !paused) {
       paused = true;
@@ -188,9 +201,12 @@ const input = installInput({
 input.bindPlayer(player);
 installTouchControls({
   keys: input.keys,
-  isPlaying: () => playing && !paused,
+  isPlaying: () => playing && !paused && !arrest.active,
   onPunch: () => combat.punch(player.pos, player.yaw, player.pitch),
-  onLaser: () => combat.laser(player.pos, player.yaw, player.pitch),
+  onLaser: () => {
+    if (combat.hasLaser) sfx.laser();
+    combat.laser(player.pos, player.yaw, player.pitch);
+  },
 });
 
 function resize() {
@@ -307,7 +323,7 @@ function frame() {
   const raw = paused || !playing ? 0 : Math.min(0.05, clock.getDelta());
   acc += raw;
   while (acc >= TICK) {
-    if (playing && !paused) {
+    if (playing && !paused && !arrest.active) {
       const lk = getLookStick();
       if (lk.mag > 0.04) {
         player.yaw -= lk.x * 2.35 * TICK;
@@ -316,6 +332,7 @@ function frame() {
       }
       fixedUpdate(player, input.keys, colliders.COL, BOUNDS, TICK);
     }
+    if (playing && !paused) arrest.tick(TICK);
     acc -= TICK;
   }
 
@@ -354,10 +371,18 @@ function frame() {
     interiors.adjustCamera(camera, player);
     lotionFoley.tick(performance.now(), speed > 0.4);
     steps.tick({
-      speed,
+      speed: arrest.active ? 2.8 : speed,
       onWood: level.isWood(player.pos.x, player.pos.z),
       dt: raw || TICK,
     });
+    gun.tick(player.pos, () => {
+      combat.hasLaser = true;
+      sfx.radioChatter();
+    });
+    for (const npc of cast) {
+      const f = npc.mesh?.userData?.flee;
+      if (f) steps.tickOne(npc.mesh.id || npc.kind, f.spd || 5, false, raw || TICK);
+    }
     const squeezing = !!input.keys.Space;
     if (squeezing) carpenter?.setState("apply");
     else carpenter?.setState("boardwalk");

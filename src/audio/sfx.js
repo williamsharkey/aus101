@@ -86,6 +86,38 @@ export class SfxBank {
   wet() {
     return this.play(LOTION.wet, { gain: 0.35, rate: 1.1 });
   }
+
+  async _beep({ freq = 880, dur = 0.12, type = "sawtooth", gain = 0.12, slide = 0 }) {
+    await this.unlock();
+    const t = this.ctx.currentTime;
+    const o = this.ctx.createOscillator();
+    o.type = type;
+    o.frequency.setValueAtTime(freq, t);
+    if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(40, freq + slide), t + dur);
+    const g = this.ctx.createGain();
+    g.gain.setValueAtTime(gain, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g);
+    g.connect(this.master);
+    o.start(t);
+    o.stop(t + dur + 0.02);
+  }
+
+  laser() {
+    this._beep({ freq: 1400, dur: 0.22, type: "sawtooth", gain: 0.16, slide: -900 });
+    this._beep({ freq: 420, dur: 0.18, type: "square", gain: 0.08, slide: -200 });
+  }
+
+  radioChatter() {
+    this._beep({ freq: 780, dur: 0.07, type: "square", gain: 0.06 });
+    setTimeout(() => this._beep({ freq: 520, dur: 0.09, type: "square", gain: 0.05 }), 90);
+    setTimeout(() => this._beep({ freq: 910, dur: 0.05, type: "square", gain: 0.04 }), 200);
+  }
+
+  copWhoop() {
+    this._beep({ freq: 620, dur: 0.35, type: "sine", gain: 0.11, slide: 280 });
+    setTimeout(() => this._beep({ freq: 880, dur: 0.28, type: "sine", gain: 0.09, slide: -220 }), 320);
+  }
 }
 
 /**

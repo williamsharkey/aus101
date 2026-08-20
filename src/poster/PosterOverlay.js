@@ -50,42 +50,6 @@ export class PosterOverlay {
       pointerEvents: "none",
     });
 
-    // Crisp CSS wordmark over image (thumbnail-safe, center 80%)
-    this.logo = document.createElement("div");
-    this.logo.textContent = "AUS101";
-    Object.assign(this.logo.style, {
-      position: "absolute",
-      top: "max(4%, env(safe-area-inset-top, 0px))",
-      left: "10%",
-      right: "10%",
-      textAlign: "center",
-      fontFamily: 'Impact, "Arial Black", Haettenschweiler, sans-serif',
-      fontSize: "clamp(48px, 18vw, 140px)",
-      lineHeight: "0.95",
-      letterSpacing: "0.04em",
-      color: "#f4f7fb",
-      textShadow: "0 2px 0 #0b1210, 0 0 24px rgba(0,0,0,0.55)",
-      pointerEvents: "none",
-      zIndex: "2",
-    });
-
-    this.tag = document.createElement("div");
-    this.tag.textContent = "TERMINATE UV";
-    Object.assign(this.tag.style, {
-      position: "absolute",
-      top: "calc(max(4%, env(safe-area-inset-top, 0px)) + clamp(52px, 19vw, 150px))",
-      left: "10%",
-      right: "10%",
-      textAlign: "center",
-      fontFamily: 'Impact, "Arial Black", Haettenschweiler, sans-serif',
-      fontSize: "clamp(16px, 4.5vw, 36px)",
-      letterSpacing: "0.18em",
-      color: "#ffb040",
-      textShadow: "0 1px 0 #0b1210",
-      pointerEvents: "none",
-      zIndex: "2",
-    });
-
     // Giant translucent PLAY triangle (lower third)
     this.play = document.createElement("div");
     this.play.setAttribute("aria-hidden", "true");
@@ -104,7 +68,7 @@ export class PosterOverlay {
       zIndex: "3",
     });
 
-    this.root.append(this.img, this.logo, this.tag, this.play);
+    this.root.append(this.img, this.play);
     document.body.appendChild(this.root);
 
     this._started = false;
