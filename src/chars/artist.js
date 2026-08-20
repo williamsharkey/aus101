@@ -665,19 +665,11 @@ export function createArtist(scene, pose = { x: 4.5, z: -6.2, yaw: -2.6 }) {
       root.visible = true;
 
       if (!inited) {
-        // First pass: drop the whole view onto linen so the canvas is never black.
         renderer.setRenderTarget(paintRT);
         renderer.setClearColor(linen, 1);
         renderer.clear();
-        stampMat.uniforms.center.value.set(0.5, 0.5);
-        stampMat.uniforms.radius.value = 2.0;
-        stampMat.uniforms.amount.value = 1.0;
-        renderer.autoClear = false;
-        renderer.render(stampScene, blitCam);
         inited = true;
         paintMat.needsUpdate = true;
-        restore(renderer, prevRT, prevAuto, prevAlpha, prevShadow);
-        return;
       }
 
       renderer.setRenderTarget(errRT);
