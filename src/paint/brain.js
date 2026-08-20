@@ -83,7 +83,6 @@ export function createPaintBrain() {
     else if (act.type === "squeeze") {
       studio.squeeze(act.tube, act.well, act.amount);
       if (act.follow) studio.squeeze(act.follow.tube, act.follow.well, act.follow.amount);
-      studio.load(act.well, 6);
     } else if (act.type === "paint" && act.patch) {
       if (!studio.spend()) studio.clean();
       else {

@@ -5,6 +5,7 @@
  */
 import * as THREE from "three";
 import { createPaintBrain } from "../paint/brain.js";
+import { makePaintTabouret, syncWells } from "./paintTabouret.js";
 
 const VIEW = 64;
 const PAINT = 256;
@@ -549,12 +550,13 @@ export function createArtist(scene, pose = { x: 4.5, z: -6.2, yaw: -2.6 }) {
   root.userData.paintTarget = false;
 
   const { group: easel, board } = makeEasel();
+  const tabouret = makePaintTabouret();
   const painter = makePainter();
   painter.position.set(STANCE.x, 0, STANCE.z);
   // YXZ: yaw first, then pitch/roll in his own frame — a lean about the ankles.
   painter.rotation.order = "YXZ";
   painter.rotation.y = Math.PI + STANCE.turn;
-  root.add(easel, painter);
+  root.add(easel, painter, tabouret.group);
   scene.add(root);
   root.updateMatrixWorld(true);
 
@@ -621,6 +623,7 @@ export function createArtist(scene, pose = { x: 4.5, z: -6.2, yaw: -2.6 }) {
   let jab = 0;
   let leanX = 0;
   let leanZ = 0;
+  let lastAct = { type: "idle" };
 
   function restore(renderer, prevRT, prevAuto, prevAlpha, prevShadow) {
     renderer.shadowMap.enabled = prevShadow;
@@ -646,11 +649,13 @@ export function createArtist(scene, pose = { x: 4.5, z: -6.2, yaw: -2.6 }) {
       root.visible = true;
       renderer.readRenderTargetPixels(viewRT, 0, 0, VIEW, VIEW, viewPix);
       const act = brain.step(viewPix, VIEW, VIEW);
+      lastAct = act || lastAct;
       if (act.patch) {
         targetUV.set(act.patch.u, act.patch.v);
         jab = 1;
       }
       paintTex.needsUpdate = true;
+      syncWells(tabouret, brain.studio);
       const wells = brain.studio.wells;
       for (let i = 0; i < wellMeshes.length; i++) {
         const w = wells[i];
@@ -668,8 +673,20 @@ export function createArtist(scene, pose = { x: 4.5, z: -6.2, yaw: -2.6 }) {
   }
 
   function aimBrush() {
-    strokeLocal.set((targetUV.x - 0.5) * CANVAS_W, (targetUV.y - 0.5) * CANVAS_H, 0.006);
-    canvasMesh.localToWorld(strokeWorld.copy(strokeLocal));
+    if (lastAct.type === "clean") {
+      tabouret.cup.getWorldPosition(strokeWorld);
+      strokeWorld.y += 0.04;
+    } else if (lastAct.type === "load" || lastAct.type === "squeeze") {
+      const i = lastAct.well ?? 0;
+      const blob = tabouret.wells[i]?.blob;
+      if (blob) blob.getWorldPosition(strokeWorld);
+      else canvasMesh.getWorldPosition(strokeWorld);
+    } else if (lastAct.type === "knife") {
+      tabouret.knife.getWorldPosition(strokeWorld);
+    } else {
+      strokeLocal.set((targetUV.x - 0.5) * CANVAS_W, (targetUV.y - 0.5) * CANVAS_H, 0.006);
+      canvasMesh.localToWorld(strokeWorld.copy(strokeLocal));
+    }
 
     // Weight shift: he stoops into low strokes and rocks across for wide ones,
     // which is both alive and worth ~0.12 m of extra reach at the corners.
@@ -700,7 +717,8 @@ export function createArtist(scene, pose = { x: 4.5, z: -6.2, yaw: -2.6 }) {
     pose,
     tick(renderer, scene3, nowMs) {
       const ios = /iP(hone|ad|od)/.test(navigator.userAgent);
-      const gap = ios ? 380 : STROKE_MS;
+      const prep = lastAct && lastAct.type && lastAct.type !== "paint" && lastAct.type !== "idle";
+      const gap = ios ? (prep ? 520 : 380) : prep ? 420 : STROKE_MS;
       if (nowMs - lastStroke >= gap) {
         stroke(renderer, scene3);
         lastStroke = nowMs;
