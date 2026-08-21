@@ -363,7 +363,7 @@ export function spawnShitaGuy(scene) {
   function playLine(play, id, gain) {
     if (typeof play !== "function" || !id) return;
     try {
-      play(id, { gain: gain ?? 0.9 });
+      play(id, { gain: gain ?? 0.9, pos: mesh.position });
     } catch {
       /* vo optional */
     }

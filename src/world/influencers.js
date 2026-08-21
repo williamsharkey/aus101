@@ -10,7 +10,7 @@ const SAND = { minX: -20, maxX: 22, minZ: -6, maxZ: 12 };
 const MOVE_S = 120;
 const NEAR_RT = 22;
 const FIGHT_R = 10;
-const VOICE_R = 16;
+const VOICE_R = 11;
 const WALK = 1.18;
 const STAND_MIN = 1.2;
 const STAND_MAX = 1.6;
@@ -375,9 +375,9 @@ function speak(inf, t, playerPos, extra, scene) {
     return;
   }
   const id = nextLine(inf, fightsNear(inf, scene, extra));
-  const handle = play(id, { gain: Math.min(1, falloff(d) * 1.15) });
+  const handle = play(id, { gain: Math.min(1, falloff(d) * 1.05), pos: inf.talent.position });
   inf.handle = handle;
-  inf.gapUntil = t + 9;
+  inf.gapUntil = t + 16;
   handle?.ready?.then?.((ok) => {
     const now = inf.lastT ?? t;
     if (!ok) {
@@ -549,7 +549,7 @@ export function spawnInfluencers(scene, renderer) {
     { hair: 0xf4ead0, bikini: 0xff4da6, skin: 0xe8c4a0 },
     "inf-babe",
     HOME[0],
-    0.6,
+    8.5,
     0
   );
   const lad = makeOne(
@@ -564,11 +564,6 @@ export function spawnInfluencers(scene, renderer) {
   const pair = [gal, lad];
   let flip = 0;
 
-  if (renderer) {
-    renderSelfie(gal, renderer, scene);
-    renderSelfie(lad, renderer, scene);
-  }
-
   return {
     meshes: [gal.talent, lad.talent],
     tick(rend, scn, t, playerPos, extra) {
@@ -581,20 +576,17 @@ export function spawnInfluencers(scene, renderer) {
         tickOne(inf, other, r, scene3, t, playerPos, extra, dt);
       }
       if (!r || !playerPos) return;
+      flip += 1;
+      if (flip % 4 !== 0) return;
       const live = [];
       for (const inf of pair) {
         if (inf.state !== "talk" && inf.state !== "setup") continue;
         if (inf.talent.userData.combatDown || inf.talent.visible === false) continue;
-        if (distXZ(playerPos, inf.talent.position) > NEAR_RT) continue;
+        if (distXZ(playerPos, inf.talent.position) > 12) continue;
         live.push(inf);
       }
       if (!live.length) return;
-      if (live.length === 1) {
-        renderSelfie(live[0], r, scene3);
-        return;
-      }
-      renderSelfie(live[flip & 1], r, scene3);
-      flip ^= 1;
+      renderSelfie(live[(flip / 4) & 1] || live[0], r, scene3);
     },
   };
 }

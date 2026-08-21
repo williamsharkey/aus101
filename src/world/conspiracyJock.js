@@ -192,7 +192,7 @@ function tryPlay(st, play, id, gain) {
   st.talkUntil = performance.now() + hold;
   if (typeof fn !== "function") return;
   try {
-    const handle = fn(id, { gain: gain ?? 0.95 });
+    const handle = fn(id, { gain: gain ?? 0.95, pos: st.mesh.position });
     handle?.ready?.then?.((ok) => {
       if (ok && handle.duration) st.talkUntil = performance.now() + handle.duration + 250;
     });
@@ -236,7 +236,7 @@ export function spawnConspiracyJock(scene) {
     lastId: "",
     talking: false,
     talkUntil: 0,
-    nextSpeak: performance.now() + 900,
+    nextSpeak: performance.now() + 4200,
   };
 
   function tick(dt, playerPos, play) {

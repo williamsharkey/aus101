@@ -142,7 +142,7 @@ function tryVo(id, mesh) {
   const fn = playFn || mesh?.userData?.play;
   if (!fn || voBusy()) return null;
   try {
-    return fn(id, { gain: 1 });
+    return fn(id, { gain: 1, pos: mesh?.position });
   } catch {
     return null;
   }

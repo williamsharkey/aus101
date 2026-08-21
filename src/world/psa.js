@@ -330,10 +330,10 @@ export function spawnPsaKiosks(scene) {
             screen.map = k.videoTex;
             screen.emissiveMap = k.videoTex;
           }
-          if (k.video && k.video.paused) k.video.play().catch(() => {});
+          if (i === closest && k.video && k.video.paused) k.video.play().catch(() => {});
           if (k.video) {
             k.video.muted = !audioOn || i !== closest;
-            k.video.volume = 0.45;
+            k.video.volume = i === closest ? 0.28 : 0;
           }
         } else if (k.video && !k.video.paused) {
           k.video.pause();

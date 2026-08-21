@@ -109,8 +109,16 @@ export function createFootstepPlayer(sfxOrCtx) {
         return ctx.decodeAudioData(arr.slice(0));
       };
       try {
-        buffers.sand = await Promise.all(SAND.map(decode));
-        buffers.wood = await Promise.all(WOOD.map(decode));
+        buffers.sand = [];
+        for (const u of SAND) {
+          buffers.sand.push(await decode(u));
+          await new Promise((r) => requestAnimationFrame(() => r()));
+        }
+        buffers.wood = [];
+        for (const u of WOOD) {
+          buffers.wood.push(await decode(u));
+          await new Promise((r) => requestAnimationFrame(() => r()));
+        }
         files = buffers.sand.length > 0;
       } catch {
         files = false;

@@ -102,10 +102,15 @@ export function createWalkbyDirector(voice, cast) {
     return rows;
   };
 
+  let closestPos = null;
   const startLine = (line, gain, onStart) => {
-    if (inflight || voice.busy) return;
+    if (inflight) return;
+    if (!voice.has(line.id)) {
+      voice.warm(line.id);
+      return;
+    }
     inflight = true;
-    const handle = voice.play(line.id, { gain });
+    const handle = voice.play(line.id, { gain, pos: closestPos });
     handle.ready.then((ok) => {
       inflight = false;
       if (!ok) return;
@@ -130,6 +135,11 @@ export function createWalkbyDirector(voice, cast) {
       if (!near.length) return;
 
       const closest = near[0];
+      closestPos = closest.npc.mesh.position;
+      for (const row of near.slice(0, 3)) {
+        const lines = pool.get(row.npc.kind) || [];
+        if (lines[0]) voice.warm(lines[0].id);
+      }
       if (closest.g < 0.12) return;
 
       const childNear = cast.some(

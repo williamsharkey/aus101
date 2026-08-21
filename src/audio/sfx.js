@@ -38,11 +38,22 @@ export class SfxBank {
 
   async decode(url) {
     if (this.cache.has(url)) return this.cache.get(url);
-    const res = await fetch(url);
-    const arr = await res.arrayBuffer();
-    const buf = await this.ctx.decodeAudioData(arr.slice(0));
-    this.cache.set(url, buf);
-    return buf;
+    if (this._decP && this._decP.has(url)) return this._decP.get(url);
+    if (!this._decP) this._decP = new Map();
+    const work = (async () => {
+      const res = await fetch(url);
+      const arr = await res.arrayBuffer();
+      await new Promise((r) => requestAnimationFrame(() => r()));
+      const buf = await this.ctx.decodeAudioData(arr.slice(0));
+      this.cache.set(url, buf);
+      return buf;
+    })();
+    this._decP.set(url, work);
+    try {
+      return await work;
+    } finally {
+      this._decP.delete(url);
+    }
   }
 
   pick(urls) {

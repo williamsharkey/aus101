@@ -250,7 +250,7 @@ export function createPoser({ scene, cast = [], play } = {}) {
     const k = mesh.userData.kind === "ken" ? "ken" : "babe";
     const id = pickLine(k, lastLine);
     lastLine = id;
-    play(id, { gain: 1.15 });
+    play(id, { gain: 1.15, pos: mesh.position });
     nextLineAt = nowMs + 9000 + Math.random() * 5000;
   }
 

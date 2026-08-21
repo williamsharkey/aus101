@@ -840,14 +840,12 @@ export function buildWisdomHouse(reg) {
     uTime.value = t;
     const here = inside(playerPos) || strapped;
     if (here && !started) {
-      for (const v of vids) v.play().catch(() => {});
       started = true;
+      vids[0]?.play?.().catch(() => {});
     }
     if (here) {
-      if (!started) return;
-      for (const v of vids) {
-        if (v.paused) v.play().catch(() => {});
-      }
+      const i = Math.min(vids.length - 1, (t * 0.35) | 0);
+      if (vids[i] && vids[i].paused) vids[i].play().catch(() => {});
       for (let i = 0; i < vids.length; i++) {
         vids[i].muted = true;
         vids[i].volume = 0;

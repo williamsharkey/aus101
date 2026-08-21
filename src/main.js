@@ -448,30 +448,12 @@ function activate(a) {
   }
 }
 
-// midi-playalong
+// midi-playalong (no HUD — keys still work near a bed)
 const PLAY_WIN = 800;
 const PLAY_MAJOR = [0, 2, 4, 5, 7, 9, 11, 12];
 const PLAY_MINOR = [0, 2, 3, 5, 7, 8, 10, 12];
 const PLAY_ZROW = ["KeyZ", "KeyX", "KeyC", "KeyV", "KeyB", "KeyN", "KeyM"];
 const PLAY_QROW = ["KeyQ", "KeyW", "KeyE", "KeyR", "KeyT", "KeyY", "KeyU", "KeyI"];
-const playHint = document.createElement("div");
-playHint.id = "aus101-playalong";
-Object.assign(playHint.style, {
-  position: "fixed",
-  left: "50%",
-  bottom: "max(28px, calc(env(safe-area-inset-bottom) + 22px))",
-  transform: "translateX(-50%)",
-  zIndex: "9",
-  pointerEvents: "none",
-  font: "11px ui-sans-serif, system-ui, sans-serif",
-  letterSpacing: "0.14em",
-  color: "rgba(255,215,106,0.88)",
-  textShadow: "0 1px 3px #000",
-  display: "none",
-  whiteSpace: "nowrap",
-});
-document.body.appendChild(playHint);
-playHint._until = 0;
 
 function playAlongSlot(code) {
   if (code.startsWith("Digit")) {
@@ -541,27 +523,6 @@ function playAlongTone(ctx, midi, vel, dur) {
   o2.stop(t + rel + 0.05);
 }
 
-function flashPlayAlong(midi) {
-  playHint.textContent = `PLAY ALONG  ${midi | 0}`;
-  playHint.style.opacity = "0.95";
-  playHint.style.display = "block";
-  playHint._until = performance.now() + 700;
-}
-
-function tickPlayAlongHud() {
-  const now = performance.now();
-  if (playHint._until && now < playHint._until) return;
-  const rec = playAlongNotes();
-  const note = rec.length ? rec[rec.length - 1] : null;
-  if (playing && nearMusicSpot() && note) {
-    playHint.textContent = `PLAY ALONG  ${note.midi | 0}`;
-    playHint.style.opacity = "0.55";
-    playHint.style.display = "block";
-  } else {
-    playHint.style.display = "none";
-  }
-}
-
 window.addEventListener("keydown", (e) => {
   if (!playing || arrest.active || e.repeat) return;
   if (e.metaKey || e.ctrlKey || e.altKey) return;
@@ -581,7 +542,6 @@ window.addEventListener("keydown", (e) => {
   const ctx = voice.ctx || sfx.ctx;
   if (!ctx) return;
   playAlongTone(ctx, midi, hit ? 0.42 : 0.12, lastN.dur || 0.3);
-  flashPlayAlong(midi);
   e.preventDefault();
   e.stopImmediatePropagation();
 });
@@ -782,7 +742,7 @@ function frame() {
     }
     tapes.tick(player.pos);
     radio?.tick?.();
-    tickPlayAlongHud(); // midi-playalong
+    voice.tick?.(player.pos, player.yaw);
     recall.tick(raw || TICK, player.pos);
     panic.tick(raw || TICK, player.pos);
     // After recall/panic: recall.onHarm reads the lastPos its own tick stores.

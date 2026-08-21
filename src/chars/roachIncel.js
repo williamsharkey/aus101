@@ -501,7 +501,7 @@ function tryPlay(st, id, gain) {
   const play = st.play || st.mesh.userData.play;
   if (!play || !id) return false;
   try {
-    play(id, { gain });
+    play(id, { gain, pos: st.mesh.position });
     st.lastId = id;
     return true;
   } catch {
