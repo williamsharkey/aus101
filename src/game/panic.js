@@ -16,7 +16,7 @@ import { buildT101, poseT101 } from "../chars/t101.js";
 import { seagull } from "../chars/npcs.js";
 import { JACK } from "./arrest.js";
 import { blocked } from "../input/player.js";
-import { FACTORY_DOOR, FACTORY_DOCK, FACTORY_YARD } from "../world/aureliaFactory.js";
+import { FACTORY_DOOR, FACTORY_DOCK, FACTORY_YARD, FACTORY_EGRESS } from "../world/aureliaFactory.js";
 
 const FLEE = 6.2;
 const COP_SPEED = 7.4;
@@ -1167,8 +1167,8 @@ export function createPanic({
       c.duty = "home";
       if (c.kind === "t101") {
         const k = extra++;
-        c.tx = FACTORY_YARD.x - (k % 3) * 0.85;
-        c.tz = FACTORY_YARD.z + (((k / 3) | 0) - 1) * 1.05;
+        c.tx = FACTORY_YARD.x - (k % 3) * 0.95 + (Math.random() - 0.5) * 0.5;
+        c.tz = FACTORY_YARD.z + (((k / 3) | 0) - 1) * 1.1 + (Math.random() - 0.5) * 0.4;
       } else {
         const spot = BEACH_SPOTS[extra % BEACH_SPOTS.length];
         extra += 1;
@@ -1390,6 +1390,14 @@ export function createPanic({
       trySnipe(c, playerPos);
     }
 
+    // Wisdom House (x 22.6–27.6, z 20.8–25.6) pinches the factory door.
+    // Anyone still east of it at door-latitude must hop south onto the
+    // esplanade before heading west.
+    if (c.x > 27.35 && c.z > 19.55 && (tx < 22.9 || tz < 20.2)) {
+      const slot = c.slot || 0;
+      tx = FACTORY_EGRESS.x + ((slot % 5) - 2) * 0.5;
+      tz = FACTORY_EGRESS.z + (slot % 3) * 0.38;
+    }
     const stepTo = nextStep(c, tx, tz, performance.now() / 1000);
     const dx = stepTo.x - c.x;
     const dz = stepTo.z - c.z;
@@ -1404,9 +1412,18 @@ export function createPanic({
     else c.vx *= 0.15;
     if (!blocked(colliders?.COL, c.x, nz, rad)) c.z = nz;
     else c.vz *= 0.15;
-    if (Math.abs(c.vx) < 0.04 && Math.abs(c.vz) < 0.04 && d > 0.8) {
-      c.path = null;
-      c.pathAt = 0;
+    if (Math.abs(c.vx) < 0.05 && Math.abs(c.vz) < 0.05 && d > 0.7) {
+      c.stuckT = (c.stuckT || 0) + h;
+      if (c.stuckT > 0.45) {
+        c.stuckT = 0;
+        const jx = (Math.random() - 0.5) * 5.5;
+        const jz = -2.2 - Math.random() * 2.8;
+        c.path = astar(c.x, c.z, c.x + jx, c.z + jz, rad);
+        c.pathI = 0;
+        c.pathAt = performance.now() / 1000;
+      }
+    } else {
+      c.stuckT = 0;
     }
     c.x = Math.max(BOUNDS.minX, Math.min(BOUNDS.maxX, c.x));
     c.z = Math.max(BOUNDS.minZ, Math.min(BOUNDS.maxZ, c.z));
@@ -1438,11 +1455,17 @@ export function createPanic({
     if (pourAcc > 7.4 && living().length < LIVE_CAP && wantPour) {
       pourAcc = 0;
       const t = Math.min(1, killCount / 40);
-      const rec = addUnit("t101", FACTORY_DOOR.x - 0.95, FACTORY_DOOR.z + (Math.random() - 0.5) * 1.1, waveIndex, {
-        scale: 1.2 + 0.8 * t,
-        elite: true,
-        ranged: Math.random() < 0.4,
-      });
+      const rec = addUnit(
+        "t101",
+        FACTORY_EGRESS.x + (Math.random() - 0.5) * 1.4,
+        FACTORY_EGRESS.z + (Math.random() - 0.5) * 1.1,
+        waveIndex,
+        {
+          scale: 1.2 + 0.8 * t,
+          elite: true,
+          ranged: Math.random() < 0.4,
+        }
+      );
       if (rec) rec.duty = hunt ? "shove" : "home";
     }
 

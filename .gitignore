@@ -1,5 +1,6 @@
 node_modules/
 .venv/
+tools/voice/kokoro_models/
 .DS_Store
 *.log
 .env

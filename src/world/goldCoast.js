@@ -360,17 +360,6 @@ export function buildGoldCoast(scene, colliders) {
   deck.position.set(0, 0.12, GC.boardwalkZ);
   scene.add(deck);
 
-  // Rail
-  for (let x = -32; x <= 32; x += 4) {
-    const post = box(0.16, 1.15, 0.16, K.postWood);
-    post.position.set(x, 0.7, GC.boardwalkZ + 4.2);
-    scene.add(post);
-    add(x - 0.18, x + 0.18, GC.boardwalkZ + 4.0, GC.boardwalkZ + 4.4);
-  }
-  const rail = box(GC.width * 0.78, 0.1, 0.12, K.postWood);
-  rail.position.set(0, 1.18, GC.boardwalkZ + 4.2);
-  scene.add(rail);
-
   // Surf-club footprint deliberately left EMPTY — x −22.4..−13.6, z 12.2..17.4
   // (centred −18, 14.8). The enterable club in src/world/interiors.js drops in
   // here, so no shell and no collider from this file.
@@ -1354,13 +1343,26 @@ function spawnDancers(scene, isSave) {
       tick(t) {
         if (d.userData.combatDown || d.visible === false || d.userData.flee) return;
         const save = isSave?.();
+        const twerk = d.userData.kind === "babe";
         const hop = Math.abs(Math.sin(t * 5 + ph));
-        d.position.y = hop * (save ? 0.06 : 0.16);
-        d.rotation.y = yaw0 + Math.sin(t * 2 + ph) * (save ? 0.12 : 0.35);
-        d.rotation.z = Math.sin(t * 5 + ph) * (save ? 0.04 : 0.1);
+        const pump = Math.sin(t * 9.2 + ph);
+        const dip = 0.58 + 0.16 * (0.5 + 0.5 * pump);
+        if (twerk) {
+          // No knee hinge on this rig, so the whole leg swings — drop by thigh+shin.
+          const rise = ((b?.thighH || 0.43) + (b?.shinH || 0.38)) * (1 - Math.cos(dip));
+          d.position.y = -rise;
+          d.rotation.x = 0.14 + pump * 0.05;
+          d.rotation.z = pump * 0.03;
+          d.rotation.y = yaw0 + Math.sin(t * 2.2 + ph) * (save ? 0.08 : 0.14);
+        } else {
+          d.position.y = hop * (save ? 0.06 : 0.16);
+          d.rotation.x = 0;
+          d.rotation.y = yaw0 + Math.sin(t * 2 + ph) * (save ? 0.12 : 0.35);
+          d.rotation.z = Math.sin(t * 5 + ph) * (save ? 0.04 : 0.1);
+        }
         if (!b) return;
         if (save) {
-          if (d.userData.kind === "babe") {
+          if (twerk) {
             b.head.rotation.x = 0.22;
             b.armL.rotation.set(-1.1, 0.1, -0.2);
             b.armR.rotation.set(-0.9, -0.15, 0.35);
@@ -1371,16 +1373,27 @@ function spawnDancers(scene, isSave) {
           }
           if (t > nextVo) {
             nextVo = t + 3.2 + Math.random() * 2.4;
-            const id = d.userData.kind === "babe" ? TEAR[(Math.random() * TEAR.length) | 0] : HOWL[(Math.random() * HOWL.length) | 0];
+            const id = twerk ? TEAR[(Math.random() * TEAR.length) | 0] : HOWL[(Math.random() * HOWL.length) | 0];
             crowdPlay?.(id, { gain: 0.85, pos: d.position });
           }
+        } else if (twerk) {
+          b.head.rotation.x = 0.2 + pump * 0.05;
+          b.armL.rotation.set(-1.05 + pump * 0.08, 0.18, -0.5);
+          b.armR.rotation.set(-1.05 - pump * 0.08, -0.18, 0.5);
         } else {
           b.head.rotation.x = 0;
           b.armL.rotation.set(-0.35 + hop * 0.55, -0.08, -0.35 - hop * 0.85);
           b.armR.rotation.set(-0.35 + (1 - hop) * 0.55, 0.08, 0.35 + hop * 0.85);
         }
-        b.legL.rotation.x = hop * 0.34;
-        b.legR.rotation.x = (1 - hop) * 0.26;
+        if (twerk) {
+          if (b.legL) b.legL.rotation.set(-dip, 0.05, -0.14);
+          if (b.legR) b.legR.rotation.set(-dip, -0.05, 0.14);
+          if (b.pelvis) b.pelvis.rotation.x = 0.08 + pump * 0.1;
+          if (b.hips) b.hips.rotation.x = pump * 0.12;
+        } else {
+          b.legL.rotation.x = hop * 0.34;
+          b.legR.rotation.x = (1 - hop) * 0.26;
+        }
       },
     });
   });
