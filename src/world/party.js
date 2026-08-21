@@ -292,10 +292,14 @@ function placeDancer(opts, x, z, yaw) {
 /**
  * Drive the joints, not the whole group: knees dip on the beat, the pelvis drops
  * by exactly what the bend takes out of the leg so the soles stay in the sand,
- * arms swing overhead and the head nods.
+ * arms swing overhead and the head nods. `d.twerk` swaps that for a squat pulse.
  */
 function poseDancer(d, t) {
   if (d.mesh.userData.combatDown || d.mesh.visible === false || d.mesh.userData.flee) return;
+  if (d.twerk) {
+    poseTwerk(d, t);
+    return;
+  }
   const b = d.body;
   const beat = t * 4.6 + d.phase;
   const s = Math.sin(beat);
@@ -334,6 +338,48 @@ function poseDancer(d, t) {
   d.mesh.rotation.z = 0;
 }
 
+/** Deep squat, hips pumping, hands on the thighs. Soles stay in the sand. */
+function poseTwerk(d, t) {
+  const b = d.body;
+  const beat = t * 9.2 + d.phase;
+  const s = Math.sin(beat);
+  const sway = Math.sin(beat * 0.35);
+  const pulse = 0.5 + 0.5 * s;
+  const dip = 0.56 + 0.22 * pulse;
+
+  let stand = 0;
+  for (const L of d.legs) {
+    const sideDip = dip + L.side * sway * 0.03;
+    L.leg.rotation.set(-sideDip, L.side * 0.08, L.side * (0.14 + sway * 0.03));
+    L.hinge.rotation.x = sideDip;
+    if (L.foot) L.foot.rotation.x = 0;
+    stand = Math.max(stand, Math.cos(sideDip));
+  }
+  d.mesh.position.y = -b.thighH * (1 - stand);
+
+  const hips = b.hips || b.pelvis;
+  if (hips) {
+    hips.rotation.x = 0.1 + pulse * 0.1;
+    hips.rotation.z = sway * 0.02;
+    d.mesh.rotation.x = 0.12;
+  } else {
+    d.mesh.rotation.x = 0.14 + pulse * 0.06;
+  }
+  d.mesh.rotation.z = sway * 0.02;
+  d.mesh.rotation.y = d.yaw + sway * 0.1;
+
+  const thighY = b.hipY - 0.04;
+  for (const side of [-1, 1]) {
+    _reach.set(side * 0.13, thighY, 0.16);
+    armIK(d.mesh, side, _reach, -side * 0.35);
+  }
+
+  if (b.head) {
+    b.head.rotation.x = 0.22 + s * 0.05;
+    b.head.rotation.z = sway * 0.08;
+  }
+}
+
 /**
  * @param {THREE.Scene} scene
  * @returns {{ tick: (tSeconds: number) => void, musicSpots: { id: string, position: THREE.Vector3, radius: number }[] }}
@@ -360,6 +406,7 @@ export function spawnParty(scene) {
   const dancerB = placeDancer({ hair: 0xf2c12e, bikini: 0x2f7fd0, skin: 0xd9a078 }, 13.2, 8.7, -0.7);
   dancerA.mesh.name = "babe-boom-a";
   dancerB.mesh.name = "babe-boom-b";
+  dancerA.twerk = true;
   scene.add(dancerA.mesh, dancerB.mesh);
 
   const kens = [kenA, kenB];

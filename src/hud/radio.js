@@ -1,16 +1,17 @@
 /**
  * Reticule FM 101.7 — icon-only Prev / Pause / Next + volume.
- * Safe-area, z-index 12. Programs drive carpenter.setState.
+ * Safe-area, z-index 12. Stations are ProTracker modules plus JUNO 106.
  */
 
 import { midiBus } from "../audio/midiBus.js";
+import { parseMod } from "../audio/modPlayer.js";
 
 const PROGRAMS = [
-  { id: "carpenter", title: "JUNO 106", song: "dj_song_01" },
-  { id: "galway", title: "WIZBALL SHORE", song: "dj_song_02" },
-  { id: "fm7", title: "FM7 DUSK", song: "dj_song_03" },
-  { id: "dx", title: "DX ZINC", song: "dj_song_01" },
-  { id: "chip", title: "CHIP PATROL", song: "dj_song_02" },
+  { id: "zinc", title: "ZINC PATROL", url: "assets/mods/zinc_patrol.mod", song: "dj_song_01" },
+  { id: "shore", title: "GOLD COAST", url: "assets/mods/shore_galway.mod", song: "dj_song_02" },
+  { id: "night", title: "NIGHT DRIVE", url: "assets/mods/after_dark.mod", song: "dj_song_03" },
+  { id: "chip", title: "CHIP GULLS", url: "assets/mods/chip_gulls.mod", song: "dj_song_01" },
+  { id: "carpenter", title: "JUNO 106", song: "dj_song_02" },
 ];
 const SONGS = ["dj_song_01", "dj_song_02", "dj_song_03"];
 const QUIP_N = 49;
@@ -155,17 +156,19 @@ function fillQuips() {
 }
 
 /**
- * @param {{ carpenter?: { setState?: Function, start?: Function, stop?: Function, setMix?: Function, state?: string, running?: boolean }, voice?: { play?: Function, busy?: boolean }, isTalking?: (now: number) => boolean }} opts
+ * @param {{ carpenter?: { setState?: Function, start?: Function, stop?: Function, setMix?: Function, state?: string, running?: boolean }, tracker?: { play?: Function, stop?: Function, setMix?: Function, crackle?: Function, title?: string }, voice?: { play?: Function, busy?: boolean }, isTalking?: (now: number) => boolean }} opts
  * @returns {{ el: HTMLElement, tick: () => void, dispose: () => void }}
  */
-export function createRadioHud({ carpenter, tracker, scores, voice, isTalking } = {}) {
+export function createRadioHud({ carpenter, tracker, voice, isTalking } = {}) {
   let idx = 0;
-  let paused = carpenter ? carpenter.running === false : false;
+  let paused = false;
   let vol = 1;
   let pending = false;
   let quipBag = [];
   let disposed = false;
   let drag = null;
+  let loadGen = 0;
+  let loggedMods = false;
 
   if (!document.getElementById("aus101-radio-css")) {
     const css = document.createElement("style");
@@ -313,25 +316,71 @@ export function createRadioHud({ carpenter, tracker, scores, voice, isTalking } 
     if (tag) tag.textContent = PROGRAMS[idx]?.title || "";
   }
 
+  async function probeMods() {
+    if (loggedMods) return;
+    loggedMods = true;
+    let n = 0;
+    for (const p of PROGRAMS) {
+      if (!p.url) continue;
+      try {
+        const res = await fetch(p.url);
+        if (!res.ok) continue;
+        parseMod(await res.arrayBuffer());
+        n += 1;
+      } catch {
+        /* skip */
+      }
+    }
+    console.info(`radio: tracker mods ${n}`);
+  }
+
+  async function playMod(p, hops, g) {
+    if (disposed || g !== loadGen) return;
+    if (!p?.url || typeof tracker?.play !== "function") return;
+    try {
+      await tracker.play(p.url);
+      if (disposed || g !== loadGen) return;
+      tracker.setMix?.(vol);
+      if (tag) tag.textContent = tracker.title || p.title || "";
+    } catch {
+      if (disposed || g !== loadGen || hops >= PROGRAMS.length) return;
+      idx = (idx + 1) % PROGRAMS.length;
+      const next = PROGRAMS[idx];
+      paintProgram();
+      if (next.id === "carpenter") {
+        tracker?.stop?.();
+        carpenter?.setState?.("boardwalk");
+        if (!paused) {
+          carpenter?.start?.();
+          carpenter?.setMix?.(vol);
+        }
+        tracker?.setMix?.(0);
+        return;
+      }
+      await playMod(next, hops + 1, g);
+    }
+  }
+
   function applyProgram(announceIt) {
+    const g = ++loadGen;
     const p = PROGRAMS[idx] || PROGRAMS[0];
     midiBus.emit({ type: "program", id: p.id, src: "radio" });
+    paintProgram();
     if (p.id === "carpenter") {
       tracker?.stop?.();
+      tracker?.crackle?.();
       carpenter?.setState?.("boardwalk");
       if (!paused) {
         carpenter?.start?.();
         carpenter?.setMix?.(vol);
       }
+      tracker?.setMix?.(0);
     } else {
+      carpenter?.stop?.();
       carpenter?.setMix?.(0);
-      const song = scores?.[p.id];
-      if (song && !paused) {
-        tracker?.play?.(song);
-        tracker?.setMix?.(vol);
-      }
+      if (paused) tracker?.stop?.();
+      else playMod(p, 0, g);
     }
-    paintProgram();
     if (announceIt) announce();
   }
 
@@ -451,6 +500,8 @@ export function createRadioHud({ carpenter, tracker, scores, voice, isTalking } 
   paintPause();
   paintProgram();
   document.body.appendChild(root);
+  probeMods();
+  applyProgram(false);
 
   return {
     el: root,
