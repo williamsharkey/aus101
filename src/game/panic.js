@@ -845,7 +845,12 @@ export function createPanic({
       }
     }
     try {
-      play?.("fight_yell_01");
+      const vs = c.voiceSet || c.root?.userData?.voiceSet;
+      const k = c.kind;
+      if (k === "t101") play?.("cop_t101_0" + (((c.slot || 0) % 3) + 1));
+      else if (vs === "brotha") play?.("cop_brotha_01");
+      else if (vs === "sensei") play?.("cop_sensei_01");
+      else play?.("cop_tan_01");
     } catch {
       /* vo optional */
     }

@@ -1,5 +1,5 @@
 /**
- * Unlabeled mobile pad: left stick + two hold buttons (jog / squeeze).
+ * Mobile pad: left stick, look stick, lotion / punch / laser / run icons.
  * Shown only on coarse pointer / touch. Maps into the same `keys` object as WASD.
  */
 
@@ -96,28 +96,43 @@ function holdButton(parent, size, icon, onHold) {
   );
   btn.appendChild(icon);
   let pid = null;
+  const release = () => {
+    if (pid == null) return;
+    pid = null;
+    btn.style.background = "rgba(12,18,16,0.38)";
+    onHold(false);
+  };
   const down = (e) => {
-    if (pid != null) return;
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+    if (pid != null) release();
     pid = e.pointerId;
-    btn.setPointerCapture?.(e.pointerId);
+    try {
+      btn.setPointerCapture?.(e.pointerId);
+    } catch {
+      /* iOS */
+    }
     btn.style.background = "rgba(255,215,106,0.28)";
     onHold(true);
     e.preventDefault();
     e.stopPropagation();
   };
   const up = (e) => {
-    if (pid == null || (e.pointerId != null && e.pointerId !== pid)) return;
-    pid = null;
-    btn.style.background = "rgba(12,18,16,0.38)";
-    onHold(false);
+    if (pid == null) return;
+    if (e.pointerId != null && e.pointerId !== pid) return;
+    release();
     e.preventDefault();
     e.stopPropagation();
   };
   btn.addEventListener("pointerdown", down);
   btn.addEventListener("pointerup", up);
   btn.addEventListener("pointercancel", up);
-  btn.addEventListener("lostpointercapture", up);
-  return btn;
+  window.addEventListener("pointerup", up);
+  window.addEventListener("pointercancel", up);
+  window.addEventListener("blur", release);
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) release();
+  });
+  return { btn, release };
 }
 
 function droplet() {
@@ -146,8 +161,8 @@ function bindStick(pad, base, knob, radius, onMove, onEnd) {
     const r = base.getBoundingClientRect();
     const cx = r.left + r.width / 2;
     const cy = r.top + r.height / 2;
-    const dx = e.clientX - cx;
-    const dy = e.clientY - cy;
+    const dx = (e.clientX ?? e.touches?.[0]?.clientX ?? cx) - cx;
+    const dy = (e.clientY ?? e.touches?.[0]?.clientY ?? cy) - cy;
     const raw = Math.hypot(dx, dy);
     const mag = Math.min(1, raw / radius);
     const x = raw > 0 ? (dx / raw) * mag : 0;
@@ -155,95 +170,109 @@ function bindStick(pad, base, knob, radius, onMove, onEnd) {
     onMove(x, y, mag);
     knob.style.transform = `translate(${x * radius}px, ${-y * radius}px)`;
   };
-  pad.addEventListener("pointerdown", (e) => {
-    if (joyId != null) return;
-    joyId = e.pointerId;
-    pad.setPointerCapture?.(e.pointerId);
-    fromEvent(e);
-    e.preventDefault();
-    e.stopPropagation();
-  });
-  pad.addEventListener("pointermove", (e) => {
-    if (e.pointerId !== joyId) return;
-    fromEvent(e);
-    e.preventDefault();
-    e.stopPropagation();
-  });
   const end = (e) => {
-    if (joyId == null || (e.pointerId != null && e.pointerId !== joyId)) return;
+    if (joyId == null) return;
+    if (e && e.pointerId != null && e.pointerId !== joyId) return;
     joyId = null;
     onEnd();
     knob.style.transform = "translate(0px, 0px)";
+    if (e) {
+      e.preventDefault?.();
+      e.stopPropagation?.();
+    }
+  };
+  pad.addEventListener("pointerdown", (e) => {
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+    if (joyId != null) end(e);
+    joyId = e.pointerId;
+    try {
+      pad.setPointerCapture?.(e.pointerId);
+    } catch {
+      /* iOS often no-ops capture */
+    }
+    fromEvent(e);
+    e.preventDefault();
+    e.stopPropagation();
+  });
+  const move = (e) => {
+    if (joyId == null) return;
+    if (e.pointerId != null && e.pointerId !== joyId) return;
+    fromEvent(e);
     e.preventDefault();
     e.stopPropagation();
   };
+  pad.addEventListener("pointermove", move);
+  window.addEventListener("pointermove", move, { passive: false });
   pad.addEventListener("pointerup", end);
   pad.addEventListener("pointercancel", end);
-  pad.addEventListener("lostpointercapture", end);
-}
-
-function tapButton(parent, size, icon, onTap) {
-  const btn = holdButton(parent, size, icon, () => {});
-  let fired = false;
-  btn.addEventListener(
-    "pointerdown",
+  window.addEventListener("pointerup", end);
+  window.addEventListener("pointercancel", end);
+  window.addEventListener("blur", () => end());
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) end();
+  });
+  window.addEventListener("pagehide", () => end());
+  pad.addEventListener(
+    "touchend",
     (e) => {
-      if (!fired) {
-        fired = true;
-        onTap();
-      }
-      e.preventDefault();
-      e.stopPropagation();
+      if (e.touches.length === 0) end();
     },
-    true
+    { passive: false }
   );
-  const reset = () => {
-    fired = false;
-  };
-  btn.addEventListener("pointerup", reset);
-  btn.addEventListener("pointercancel", reset);
-  return btn;
+  pad.addEventListener("touchcancel", () => end(), { passive: false });
+  return { end };
 }
 
-function beamIcon() {
-  const g = el("div", {
-    width: "18px",
-    height: "18px",
-    position: "relative",
-  });
-  for (const x of [3, 11]) {
-    const d = el("div", {
-      position: "absolute",
-      left: `${x}px`,
-      top: "4px",
-      width: "4px",
-      height: "4px",
-      borderRadius: "50%",
-      background: "#ff3030",
-      boxShadow: "0 0 6px #ff1010",
-    });
-    g.appendChild(d);
-  }
-  const bar = el("div", {
-    position: "absolute",
-    left: "4px",
-    top: "11px",
-    width: "12px",
-    height: "2px",
-    background: "rgba(255,40,40,0.85)",
-  });
-  g.appendChild(bar);
-  return g;
+function svgIcon(inner, label) {
+  const wrap = el("div", { width: "28px", height: "28px", position: "relative" });
+  wrap.innerHTML = `<svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true">${inner}</svg>`;
+  wrap.title = label;
+  wrap.setAttribute("aria-label", label);
+  return wrap;
+}
+
+function lotionIcon() {
+  return svgIcon(
+    `<rect x="11" y="2" width="10" height="6" rx="1" fill="#f4e8c4"/>
+     <rect x="13" y="0.5" width="6" height="3" rx="1" fill="#d4c090"/>
+     <path d="M10 8 h12 l2 20 h-16 z" fill="#fbf6ea" stroke="#c9a45a" stroke-width="1"/>
+     <ellipse cx="16" cy="28" rx="5" ry="2.2" fill="#fff6d0" opacity="0.95"/>`,
+    "lotion"
+  );
 }
 
 function fistIcon() {
-  return el("div", {
-    width: "14px",
-    height: "14px",
-    borderRadius: "3px",
-    background: "rgba(251,246,234,0.9)",
-    boxShadow: "2px 2px 0 rgba(0,0,0,0.35)",
-  });
+  return svgIcon(
+    `<ellipse cx="16" cy="20" rx="9" ry="8" fill="#e8c4a0"/>
+     <rect x="8" y="10" width="4.2" height="10" rx="2" fill="#e8c4a0"/>
+     <rect x="13" y="8" width="4.2" height="11" rx="2" fill="#f0d0b0"/>
+     <rect x="18" y="9" width="4.2" height="10" rx="2" fill="#e8c4a0"/>
+     <rect x="22.5" y="12" width="3.6" height="8" rx="1.6" fill="#d4a06a"/>`,
+    "punch"
+  );
+}
+
+function laserIcon() {
+  return svgIcon(
+    `<rect x="6" y="14" width="14" height="6" rx="1" fill="#b87333"/>
+     <rect x="18" y="12" width="8" height="10" rx="1" fill="#8a4a20"/>
+     <circle cx="10" cy="12" r="2.2" fill="#ff2020"/>
+     <circle cx="16" cy="12" r="2.2" fill="#ff2020"/>
+     <rect x="24" y="16" width="7" height="2" fill="#ff4040"/>
+     <rect x="2" y="16" width="5" height="2" fill="#ff6060" opacity="0.7"/>`,
+    "laser"
+  );
+}
+
+function runIcon() {
+  return svgIcon(
+    `<circle cx="20" cy="6" r="3.2" fill="#fbf6ea"/>
+     <path d="M18 10 L12 16 L8 14" stroke="#fbf6ea" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+     <path d="M18 10 L16 18 L22 22 L26 18" stroke="#fbf6ea" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+     <path d="M16 18 L10 26" stroke="#ffd76a" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+     <path d="M22 22 L24 29" stroke="#ffd76a" stroke-width="2.2" fill="none" stroke-linecap="round"/>`,
+    "run"
+  );
 }
 
 function mountPad(keys, isPlaying, onPunch, onLaser) {
@@ -315,13 +344,12 @@ function mountPad(keys, isPlaying, onPunch, onLaser) {
   );
 
   const radius = (STICK_PX - KNOB_PX) * 0.5;
-  bindStick(
+  const stickCtl = bindStick(
     padL,
     base,
     knob,
     radius,
     (x, y, mag) => {
-      if (!isPlaying()) return;
       setStick(x, y, mag);
       writeDigital(keys);
     },
@@ -374,13 +402,12 @@ function mountPad(keys, isPlaying, onPunch, onLaser) {
     padR
   );
   const lookR = (LOOK_PX - LOOK_KNOB) * 0.5;
-  bindStick(
+  const lookCtl = bindStick(
     padR,
     lookBase,
     lookKnob,
     lookR,
     (x, y, mag) => {
-      if (!isPlaying()) return;
       look.x = x;
       look.y = y;
       look.mag = mag;
@@ -406,16 +433,21 @@ function mountPad(keys, isPlaying, onPunch, onLaser) {
     root
   );
 
-  holdButton(col, BTN, beamIcon(), (down) => {
+  const releases = [];
+  const addHold = (icon, fn) => {
+    const h = holdButton(col, BTN, icon, fn);
+    releases.push(h.release);
+  };
+  addHold(laserIcon(), (down) => {
     if (down && isPlaying()) onLaser?.();
   });
-  holdButton(col, BTN, fistIcon(), (down) => {
+  addHold(fistIcon(), (down) => {
     if (down && isPlaying()) onPunch?.();
   });
-  holdButton(col, BTN, dot(), (down) => {
+  addHold(runIcon(), (down) => {
     setOwned(keys, "ShiftLeft", "shift", down);
   });
-  holdButton(col, BTN + 4, droplet(), (down) => {
+  addHold(lotionIcon(), (down) => {
     setOwned(keys, "Space", "space", down);
   });
 
@@ -429,6 +461,9 @@ function mountPad(keys, isPlaying, onPunch, onLaser) {
       setOwned(keys, "Space", "space", false);
       setOwned(keys, "ShiftLeft", "shift", false);
       look.x = look.y = look.mag = 0;
+      for (const r of releases) r();
+      stickCtl.end();
+      lookCtl.end();
     }
   };
   const loop = () => {

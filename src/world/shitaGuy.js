@@ -34,7 +34,17 @@ const COOL = [
   "shita_cool_07",
   "shita_cool_08",
 ];
-const LAD = ["shita_lad_01", "shita_lad_02", "shita_lad_03"];
+const LAD = [
+  "shita_lad_01",
+  "shita_lad_02",
+  "shita_lad_03",
+  "shita_void_01",
+  "shita_void_02",
+  "shita_void_03",
+  "shita_void_04",
+  "shita_void_05",
+  "shita_void_06",
+];
 
 const SAND = { minX: -58, maxX: 58, minZ: -16, maxZ: 46 };
 const SPAWN = { x: 20.5, z: -3.2, yaw: -1.1 };

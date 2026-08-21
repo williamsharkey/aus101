@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "generatedAt": "2026-08-21T01:46:24Z",
-  "count": 389,
+  "generatedAt": "2026-08-21T03:29:09Z",
+  "count": 412,
   "placeholder": false,
   "engine": "tiktok-weilnet-proxy",
   "note": "Baked via tiktok-tts.weilnet.workers.dev \u2014 no TikTok sessionid. Unofficial; may break.",
@@ -6729,6 +6729,394 @@
       ],
       "cooldownMs": 4000,
       "text": "oi i'm back, who wants some",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "shita_void_01",
+      "file": "shita_void_01.mp3",
+      "voice": "en_us_ghostface",
+      "category": "shita",
+      "priority": null,
+      "ageBand": "adult",
+      "tags": [
+        "shita",
+        "void",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": null,
+      "text": "listen. noise is the remainder when you subtract the universe from itself. i live in that leftover hiss.",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "shita_void_02",
+      "file": "shita_void_02.mp3",
+      "voice": "en_us_ghostface",
+      "category": "shita",
+      "priority": null,
+      "ageBand": "adult",
+      "tags": [
+        "shita",
+        "void",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": null,
+      "text": "the empty is not empty. it is full of things that already died and are still vibrating.",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "shita_void_03",
+      "file": "shita_void_03.mp3",
+      "voice": "en_us_ghostface",
+      "category": "shita",
+      "priority": null,
+      "ageBand": "adult",
+      "tags": [
+        "shita",
+        "void",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": null,
+      "text": "beauty is a fleeting preset. you hold the knob, it rots, you let it die. that is love.",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "shita_void_04",
+      "file": "shita_void_04.mp3",
+      "voice": "en_us_ghostface",
+      "category": "shita",
+      "priority": null,
+      "ageBand": "adult",
+      "tags": [
+        "shita",
+        "void",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": null,
+      "text": "when you subtract everything, a thin square wave remains. that is god, badly quantized.",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "shita_void_05",
+      "file": "shita_void_05.mp3",
+      "voice": "en_us_ghostface",
+      "category": "shita",
+      "priority": null,
+      "ageBand": "adult",
+      "tags": [
+        "shita",
+        "void",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": null,
+      "text": "do not fix the tape. the wow and flutter is the confession of the machine.",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "shita_void_06",
+      "file": "shita_void_06.mp3",
+      "voice": "en_us_ghostface",
+      "category": "shita",
+      "priority": null,
+      "ageBand": "adult",
+      "tags": [
+        "shita",
+        "void",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": null,
+      "text": "i am not making music. i am documenting the collapse in sixteen steps.",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "piano_la_low",
+      "file": "piano_la_low.mp3",
+      "voice": "en_us_006",
+      "category": "piano",
+      "priority": null,
+      "ageBand": "adult",
+      "tags": [
+        "piano",
+        "vowel",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": null,
+      "text": "laaaaaaa",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "piano_la_mid",
+      "file": "piano_la_mid.mp3",
+      "voice": "en_us_006",
+      "category": "piano",
+      "priority": null,
+      "ageBand": "adult",
+      "tags": [
+        "piano",
+        "vowel",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": null,
+      "text": "laaaaa",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "piano_la_hi",
+      "file": "piano_la_hi.mp3",
+      "voice": "en_us_002",
+      "category": "piano",
+      "priority": null,
+      "ageBand": "adult",
+      "tags": [
+        "piano",
+        "vowel",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": null,
+      "text": "laaaa",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "piano_ooh_low",
+      "file": "piano_ooh_low.mp3",
+      "voice": "en_us_006",
+      "category": "piano",
+      "priority": null,
+      "ageBand": "adult",
+      "tags": [
+        "piano",
+        "vowel",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": null,
+      "text": "oooooh",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "piano_ooh_mid",
+      "file": "piano_ooh_mid.mp3",
+      "voice": "en_us_006",
+      "category": "piano",
+      "priority": null,
+      "ageBand": "adult",
+      "tags": [
+        "piano",
+        "vowel",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": null,
+      "text": "ooooh",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "piano_ooh_hi",
+      "file": "piano_ooh_hi.mp3",
+      "voice": "en_us_002",
+      "category": "piano",
+      "priority": null,
+      "ageBand": "adult",
+      "tags": [
+        "piano",
+        "vowel",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": null,
+      "text": "oooh",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "piano_aah_low",
+      "file": "piano_aah_low.mp3",
+      "voice": "en_us_006",
+      "category": "piano",
+      "priority": null,
+      "ageBand": "adult",
+      "tags": [
+        "piano",
+        "vowel",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": null,
+      "text": "aaaaaah",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "piano_aah_mid",
+      "file": "piano_aah_mid.mp3",
+      "voice": "en_us_006",
+      "category": "piano",
+      "priority": null,
+      "ageBand": "adult",
+      "tags": [
+        "piano",
+        "vowel",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": null,
+      "text": "aaaah",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "piano_aah_hi",
+      "file": "piano_aah_hi.mp3",
+      "voice": "en_us_002",
+      "category": "piano",
+      "priority": null,
+      "ageBand": "adult",
+      "tags": [
+        "piano",
+        "vowel",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": null,
+      "text": "aaah",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "roach_hot_01",
+      "file": "roach_hot_01.mp3",
+      "voice": "en_us_010",
+      "category": "roach",
+      "priority": null,
+      "ageBand": "adult",
+      "tags": [
+        "roach",
+        "prop",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": null,
+      "text": "it is so hot in this foam i can taste the glue. protein is a blessing. protein is a blessing.",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "roach_hot_02",
+      "file": "roach_hot_02.mp3",
+      "voice": "en_us_010",
+      "category": "roach",
+      "priority": null,
+      "ageBand": "adult",
+      "tags": [
+        "roach",
+        "prop",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": null,
+      "text": "department of crunch thanks you. i did not consent to the antennae. smile for the nation.",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "roach_hot_03",
+      "file": "roach_hot_03.mp3",
+      "voice": "en_us_010",
+      "category": "roach",
+      "priority": null,
+      "ageBand": "adult",
+      "tags": [
+        "roach",
+        "aside",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": null,
+      "text": "they eat steak in the towers. we get the legs. i am so blessed. i am so blessed.",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "cop_tan_01",
+      "file": "cop_tan_01.mp3",
+      "voice": "en_au_002",
+      "category": "cop",
+      "priority": null,
+      "ageBand": "adult",
+      "tags": [
+        "cop",
+        "tan",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": null,
+      "text": "move it copper, beach is closed for attitude.",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "cop_tan_02",
+      "file": "cop_tan_02.mp3",
+      "voice": "en_au_002",
+      "category": "cop",
+      "priority": null,
+      "ageBand": "adult",
+      "tags": [
+        "cop",
+        "tan",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": null,
+      "text": "hands where i can zinc em.",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "cop_t101_01",
+      "file": "cop_t101_01.mp3",
+      "voice": "en_us_stormtrooper",
+      "category": "cop",
+      "priority": null,
+      "ageBand": "adult",
+      "tags": [
+        "t101",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": null,
+      "text": "compliance is sunscreen. resistance is a rash.",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "cop_t101_02",
+      "file": "cop_t101_02.mp3",
+      "voice": "en_us_rocket",
+      "category": "cop",
+      "priority": null,
+      "ageBand": "adult",
+      "tags": [
+        "t101",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": null,
+      "text": "target acquired. apply zinc. apply law.",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "cop_t101_03",
+      "file": "cop_t101_03.mp3",
+      "voice": "en_us_c3po",
+      "category": "cop",
+      "priority": null,
+      "ageBand": "adult",
+      "tags": [
+        "t101",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": null,
+      "text": "your chassis is overdue for a wipe.",
       "placeholder": false,
       "engine": "tiktok-weilnet-proxy"
     }

@@ -34,7 +34,7 @@ function ir(ctx) {
 }
 
 /** Last strike + mix, for goldCoast key animation / proximity fallback. */
-export const pianoPulse = { at: 0, midi: NOTES[0], mix: 0 };
+export const pianoPulse = { at: 0, midi: NOTES[0], mix: 0, onVowel: null };
 
 /**
  * One sine+triangle piano strike. Peak 0.35. Caller owns mix/destination.
@@ -66,6 +66,11 @@ export function playPianoPluck(ctx, dest, when, midi, peak = PLUCK_PEAK) {
   o2.stop(t + 2.05);
   pianoPulse.at = performance.now();
   pianoPulse.midi = note;
+  try {
+    pianoPulse.onVowel?.(note);
+  } catch {
+    /* vo optional */
+  }
   midiBus.emit({ midi: note, vel: Math.min(1, pk / PLUCK_PEAK), src: "piano", dur: 1.85 });
   return { o, o2, g, midi: note };
 }

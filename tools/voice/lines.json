@@ -5170,6 +5170,256 @@
         "fight"
       ],
       "cooldownMs": 4000
+    },
+    {
+      "id": "shita_void_01",
+      "text": "listen. noise is the remainder when you subtract the universe from itself. i live in that leftover hiss.",
+      "voice": "en_us_ghostface",
+      "category": "shita",
+      "tags": [
+        "shita",
+        "void"
+      ],
+      "ageBand": "adult"
+    },
+    {
+      "id": "shita_void_02",
+      "text": "the empty is not empty. it is full of things that already died and are still vibrating.",
+      "voice": "en_us_ghostface",
+      "category": "shita",
+      "tags": [
+        "shita",
+        "void"
+      ],
+      "ageBand": "adult"
+    },
+    {
+      "id": "shita_void_03",
+      "text": "beauty is a fleeting preset. you hold the knob, it rots, you let it die. that is love.",
+      "voice": "en_us_ghostface",
+      "category": "shita",
+      "tags": [
+        "shita",
+        "void"
+      ],
+      "ageBand": "adult"
+    },
+    {
+      "id": "shita_void_04",
+      "text": "when you subtract everything, a thin square wave remains. that is god, badly quantized.",
+      "voice": "en_us_ghostface",
+      "category": "shita",
+      "tags": [
+        "shita",
+        "void"
+      ],
+      "ageBand": "adult"
+    },
+    {
+      "id": "shita_void_05",
+      "text": "do not fix the tape. the wow and flutter is the confession of the machine.",
+      "voice": "en_us_ghostface",
+      "category": "shita",
+      "tags": [
+        "shita",
+        "void"
+      ],
+      "ageBand": "adult"
+    },
+    {
+      "id": "shita_void_06",
+      "text": "i am not making music. i am documenting the collapse in sixteen steps.",
+      "voice": "en_us_ghostface",
+      "category": "shita",
+      "tags": [
+        "shita",
+        "void"
+      ],
+      "ageBand": "adult"
+    },
+    {
+      "id": "piano_la_low",
+      "text": "laaaaaaa",
+      "voice": "en_us_006",
+      "category": "piano",
+      "tags": [
+        "piano",
+        "vowel"
+      ],
+      "ageBand": "adult"
+    },
+    {
+      "id": "piano_la_mid",
+      "text": "laaaaa",
+      "voice": "en_us_006",
+      "category": "piano",
+      "tags": [
+        "piano",
+        "vowel"
+      ],
+      "ageBand": "adult"
+    },
+    {
+      "id": "piano_la_hi",
+      "text": "laaaa",
+      "voice": "en_us_002",
+      "category": "piano",
+      "tags": [
+        "piano",
+        "vowel"
+      ],
+      "ageBand": "adult"
+    },
+    {
+      "id": "piano_ooh_low",
+      "text": "oooooh",
+      "voice": "en_us_006",
+      "category": "piano",
+      "tags": [
+        "piano",
+        "vowel"
+      ],
+      "ageBand": "adult"
+    },
+    {
+      "id": "piano_ooh_mid",
+      "text": "ooooh",
+      "voice": "en_us_006",
+      "category": "piano",
+      "tags": [
+        "piano",
+        "vowel"
+      ],
+      "ageBand": "adult"
+    },
+    {
+      "id": "piano_ooh_hi",
+      "text": "oooh",
+      "voice": "en_us_002",
+      "category": "piano",
+      "tags": [
+        "piano",
+        "vowel"
+      ],
+      "ageBand": "adult"
+    },
+    {
+      "id": "piano_aah_low",
+      "text": "aaaaaah",
+      "voice": "en_us_006",
+      "category": "piano",
+      "tags": [
+        "piano",
+        "vowel"
+      ],
+      "ageBand": "adult"
+    },
+    {
+      "id": "piano_aah_mid",
+      "text": "aaaah",
+      "voice": "en_us_006",
+      "category": "piano",
+      "tags": [
+        "piano",
+        "vowel"
+      ],
+      "ageBand": "adult"
+    },
+    {
+      "id": "piano_aah_hi",
+      "text": "aaah",
+      "voice": "en_us_002",
+      "category": "piano",
+      "tags": [
+        "piano",
+        "vowel"
+      ],
+      "ageBand": "adult"
+    },
+    {
+      "id": "roach_hot_01",
+      "text": "it is so hot in this foam i can taste the glue. protein is a blessing. protein is a blessing.",
+      "voice": "en_us_010",
+      "category": "roach",
+      "tags": [
+        "roach",
+        "prop"
+      ],
+      "ageBand": "adult"
+    },
+    {
+      "id": "roach_hot_02",
+      "text": "department of crunch thanks you. i did not consent to the antennae. smile for the nation.",
+      "voice": "en_us_010",
+      "category": "roach",
+      "tags": [
+        "roach",
+        "prop"
+      ],
+      "ageBand": "adult"
+    },
+    {
+      "id": "roach_hot_03",
+      "text": "they eat steak in the towers. we get the legs. i am so blessed. i am so blessed.",
+      "voice": "en_us_010",
+      "category": "roach",
+      "tags": [
+        "roach",
+        "aside"
+      ],
+      "ageBand": "adult"
+    },
+    {
+      "id": "cop_tan_01",
+      "text": "move it copper, beach is closed for attitude.",
+      "voice": "en_au_002",
+      "category": "cop",
+      "tags": [
+        "cop",
+        "tan"
+      ],
+      "ageBand": "adult"
+    },
+    {
+      "id": "cop_tan_02",
+      "text": "hands where i can zinc em.",
+      "voice": "en_au_002",
+      "category": "cop",
+      "tags": [
+        "cop",
+        "tan"
+      ],
+      "ageBand": "adult"
+    },
+    {
+      "id": "cop_t101_01",
+      "text": "compliance is sunscreen. resistance is a rash.",
+      "voice": "en_us_stormtrooper",
+      "category": "cop",
+      "tags": [
+        "t101"
+      ],
+      "ageBand": "adult"
+    },
+    {
+      "id": "cop_t101_02",
+      "text": "target acquired. apply zinc. apply law.",
+      "voice": "en_us_rocket",
+      "category": "cop",
+      "tags": [
+        "t101"
+      ],
+      "ageBand": "adult"
+    },
+    {
+      "id": "cop_t101_03",
+      "text": "your chassis is overdue for a wipe.",
+      "voice": "en_us_c3po",
+      "category": "cop",
+      "tags": [
+        "t101"
+      ],
+      "ageBand": "adult"
     }
   ]
 }
