@@ -19,8 +19,8 @@ import { blocked } from "../input/player.js";
 const FLEE = 6.2;
 const COP_SPEED = 7.4;
 const COP_WALK = 2.1;
-const LIVE_CAP = 40;
-const LIVE_CAP_PHONE = 32;
+const LIVE_CAP = 100;
+const LIVE_CAP_PHONE = 100;
 const WAVE_BASE = 8;
 const SHOVE_R = 2.8;
 const SHOVE_PER = 2.8;
@@ -414,13 +414,15 @@ function liveCap() {
   return LIVE_CAP;
 }
 
-function makeT101Unit() {
-  const root = buildT101({ scale: 0.95, copper: 0xb87333 });
+function makeT101Unit(scale = 0.95) {
+  const s = Math.max(0.85, Math.min(2.05, scale));
+  const copper = s > 1.35 ? 0x7a3a18 : s > 1.15 ? 0x9a5424 : 0xb87333;
+  const root = buildT101({ scale: s, copper });
   root.name = "panic-t101";
   root.userData.kind = "t101";
   root.userData.ageBand = "adult";
   root.userData.paintTarget = true;
-  root.userData.body = { scale: 0.95 };
+  root.userData.body = { scale: s };
   addHitHull(root);
   poseT101(root, { walkPhase: Math.random() * Math.PI * 2, speed: 0 });
   return root;
@@ -486,6 +488,7 @@ export function createPanic({
   let onSpawn = typeof onSpawnOpt === "function" ? onSpawnOpt : null;
   let delivered = false;
   let waveIndex = 0;
+  let killCount = 0;
   let waveSpawned = 0;
   let waveWanted = 0;
   let awaitingDrop = false;
@@ -561,10 +564,10 @@ export function createPanic({
     return r === 1 || r === 3 ? "t101" : "cop";
   }
 
-  function makeUnit(kind) {
+  function makeUnit(kind, scale) {
     if (kind === "t101") {
       try {
-        return makeT101Unit();
+        return makeT101Unit(scale);
       } catch {
         /* fall through to cop */
       }
@@ -619,14 +622,25 @@ export function createPanic({
     if (waveSpawned >= waveWanted || living().length >= cap) awaitingDrop = false;
   }
 
-  function addUnit(kind, x, z, wave) {
+  function pruneDowned() {
+    if (cops.length <= LIVE_CAP) return;
+    for (let i = 0; i < cops.length && cops.length > LIVE_CAP; i++) {
+      if (cops[i].duty !== "down") continue;
+      scene?.remove(cops[i].root);
+      cops.splice(i, 1);
+      i--;
+    }
+  }
+
+  function addUnit(kind, x, z, wave, extra = {}) {
+    pruneDowned();
     const cap = liveCap();
-    if (!scene || living().length >= cap) {
+    if (!scene || living().length >= cap || cops.length >= LIVE_CAP) {
       noteSpawn();
       return null;
     }
-    const k = kind || pickKind(cops.length);
-    const root = makeUnit(k);
+    const k = extra.kind || kind || pickKind(cops.length);
+    const root = makeUnit(k, extra.scale);
     const px = Math.max(BOUNDS.minX + 0.5, Math.min(BOUNDS.maxX - 0.5, x));
     const pz = Math.max(BOUNDS.minZ + 0.5, Math.min(BOUNDS.maxZ - 0.5, z));
     root.position.set(px, 0, pz);
@@ -652,9 +666,11 @@ export function createPanic({
       kind: k,
       wave: Number.isFinite(wave) ? wave : waveIndex,
       slot: slotSeq++,
-      ranged: k === "t101" && Math.random() < SNIPER_FRAC,
+      scale: extra.scale || (k === "t101" ? 0.95 : 1),
+      ranged: k === "t101" && (extra.ranged ?? Math.random() < SNIPER_FRAC),
       laserT: 0,
       nextShot: 0,
+      elite: !!extra.elite,
     };
     if (rec.ranged && hunt) rec.duty = "snipe";
     cops.push(rec);
@@ -745,6 +761,60 @@ export function createPanic({
     }
   }
 
+  function maybeReplace() {
+    if (!hunt || living().length >= LIVE_CAP) return;
+    const t = Math.min(1, killCount / 40);
+    const scale = 1.2 + 0.8 * t;
+    const pos = placeClear(lastPlayer, killCount, 6, living());
+    addUnit("t101", pos.x, pos.z, waveIndex, { scale, elite: true, ranged: Math.random() < 0.45 });
+  }
+
+  function separate(h) {
+    const live = living();
+    const n = live.length;
+    if (n < 2) return;
+    for (let i = 0; i < n; i++) {
+      const a = live[i];
+      const ra = (a.scale || 1) * 0.62;
+      let ox = 0;
+      let oz = 0;
+      let near = 0;
+      for (let j = 0; j < n; j++) {
+        if (i === j) continue;
+        const b = live[j];
+        const dx = a.x - b.x;
+        const dz = a.z - b.z;
+        const d = Math.hypot(dx, dz) || 0.001;
+        const min = ra + (b.scale || 1) * 0.62;
+        if (d < min) {
+          const p = (min - d) / min;
+          ox += (dx / d) * p;
+          oz += (dz / d) * p;
+          near += 1;
+        } else if (d < min * 2.1) {
+          ox += (dx / d) * 0.12;
+          oz += (dz / d) * 0.12;
+          near += 1;
+        }
+      }
+      if (near >= 5) {
+        const px = a.x - lastPlayer.x;
+        const pz = a.z - lastPlayer.z;
+        const pd = Math.hypot(px, pz) || 1;
+        ox += (px / pd) * 1.4;
+        oz += (pz / pd) * 1.4;
+      }
+      if (ox === 0 && oz === 0) continue;
+      const L = Math.hypot(ox, oz) || 1;
+      const step = Math.min(2.4, L) * h * 5.2;
+      a.x += (ox / L) * step;
+      a.z += (oz / L) * step;
+      a.x = Math.max(BOUNDS.minX, Math.min(BOUNDS.maxX, a.x));
+      a.z = Math.max(BOUNDS.minZ, Math.min(BOUNDS.maxZ, a.z));
+      a.root.position.set(a.x, 0, a.z);
+    }
+  }
+
   function maybeWipe() {
     if (!hunt || awaitingDrop) return;
     if (waveSpawned <= 0) return;
@@ -784,7 +854,9 @@ export function createPanic({
     } catch {
       /* sfx optional */
     }
+    killCount += 1;
     maybeWipe();
+    maybeReplace();
     return true;
   }
 
@@ -794,6 +866,7 @@ export function createPanic({
     delivered = false;
     level = 2;
     waveIndex = 0;
+    killCount = 0;
     waveSpawned = 0;
     waveWanted = WAVE_BASE;
     awaitingDrop = false;
@@ -946,8 +1019,9 @@ export function createPanic({
     } catch {
       /* */
     }
-    zapSx += ix * ZAP_SHOVE;
-    zapSz += iz * ZAP_SHOVE;
+    const kick = ZAP_SHOVE * (c.scale || 1);
+    zapSx += ix * kick;
+    zapSz += iz * kick;
     let nx = -ix;
     let nz = -iz;
     const tilt = (Math.random() - 0.5) * 0.42;
@@ -1095,6 +1169,7 @@ export function createPanic({
     }
 
     for (const c of cops) driveCop(c, playerPos, h);
+    separate(h);
     const now = performance.now();
     for (const b of bolts) {
       if (b.line.visible && now > b.until) {
@@ -1169,9 +1244,9 @@ export function createPanic({
       const d = Math.hypot(c.x - px, c.z - pz);
       if (d > SHOVE_R) continue;
       const fan = fanDir(pd, c.slot || 0);
-      let k = SHOVE_PER;
-      if (d <= SHOVE_PULSE_R) {
-        k += SHOVE_PULSE;
+      let k = SHOVE_PER * (c.scale || 1);
+      if (d <= SHOVE_PULSE_R * (c.scale || 1)) {
+        k += SHOVE_PULSE * (c.scale || 1);
         pulse += 1;
       }
       sx += fan.x * k;
