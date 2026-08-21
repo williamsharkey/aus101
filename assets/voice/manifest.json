@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "generatedAt": "2026-08-21T03:29:09Z",
-  "count": 412,
+  "generatedAt": "2026-08-21T04:12:25Z",
+  "count": 429,
   "placeholder": false,
   "engine": "tiktok-weilnet-proxy",
   "note": "Baked via tiktok-tts.weilnet.workers.dev \u2014 no TikTok sessionid. Unofficial; may break.",
@@ -7117,6 +7117,295 @@
       ],
       "cooldownMs": null,
       "text": "your chassis is overdue for a wipe.",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "guitar_ooh_low",
+      "file": "guitar_ooh_low.mp3",
+      "voice": "en_us_010",
+      "category": "guitar",
+      "priority": null,
+      "ageBand": "adult",
+      "tags": [
+        "guitar",
+        "vowel",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": null,
+      "text": "oooooh yeah",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "guitar_ooh_mid",
+      "file": "guitar_ooh_mid.mp3",
+      "voice": "en_us_010",
+      "category": "guitar",
+      "priority": null,
+      "ageBand": "adult",
+      "tags": [
+        "guitar",
+        "vowel",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": null,
+      "text": "ooooh",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "guitar_ooh_hi",
+      "file": "guitar_ooh_hi.mp3",
+      "voice": "en_male_funny",
+      "category": "guitar",
+      "priority": null,
+      "ageBand": "adult",
+      "tags": [
+        "guitar",
+        "vowel",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": null,
+      "text": "oooh",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "guitar_aah_low",
+      "file": "guitar_aah_low.mp3",
+      "voice": "en_us_006",
+      "category": "guitar",
+      "priority": null,
+      "ageBand": "adult",
+      "tags": [
+        "guitar",
+        "vowel",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": null,
+      "text": "aaaaaah",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "guitar_aah_mid",
+      "file": "guitar_aah_mid.mp3",
+      "voice": "en_us_006",
+      "category": "guitar",
+      "priority": null,
+      "ageBand": "adult",
+      "tags": [
+        "guitar",
+        "vowel",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": null,
+      "text": "aaaah",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "guitar_aah_hi",
+      "file": "guitar_aah_hi.mp3",
+      "voice": "en_us_002",
+      "category": "guitar",
+      "priority": null,
+      "ageBand": "adult",
+      "tags": [
+        "guitar",
+        "vowel",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": null,
+      "text": "aaah",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "guitar_yoyo_low",
+      "file": "guitar_yoyo_low.mp3",
+      "voice": "en_us_010",
+      "category": "guitar",
+      "priority": null,
+      "ageBand": "adult",
+      "tags": [
+        "guitar",
+        "vowel",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": null,
+      "text": "yoyoyoyo",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "guitar_yoyo_mid",
+      "file": "guitar_yoyo_mid.mp3",
+      "voice": "en_us_010",
+      "category": "guitar",
+      "priority": null,
+      "ageBand": "adult",
+      "tags": [
+        "guitar",
+        "vowel",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": null,
+      "text": "yo yo yo",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "guitar_yoyo_hi",
+      "file": "guitar_yoyo_hi.mp3",
+      "voice": "en_male_funny",
+      "category": "guitar",
+      "priority": null,
+      "ageBand": "adult",
+      "tags": [
+        "guitar",
+        "vowel",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": null,
+      "text": "yooo",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "vape_clerk_01",
+      "file": "vape_clerk_01.mp3",
+      "voice": "en_us_ghostface",
+      "category": "vape",
+      "priority": null,
+      "ageBand": "adult",
+      "tags": [
+        "goth",
+        "clerk",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": null,
+      "text": "safeword mango. you tap out when it's too sweet. or you don't.",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "vape_clerk_02",
+      "file": "vape_clerk_02.mp3",
+      "voice": "en_us_ghostface",
+      "category": "vape",
+      "priority": null,
+      "ageBand": "adult",
+      "tags": [
+        "goth",
+        "clerk",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": null,
+      "text": "collar cola. tight on the throat. you'll ask for another.",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "vape_clerk_03",
+      "file": "vape_clerk_03.mp3",
+      "voice": "en_us_ghostface",
+      "category": "vape",
+      "priority": null,
+      "ageBand": "adult",
+      "tags": [
+        "goth",
+        "clerk",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": null,
+      "text": "aftercare mint. cold. then i tell you you did good.",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "vape_clerk_04",
+      "file": "vape_clerk_04.mp3",
+      "voice": "en_us_ghostface",
+      "category": "vape",
+      "priority": null,
+      "ageBand": "adult",
+      "tags": [
+        "goth",
+        "clerk",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": null,
+      "text": "restraint berry. you don't get to pick when it ends.",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "vape_clerk_05",
+      "file": "vape_clerk_05.mp3",
+      "voice": "en_us_ghostface",
+      "category": "vape",
+      "priority": null,
+      "ageBand": "adult",
+      "tags": [
+        "goth",
+        "clerk",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": null,
+      "text": "impact ice. it stings. that's the point.",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "vape_clerk_06",
+      "file": "vape_clerk_06.mp3",
+      "voice": "en_us_ghostface",
+      "category": "vape",
+      "priority": null,
+      "ageBand": "adult",
+      "tags": [
+        "goth",
+        "clerk",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": null,
+      "text": "chokecherry custard. hold it in. don't you dare cough.",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "vape_clerk_07",
+      "file": "vape_clerk_07.mp3",
+      "voice": "en_us_ghostface",
+      "category": "vape",
+      "priority": null,
+      "ageBand": "adult",
+      "tags": [
+        "goth",
+        "clerk",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": null,
+      "text": "kneel vanilla. on the floor. thank me after.",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "vape_clerk_08",
+      "file": "vape_clerk_08.mp3",
+      "voice": "en_us_ghostface",
+      "category": "vape",
+      "priority": null,
+      "ageBand": "adult",
+      "tags": [
+        "goth",
+        "clerk",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": null,
+      "text": "peg peach. whatever you thought this cart was for, think again.",
       "placeholder": false,
       "engine": "tiktok-weilnet-proxy"
     }

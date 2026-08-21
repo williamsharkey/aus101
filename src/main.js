@@ -52,6 +52,7 @@ import { attachGadgets } from "./world/gadgets.js";
 import { spawnSynthRig } from "./world/synthRig.js";
 import { spawnShitaGuy } from "./world/shitaGuy.js";
 import { spawnConspiracyJock } from "./world/conspiracyJock.js";
+import { createVapeSim } from "./game/vape.js";
 import { spawnInfluencers } from "./world/influencers.js";
 import { spawnInteriors } from "./world/interiors.js";
 import { createTapeSystem, acquireCtx } from "./audio/tapeDeck.js";
@@ -201,6 +202,13 @@ for (let i = 0; i < 5; i++) {
   enroll(scene.getObjectByName(`dj-ken-${i}`));
 }
 for (let i = 0; i < 4; i++) enroll(scene.getObjectByName(`ken-fight-${i}`), "ken", "adult");
+if (level.vape?.clerk) enroll(level.vape.clerk, "goth", "adult");
+const vapeSim = createVapeSim({
+  shop: level.vape,
+  cast,
+  play: (id, o) => voice.play(id, o),
+  scene,
+});
 
 const sfx = new SfxBank();
 const fightPlay = (id, o) => voice.play(id, o);
@@ -861,6 +869,7 @@ function frame() {
     });
     conspiracy?.tick?.(raw || TICK, player.pos, (id, o) => voice.play(id, o));
     roach?.tick?.(raw || TICK, performance.now());
+    vapeSim?.tick?.(raw || TICK, t, player.pos);
     {
       const force = seqForce ? true : wantAct ? "skip" : false;
       const act = synth.tryInteract(player.pos, input.keys, force);

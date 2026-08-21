@@ -26,6 +26,7 @@ import {
   signTex,
   metalRoofTex,
 } from "./coconutsHelpers.js";
+import { spawnVapeShop } from "./vapeShop.js";
 import { pianoPulse, playPianoPluck } from "../audio/shades.js";
 import { acquireCtx } from "../audio/tapeDeck.js";
 import { ken, babe, poseSit } from "../chars/npcs.js";
@@ -392,25 +393,7 @@ export function buildGoldCoast(scene, colliders) {
   scene.add(tower);
   add(18.4, 21.6, GC.boardwalkZ - 3.6, GC.boardwalkZ - 0.4);
 
-  // SPF kiosk
-  const kiosk = new THREE.Group();
-  const booth = box(3.4, 2.4, 2.6, K.wall);
-  booth.position.y = 1.2;
-  kiosk.add(booth);
-  const kroofMap = metalRoofTex();
-  kroofMap.repeat.set(3, 2);
-  const kroof = box(3.8, 0.16, 3.0, new THREE.MeshStandardMaterial({ map: kroofMap, color: 0xd85a44, roughness: 0.55, metalness: 0.15 }));
-  kroof.position.y = 2.5;
-  kiosk.add(kroof);
-  const ksign = new THREE.Mesh(
-    new THREE.PlaneGeometry(2.8, 0.7),
-    new THREE.MeshBasicMaterial({ map: signTex("ZINC", "FREE SPF"), side: THREE.DoubleSide })
-  );
-  ksign.position.set(0, 2.05, 1.35);
-  kiosk.add(ksign);
-  kiosk.position.set(8, 0, GC.boardwalkZ - 1);
-  scene.add(kiosk);
-  add(6.2, 9.8, GC.boardwalkZ - 2.3, GC.boardwalkZ + 0.3);
+  const vape = spawnVapeShop(scene, add);
 
   // Ice-cream van
   const van = new THREE.Group();
@@ -680,6 +663,7 @@ export function buildGoldCoast(scene, colliders) {
     bounds: BOUNDS,
     piano: pianoPos,
     hatch: hatchInfo,
+    vape,
     isWood(x, z) {
       return Math.abs(z - GC.boardwalkZ) < 4.8 && Math.abs(x) < GC.width * 0.4;
     },
