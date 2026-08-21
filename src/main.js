@@ -192,6 +192,7 @@ const panic = createPanic({
   cast,
   play: (id) => voice.play(id),
   colliders,
+  sfx,
   onSpawn: (mesh, kind) => enroll(mesh, kind || mesh.userData.kind || "cop", "adult"),
 });
 for (const bot of panic.house?.robots || []) enroll(bot, "t101", "adult");

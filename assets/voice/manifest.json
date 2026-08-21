@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "generatedAt": "2026-08-21T01:26:46Z",
-  "count": 376,
+  "generatedAt": "2026-08-21T01:46:24Z",
+  "count": 389,
   "placeholder": false,
   "engine": "tiktok-weilnet-proxy",
   "note": "Baked via tiktok-tts.weilnet.workers.dev \u2014 no TikTok sessionid. Unofficial; may break.",
@@ -6497,6 +6497,238 @@
       ],
       "cooldownMs": 14000,
       "text": "These two are going at it and I am still in frame. That is main character behaviour. I did not start it, I just look good next to it, which is honestly a skill.",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "nurse_giggle_01",
+      "file": "nurse_giggle_01.mp3",
+      "voice": "en_female_emotional",
+      "category": "nurse",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "nurse",
+        "babe",
+        "medic",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 2500,
+      "text": "ohh no sweety let me nurse you back to health",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "nurse_giggle_02",
+      "file": "nurse_giggle_02.mp3",
+      "voice": "en_female_emotional",
+      "category": "nurse",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "nurse",
+        "babe",
+        "medic",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 2500,
+      "text": "oh no baby, come to the shade shack",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "nurse_giggle_03",
+      "file": "nurse_giggle_03.mp3",
+      "voice": "en_female_emotional",
+      "category": "nurse",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "nurse",
+        "babe",
+        "medic",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 2500,
+      "text": "that's a nasty bump, lucky you found me",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "nurse_run_01",
+      "file": "nurse_run_01.mp3",
+      "voice": "en_female_emotional",
+      "category": "nurse",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "nurse",
+        "babe",
+        "medic",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 3000,
+      "text": "coming sweety, hold on",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "nurse_sip_01",
+      "file": "nurse_sip_01.mp3",
+      "voice": "en_female_emotional",
+      "category": "nurse",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "nurse",
+        "babe",
+        "medic",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 3500,
+      "text": "just a little sip for me, that's it",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "nurse_sip_02",
+      "file": "nurse_sip_02.mp3",
+      "voice": "en_female_emotional",
+      "category": "nurse",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "nurse",
+        "babe",
+        "medic",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 3500,
+      "text": "drink up soldier, doctor's orders",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "nurse_flirt_01",
+      "file": "nurse_flirt_01.mp3",
+      "voice": "en_female_emotional",
+      "category": "nurse",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "nurse",
+        "babe",
+        "flirt",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 3500,
+      "text": "you're so brave, stay with me gorgeous",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "nurse_flirt_02",
+      "file": "nurse_flirt_02.mp3",
+      "voice": "en_female_emotional",
+      "category": "nurse",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "nurse",
+        "babe",
+        "flirt",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 3500,
+      "text": "stay still for nurse, i'll make it all better",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "nurse_flirt_03",
+      "file": "nurse_flirt_03.mp3",
+      "voice": "en_female_emotional",
+      "category": "nurse",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "nurse",
+        "babe",
+        "flirt",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 3500,
+      "text": "your pulse is like, totally racing",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "ken_thanks_01",
+      "file": "ken_thanks_01.mp3",
+      "voice": "en_au_001",
+      "category": "nurse",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "nurse",
+        "ken",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 4000,
+      "text": "thanks babe, you saved my life",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "ken_thanks_02",
+      "file": "ken_thanks_02.mp3",
+      "voice": "en_au_001",
+      "category": "nurse",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "nurse",
+        "ken",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 4000,
+      "text": "woah that nurse is like an angel",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "ken_rematch_01",
+      "file": "ken_rematch_01.mp3",
+      "voice": "en_au_001",
+      "category": "nurse",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "nurse",
+        "ken",
+        "fight",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 4000,
+      "text": "im gonna F u up bud! you think you're gonna get away with this",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "ken_rematch_02",
+      "file": "ken_rematch_02.mp3",
+      "voice": "en_au_001",
+      "category": "nurse",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "nurse",
+        "ken",
+        "fight",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 4000,
+      "text": "oi i'm back, who wants some",
       "placeholder": false,
       "engine": "tiktok-weilnet-proxy"
     }

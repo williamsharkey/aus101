@@ -1,0 +1,135 @@
+{
+  "version": 1,
+  "lines": [
+    {
+      "id": "nurse_giggle_01",
+      "text": "ohh no sweety let me nurse you back to health",
+      "voice": "en_female_emotional",
+      "category": "nurse",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": ["nurse", "babe", "medic"],
+      "cooldownMs": 2500
+    },
+    {
+      "id": "nurse_giggle_02",
+      "text": "oh no baby, come to the shade shack",
+      "voice": "en_female_emotional",
+      "category": "nurse",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": ["nurse", "babe", "medic"],
+      "cooldownMs": 2500
+    },
+    {
+      "id": "nurse_giggle_03",
+      "text": "that's a nasty bump, lucky you found me",
+      "voice": "en_female_emotional",
+      "category": "nurse",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": ["nurse", "babe", "medic"],
+      "cooldownMs": 2500
+    },
+    {
+      "id": "nurse_run_01",
+      "text": "coming sweety, hold on",
+      "voice": "en_female_emotional",
+      "category": "nurse",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": ["nurse", "babe", "medic"],
+      "cooldownMs": 3000
+    },
+    {
+      "id": "nurse_sip_01",
+      "text": "just a little sip for me, that's it",
+      "voice": "en_female_emotional",
+      "category": "nurse",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": ["nurse", "babe", "medic"],
+      "cooldownMs": 3500
+    },
+    {
+      "id": "nurse_sip_02",
+      "text": "drink up soldier, doctor's orders",
+      "voice": "en_female_emotional",
+      "category": "nurse",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": ["nurse", "babe", "medic"],
+      "cooldownMs": 3500
+    },
+    {
+      "id": "nurse_flirt_01",
+      "text": "you're so brave, stay with me gorgeous",
+      "voice": "en_female_emotional",
+      "category": "nurse",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": ["nurse", "babe", "flirt"],
+      "cooldownMs": 3500
+    },
+    {
+      "id": "nurse_flirt_02",
+      "text": "stay still for nurse, i'll make it all better",
+      "voice": "en_female_emotional",
+      "category": "nurse",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": ["nurse", "babe", "flirt"],
+      "cooldownMs": 3500
+    },
+    {
+      "id": "nurse_flirt_03",
+      "text": "your pulse is like, totally racing",
+      "voice": "en_female_emotional",
+      "category": "nurse",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": ["nurse", "babe", "flirt"],
+      "cooldownMs": 3500
+    },
+    {
+      "id": "ken_thanks_01",
+      "text": "thanks babe, you saved my life",
+      "voice": "en_au_001",
+      "category": "nurse",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": ["nurse", "ken"],
+      "cooldownMs": 4000
+    },
+    {
+      "id": "ken_thanks_02",
+      "text": "woah that nurse is like an angel",
+      "voice": "en_au_001",
+      "category": "nurse",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": ["nurse", "ken"],
+      "cooldownMs": 4000
+    },
+    {
+      "id": "ken_rematch_01",
+      "text": "im gonna F u up bud! you think you're gonna get away with this",
+      "voice": "en_au_001",
+      "category": "nurse",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": ["nurse", "ken", "fight"],
+      "cooldownMs": 4000
+    },
+    {
+      "id": "ken_rematch_02",
+      "text": "oi i'm back, who wants some",
+      "voice": "en_au_001",
+      "category": "nurse",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": ["nurse", "ken", "fight"],
+      "cooldownMs": 4000
+    }
+  ]
+}

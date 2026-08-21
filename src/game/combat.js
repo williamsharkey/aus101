@@ -18,7 +18,7 @@ import * as THREE from "three";
 /* ── swing timing ─────────────────────────────────────────────────────────── */
 const PUNCH_DUR = 0.62; // whole animation, seconds
 const PUNCH_STRIKE = 0.32; // punchT 0.516 — where t101.js `punchCurve` peaks the extension
-const PUNCH_REACH = 1.55; // metres, fist reach including the step-in
+const PUNCH_REACH = 2.25; // metres — long enough to tag shoving cops
 const PUNCH_SOLID_REACH = 1.15; // inside this and lined up = solid (lethal) hit
 const PUNCH_COS = Math.cos(0.95); // ~54° half-angle arc in front of the player
 const PUNCH_SOLID_COS = Math.cos(0.38); // ~22° — squarely in front
@@ -304,7 +304,13 @@ export function createCombat({ scene, cast, onHarm, play } = {}) {
   const world = [];
   const meshToNpc = new Map();
   const pushMesh = (o) => {
-    if (o.isMesh && o.visible) world.push(o);
+    if (!o.isMesh || !o.visible) return;
+    // Hidden roots (downed bipeds) still have visible children; those must not
+    // eat a laser meant for the cop standing behind them.
+    for (let p = o; p; p = p.parent) {
+      if (p.visible === false || p.userData?.combatDown) return;
+    }
+    world.push(o);
   };
 
   const _origin = new THREE.Vector3();
@@ -478,18 +484,23 @@ export function createCombat({ scene, cast, onHarm, play } = {}) {
     let bestDot = 0;
     for (const npc of cast) {
       if (!targetable(npc)) continue;
-      worldPos(npc.mesh, _tmp);
+      const mesh = npc.mesh;
+      if (typeof mesh.updateWorldMatrix === "function") mesh.updateWorldMatrix(true, false);
+      worldPos(mesh, _tmp);
       const dx = _tmp.x - _player.x;
       const dz = _tmp.z - _player.z;
       const d = Math.hypot(dx, dz);
       if (d > PUNCH_REACH || d < 1e-4) continue;
-      const chestY = _tmp.y + 1.15 * ((npc.mesh.userData?.body?.scale ?? 1) || 1);
-      if (Math.abs(chestY - eyeY) > PUNCH_HEIGHT) continue;
+      const kind = npc.kind || mesh.userData?.kind;
+      const officer = kind === "cop" || kind === "t101";
+      const chestY = _tmp.y + 1.15 * ((mesh.userData?.body?.scale ?? 1) || 1);
+      if (!officer && Math.abs(chestY - eyeY) > PUNCH_HEIGHT) continue;
       const nx = dx / d;
       const nz = dz / d;
       const dot = nx * _dir.x + nz * _dir.z;
       if (dot < PUNCH_COS) continue;
-      if (d < bestD) {
+      const prefer = officer && best && !["cop", "t101"].includes(best.kind || best.mesh.userData?.kind);
+      if (d < bestD || (prefer && d < bestD + 0.55)) {
         best = npc;
         bestD = d;
         bestNx = nx;
@@ -572,6 +583,9 @@ export function createCombat({ scene, cast, onHarm, play } = {}) {
     ray.intersectObjects(world, false, hits);
     for (const h of hits) {
       if (h.distance < 0.9) continue; // inside the player's own rig
+      let o = h.object;
+      while (o && !meshToNpc.has(o)) o = o.parent;
+      if (o && meshToNpc.has(o)) continue; // standing cast — resolved via castMeshes
       return h;
     }
     return null;

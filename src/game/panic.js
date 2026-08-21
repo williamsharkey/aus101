@@ -22,9 +22,11 @@ const COP_WALK = 2.1;
 const LIVE_CAP = 40;
 const LIVE_CAP_PHONE = 32;
 const WAVE_BASE = 8;
-const SHOVE_R = 2.4;
-const SHOVE_PER = 0.55;
-const SHOVE_MAX = 16;
+const SHOVE_R = 2.8;
+const SHOVE_PER = 2.8;
+const SHOVE_MAX = 28;
+const SHOVE_PULSE = 8.5;
+const SHOVE_PULSE_R = 1.7;
 const JACK_R = 1.35;
 const DELIVER_N = 3;
 const SPAWN_R0 = 5.4;
@@ -55,6 +57,21 @@ const MAT = {
   belt: std(0x24262c, { roughness: 0.5 }),
   badge: std(0xd8b23a, { roughness: 0.35, metalness: 0.7 }),
 };
+
+/** Invisible combat volume so lasers still tag the see-through T-101 cage. */
+const HULL_GEO = new THREE.CapsuleGeometry(0.34, 1.22, 2, 6);
+const HULL_MAT = new THREE.MeshBasicMaterial({ visible: false });
+
+function addHitHull(root) {
+  const hull = new THREE.Mesh(HULL_GEO, HULL_MAT);
+  hull.name = "hit-hull";
+  hull.position.y = 1.0;
+  hull.userData.hitHull = true;
+  hull.castShadow = false;
+  hull.receiveShadow = false;
+  root.add(hull);
+  return hull;
+}
 
 /** Squad looks. First two seats are always brotha + sensei when 2+ cops spawn. */
 const COP_LOOKS = {
@@ -242,7 +259,11 @@ function makeCop(lookName = "tan") {
   g.userData.kind = "cop";
   g.userData.voiceSet = look.voiceSet;
   g.userData.look = lookName;
+  g.userData.body = { scale: look.scale || 1, skinM };
+  g.userData.paintTarget = true;
+  g.userData.ageBand = "adult";
   if (look.scale !== 1) g.scale.setScalar(look.scale);
+  addHitHull(g);
   poseCop(g, { walkPhase: 0, speed: 0 });
   return g;
 }
@@ -337,6 +358,8 @@ function makeT101Unit() {
   root.userData.kind = "t101";
   root.userData.ageBand = "adult";
   root.userData.paintTarget = true;
+  root.userData.body = { scale: 0.95 };
+  addHitHull(root);
   poseT101(root, { walkPhase: Math.random() * Math.PI * 2, speed: 0 });
   return root;
 }
@@ -351,6 +374,7 @@ function makeT101Unit() {
  *   onNeedDropships?: (info: object) => void,
  *   onDelivered?: () => void,
  *   onWipe?: (info: object) => void,
+ *   sfx?: { copDie?: Function },
  * }} opts
  */
 export function createPanic({
@@ -358,6 +382,7 @@ export function createPanic({
   cast = [],
   play,
   colliders,
+  sfx: sfxRef,
   onSpawn: onSpawnOpt,
   onNeedDropships: onNeedOpt,
   onDelivered: onDeliveredOpt,
@@ -662,6 +687,16 @@ export function createPanic({
         m.rotation.y = 0.1;
       }
     }
+    try {
+      play?.("fight_yell_01");
+    } catch {
+      /* vo optional */
+    }
+    try {
+      sfxRef?.copDie?.();
+    } catch {
+      /* sfx optional */
+    }
     maybeWipe();
     return true;
   }
@@ -708,7 +743,7 @@ export function createPanic({
    * @returns {number} the panic level after this event (0..2)
    */
   function onHarm(ev = {}) {
-    const mesh = ev.victim?.mesh;
+    const mesh = ev.victim?.mesh || ev.victim?.root || (ev.victim?.isObject3D ? ev.victim : null);
     const unit = unitForMesh(mesh);
     if (unit) dropUnit(unit);
 
@@ -910,7 +945,12 @@ export function createPanic({
     }
     if (distJack < 0.02) return n;
 
-    const mag = Math.min(SHOVE_MAX, n * SHOVE_PER);
+    let pulse = 0;
+    for (const c of cops) {
+      if (!isLiving(c)) continue;
+      if (Math.hypot(c.x - px, c.z - pz) <= SHOVE_PULSE_R) pulse += 1;
+    }
+    const mag = Math.min(SHOVE_MAX, n * SHOVE_PER + pulse * SHOVE_PULSE);
     dx /= distJack;
     dz /= distJack;
     const sx = dx * mag;

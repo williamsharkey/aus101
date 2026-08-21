@@ -240,6 +240,31 @@ export class SfxBank {
     });
   }
 
+  /** Cop/t101 going down — short yell then thud. */
+  copDie() {
+    this._beep({
+      freq: 420 + Math.random() * 90,
+      dur: 0.22,
+      type: "sawtooth",
+      gain: 0.14,
+      slide: -280,
+    });
+    this._noiseBurst({
+      dur: 0.16,
+      gain: 0.07,
+      freq: 380,
+      type: "lowpass",
+      Q: 0.8,
+    });
+    this._beep({
+      freq: 140,
+      dur: 0.12,
+      type: "sine",
+      gain: 0.11,
+      slide: -80,
+    });
+  }
+
   /** Body hit. Short sine drop + thud. */
   fightOof() {
     this._beep({

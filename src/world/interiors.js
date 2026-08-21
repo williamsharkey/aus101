@@ -701,6 +701,63 @@ function buildShadeShack(reg) {
     g.add(leg);
   }
 
+  // First-aid gurney west of the door; 13.2, 25.4 sits in the bar.
+  const bedX = 12.05;
+  const bedZ = 23.6;
+  const sheet = new THREE.MeshStandardMaterial({ color: 0xf4f6f8, roughness: 0.8, metalness: 0.02 });
+  const chrome = new THREE.MeshStandardMaterial({ color: 0xc5ced4, roughness: 0.22, metalness: 0.82 });
+  const gurney = new THREE.Group();
+  gurney.name = "firstAidGurney";
+  gurney.position.set(bedX, B.floorY, bedZ);
+  const frame = fx(0.64, 0.05, 1.18, chrome);
+  frame.position.y = 0.46;
+  gurney.add(frame);
+  const mattress = fx(0.58, 0.08, 1.12, sheet);
+  mattress.position.y = 0.525;
+  gurney.add(mattress);
+  for (const sx of [-0.26, 0.26]) {
+    for (const sz of [-0.48, 0.48]) {
+      const leg = new THREE.Mesh(cgeo(0.02, 0.026, 0.46, 8), chrome);
+      leg.position.set(sx, 0.23, sz);
+      gurney.add(leg);
+      const wheel = new THREE.Mesh(new THREE.SphereGeometry(0.035, 8, 6), chrome);
+      wheel.position.set(sx, 0.035, sz);
+      gurney.add(wheel);
+    }
+  }
+  for (const sx of [-0.33, 0.33]) {
+    const rail = new THREE.Mesh(cgeo(0.014, 0.014, 1.02, 8), chrome);
+    rail.rotation.x = Math.PI / 2;
+    rail.position.set(sx, 0.68, 0);
+    gurney.add(rail);
+    for (const sz of [-0.4, 0.4]) {
+      const post = new THREE.Mesh(cgeo(0.01, 0.01, 0.2, 6), chrome);
+      post.position.set(sx, 0.58, sz);
+      gurney.add(post);
+    }
+  }
+  const pole = new THREE.Mesh(cgeo(0.014, 0.014, 1.52, 8), chrome);
+  pole.position.set(-0.26, 0.78, 0.52);
+  gurney.add(pole);
+  const arm = fx(0.2, 0.014, 0.014, chrome);
+  arm.position.set(-0.16, 1.52, 0.52);
+  gurney.add(arm);
+  const bag = new THREE.Mesh(new THREE.SphereGeometry(0.042, 8, 6), M.bottleGlass);
+  bag.position.set(-0.08, 1.42, 0.52);
+  gurney.add(bag);
+  g.add(gurney);
+  reg(bedX - 0.36, bedX + 0.36, bedZ - 0.64, bedZ + 0.64, B.floorY, B.floorY + 0.62, true);
+  sign(
+    g,
+    board("FIRST AID", "", 0.78, 0.26, "#8a1c22", "#f7efe6"),
+    0.78,
+    0.26,
+    bedX,
+    B.floorY + 1.12,
+    bedZ - 0.66,
+    Math.PI
+  );
+
   // corner tape deck + crate
   const deck = fx(0.7, 0.34, 0.42, M.dark);
   deck.position.set(B.x1 - 0.6, B.floorY + 0.62, B.z0 + 0.5);

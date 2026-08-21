@@ -1,14 +1,16 @@
 /**
- * Spontaneous Ken-on-Ken sand fights. Standing uses ken(); KO hides the mesh
- * and drops 6 Verlet boxes (no cannon-es). After ~4s they stand back up.
+ * Spontaneous Ken-on-Ken sand fights. Standing uses ken(); KO keeps the mesh
+ * visible and floppy. A Baywatch nurse drags the victim to the shade-shack bed.
  */
 import * as THREE from "three";
 import { ken } from "../chars/npcs.js";
+import { spawnBaywatchNurse } from "../chars/baywatchNurse.js";
 
 const G = 16;
 const BOUNCE = 0.18;
 const GROUND_Y = 0;
-const RAGDOLL_S = 4.2;
+const KO_WAIT = 0.5;
+const STAND_S = 1.2;
 const PUNCH_MIN = 0.28;
 const PUNCH_MAX = 0.45;
 const GAP = 1.85;
@@ -43,6 +45,9 @@ const BARBS = [
   "fight_barb_16",
 ];
 const DODGE_VO = "fight_dodge_01";
+const THANKS_VO = "ken_thanks_01";
+const REMATCH_VO = "ken_rematch_01";
+const NURSE_HOME = { x: 14.6, z: 20.7 };
 
 const GEO = {
   torso: new THREE.BoxGeometry(0.34, 0.5, 0.18),
@@ -301,9 +306,8 @@ function syncDoll(f) {
 
 function setMode(f, mode) {
   f.state = mode;
-  const rag = mode === "ragdoll";
-  f.mesh.visible = !rag;
-  f.doll.root.visible = rag;
+  f.mesh.visible = true;
+  f.doll.root.visible = false;
 }
 
 function dodgeEnv(f) {
@@ -320,6 +324,19 @@ function poseStand(f, amt = 0, kind = "jab") {
 function poseBox(f, amt = 0, kind = "jab") {
   const b = f.mesh.userData.body;
   if (!b) return;
+  if (kind === "limp") {
+    const wiggle = Math.sin((f.phase || 0) * 2.2);
+    if (b.legL) b.legL.rotation.set(-0.18 + wiggle * 0.06, 0.12, 0.72);
+    if (b.legR) b.legR.rotation.set(0.42, -0.1, -0.88);
+    const foreL = ensureForearm(b.armL);
+    const foreR = ensureForearm(b.armR);
+    if (b.armL) b.armL.rotation.set(-0.55, 0.22, 1.32);
+    if (b.armR) b.armR.rotation.set(0.22 + wiggle * 0.1, -0.18, -1.42);
+    if (foreL) foreL.rotation.set(-0.55, 0, 0.18);
+    if (foreR) foreR.rotation.set(-0.32, 0, -0.22);
+    if (b.head) b.head.rotation.set(0.42, 0.22, 0.16);
+    return;
+  }
   const lead = f.lead || 1;
   const g = 0.55 + (f.guard || 0.5) * 0.45;
   const bounce = Math.sin((f.phase || 0) * 7.2) * 0.04;
@@ -538,7 +555,18 @@ function landHit(self, opp, spec, pair) {
     pair.hits = (pair.hits || 0) + 1;
     if (pair.hits >= (pair.nextBarb || 3)) barbVo(pair, self.mesh);
   }
-  if (opp.hp <= 0) drop(opp, nx, nz, spec.power);
+  if (opp.hp <= 0) {
+    if (pair && pair.phase !== "fight") return;
+    drop(opp, nx, nz, spec.power);
+    if (pair) {
+      pair.victim = opp;
+      pair.winner = self;
+      pair.phase = "down";
+      pair.down = 0;
+      pair.standT = 0;
+      pair.thanks = false;
+    }
+  }
 }
 
 function tickStand(f, opp, dt, pair) {
@@ -585,7 +613,7 @@ function tickStand(f, opp, dt, pair) {
   f.x += f.vx * dt;
   f.z += f.vz * dt;
 
-  if (f.stun <= 0 && f.dodge <= 0 && f.cool <= 0 && dist < RANGE_OUT + 0.4 && dist > RANGE_IN - 0.35) {
+  if (opp.state === "stand" && f.stun <= 0 && f.dodge <= 0 && f.cool <= 0 && dist < RANGE_OUT + 0.4 && dist > RANGE_IN - 0.35) {
     f.punchSpec = pickPunch(dist);
     f.punch = f.punchSpec.dur;
     f.cool = rand(PUNCH_MIN, PUNCH_MAX) + f.punchSpec.dur;
@@ -641,6 +669,23 @@ function tickStand(f, opp, dt, pair) {
   poseBox(f, amt, kind);
 }
 
+function applyLimp(f, dt, followDoll) {
+  f.phase = (f.phase || 0) + dt;
+  const flop = 1.15 + Math.sin(f.phase * 2.4) * 0.08;
+  if (followDoll) {
+    const t = f.doll.parts[0];
+    f.x = t.x;
+    f.z = t.z;
+    f.mesh.position.set(t.x, 0.1, t.z);
+  } else {
+    f.x = f.mesh.position.x;
+    f.z = f.mesh.position.z;
+  }
+  f.mesh.rotation.x = flop;
+  f.mesh.rotation.z = Math.sin(f.phase * 1.7) * 0.12;
+  poseBox(f, 1, "limp");
+}
+
 function tickRagdoll(f, dt) {
   f.acc += Math.min(dt, 0.05);
   while (f.acc >= STEP) {
@@ -649,10 +694,207 @@ function tickRagdoll(f, dt) {
     for (let i = 0; i < CONSTRAINT_ITERS; i++) constrain(f.doll.parts);
     ground(f.doll.parts);
   }
-  syncDoll(f);
-  const t = f.doll.parts[0];
-  f.x = t.x;
-  f.z = t.z;
+  applyLimp(f, dt, true);
+}
+
+function tickIdle(f, opp, dt, pair) {
+  if (f.mesh.userData.combatDown) return;
+  f.phase = (f.phase || 0) + dt;
+  f.punch = 0;
+  f.punchSpec = null;
+  f.stun = Math.max(0, (f.stun || 0) - dt);
+  f.dodge = 0;
+  f.vx *= Math.max(0, 1 - 8 * dt);
+  f.vz *= Math.max(0, 1 - 8 * dt);
+  f.x += f.vx * dt;
+  f.z += f.vz * dt;
+  f.cool -= dt;
+  f.guard = Math.min(1, (f.guard || 0.7) + dt * 0.2);
+  f.slapHit = Math.max(0, (f.slapHit || 0) - dt * 3.2);
+  const bounce = Math.abs(Math.sin(f.phase * 7.2)) * 0.022;
+  f.mesh.position.set(f.x, bounce, f.z);
+  f.mesh.rotation.set(0, faceYaw(f, opp), 0);
+  poseBox(f, 0, "jab");
+  if (f.cool <= 0) {
+    if (Math.random() < 0.4) barbVo(pair, f.mesh);
+    f.cool = rand(2.4, 4.8);
+  }
+}
+
+function tickStandUp(pair, f, dt) {
+  if (!pair.thanks) {
+    pair.thanks = true;
+    pair.standT = 0;
+    pair.standFromX = f.mesh.rotation.x;
+    pair.standFromZ = f.mesh.rotation.z;
+    pair.standFromY = f.mesh.position.y;
+    tryVo(THANKS_VO, f.mesh);
+  }
+  pair.standT += dt;
+  const u = Math.min(1, pair.standT / STAND_S);
+  f.mesh.rotation.x = (pair.standFromX || 0) * (1 - u);
+  f.mesh.rotation.z = (pair.standFromZ || 0) * (1 - u);
+  f.mesh.position.y = (pair.standFromY ?? 0.1) * (1 - u);
+  f.x = f.mesh.position.x;
+  f.z = f.mesh.position.z;
+  if (u < 0.55) poseBox(f, 1, "limp");
+  else poseStand(f, 0);
+  if (u >= 1) {
+    f.mesh.rotation.x = 0;
+    f.mesh.rotation.z = 0;
+    setMode(f, "stand");
+    pair.phase = "walkback";
+  }
+}
+
+function tickWalkHome(f, opp, dt) {
+  f.phase = (f.phase || 0) + dt;
+  const dx = f.home.x - f.x;
+  const dz = f.home.z - f.z;
+  const dist = Math.hypot(dx, dz);
+  f.mesh.rotation.x = 0;
+  f.mesh.rotation.z = 0;
+  if (dist < 0.16) {
+    f.x = f.home.x;
+    f.z = f.home.z;
+    f.mesh.position.set(f.home.x, 0, f.home.z);
+    f.mesh.rotation.y = faceYaw(f, opp);
+    poseStand(f, 0);
+    return true;
+  }
+  const spd = 2.4;
+  f.x += (dx / dist) * spd * dt;
+  f.z += (dz / dist) * spd * dt;
+  f.mesh.position.set(f.x, Math.abs(Math.sin(f.phase * 9)) * 0.04, f.z);
+  f.mesh.rotation.y = Math.atan2(dx, dz);
+  const swing = Math.sin(f.phase * 9);
+  const b = f.mesh.userData.body;
+  if (b?.legL) b.legL.rotation.set(-swing * 0.55, 0, 0.08);
+  if (b?.legR) b.legR.rotation.set(swing * 0.55, 0, -0.08);
+  if (b?.armL) b.armL.rotation.set(swing * 0.4, 0.1, 0.35);
+  if (b?.armR) b.armR.rotation.set(-swing * 0.4, -0.1, -0.35);
+  return false;
+}
+
+function nurseReady(n) {
+  if (!n) return false;
+  if (typeof n.busy === "boolean") return !n.busy;
+  return !n.phase || n.phase === "idle";
+}
+
+function stubNurse(scene) {
+  const mesh = new THREE.Group();
+  mesh.name = "baywatch-nurse";
+  mesh.userData.kind = "babe";
+  mesh.userData.ageBand = "adult";
+  const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.16, 0.88, 4, 8), std(0xe23b3b));
+  body.position.y = 0.86;
+  body.castShadow = true;
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.16, 10, 8), std(0xe0b08a));
+  head.position.y = 1.5;
+  head.castShadow = true;
+  mesh.add(body, head);
+  mesh.position.set(NURSE_HOME.x, 0, NURSE_HOME.z);
+  scene.add(mesh);
+  return {
+    mesh,
+    phase: "idle",
+    t: 0,
+    dispatch() {
+      if (this.phase !== "idle") return;
+      this.phase = "run";
+      this.t = 0;
+    },
+    tick(dt) {
+      if (this.phase === "idle") return;
+      this.t += dt;
+      if (this.t >= 5) this.phase = "idle";
+      else if (this.t >= 3.5) this.phase = "done";
+      else if (this.t >= 2.2) this.phase = "revive";
+    },
+  };
+}
+
+function makeNurse(scene) {
+  if (typeof spawnBaywatchNurse === "function") {
+    try {
+      const n = spawnBaywatchNurse(scene);
+      if (n && n.mesh && typeof n.tick === "function" && typeof n.dispatch === "function") return n;
+    } catch {
+      /* module missing or threw */
+    }
+  }
+  return stubNurse(scene);
+}
+
+function finishRematch(pair) {
+  const victim = pair.victim;
+  const winner = pair.winner;
+  if (victim) {
+    tryVo(REMATCH_VO, victim.mesh);
+    resetFighter(victim);
+  }
+  if (winner) {
+    if (winner.state === "ragdoll") {
+      winner.mesh.rotation.set(0, winner.home.yaw, 0);
+      poseStand(winner, 0);
+      setMode(winner, "stand");
+    }
+    winner.hp = START_HP + ((Math.random() * 3) | 0);
+    winner.punch = 0;
+    winner.punchSpec = null;
+    winner.stun = 0;
+    winner.cool = rand(PUNCH_MIN, PUNCH_MAX);
+  }
+  pair.phase = "fight";
+  pair.victim = null;
+  pair.winner = null;
+  pair.down = 0;
+  pair.standT = 0;
+  pair.thanks = false;
+  pair.hits = 0;
+  pair.nextBarb = 2 + ((Math.random() * 3) | 0);
+}
+
+function tickWinner(winner, victim, dt, pair) {
+  if (winner.state === "ragdoll") tickRagdoll(winner, dt);
+  else tickIdle(winner, victim, dt, pair);
+}
+
+function tickPair(pair, dt, nurse) {
+  if (pair.phase === "fight") {
+    if (pair.a.state === "stand") tickStand(pair.a, pair.b, dt, pair);
+    if (pair.b.state === "stand") tickStand(pair.b, pair.a, dt, pair);
+    if (pair.phase === "fight") return;
+  }
+  const victim = pair.victim;
+  const winner = pair.winner;
+  if (!victim || !winner) {
+    pair.phase = "fight";
+    return;
+  }
+
+  if (pair.phase === "down") {
+    tickRagdoll(victim, dt);
+    tickWinner(winner, victim, dt, pair);
+    pair.down += dt;
+    if (pair.down >= KO_WAIT && nurse && nurseReady(nurse)) {
+      nurse.dispatch(victim.mesh, { play: playFn });
+      if (nurse.phase && nurse.phase !== "idle") pair.phase = "rescue";
+    }
+    return;
+  }
+  if (pair.phase === "rescue") {
+    const np = nurse?.phase;
+    if (pair.thanks || np === "revive" || np === "done") tickStandUp(pair, victim, dt);
+    else applyLimp(victim, dt, false);
+    tickWinner(winner, victim, dt, pair);
+    return;
+  }
+  if (pair.phase === "walkback") {
+    tickWinner(winner, victim, dt, pair);
+    if (tickWalkHome(victim, winner, dt)) finishRematch(pair);
+  }
 }
 
 function makeFighter(scene, x, z, yaw, look, name) {
@@ -719,7 +961,12 @@ function makePair(scene, site, lookA, lookB, i) {
   return {
     a: makeFighter(scene, ax, az, ay, lookA, `ken-fight-${i * 2}`),
     b: makeFighter(scene, bx, bz, by, lookB, `ken-fight-${i * 2 + 1}`),
+    phase: "fight",
+    victim: null,
+    winner: null,
     down: 0,
+    standT: 0,
+    thanks: false,
     hits: 0,
     nextBarb: 2 + ((Math.random() * 3) | 0),
   };
@@ -736,31 +983,25 @@ export function spawnFights(scene, opts = {}) {
   if (opts.sfx) setSfx(opts.sfx);
 
   const pairs = SITES.map((site, i) => makePair(scene, site, LOOKS[i * 2], LOOKS[i * 2 + 1], i));
+  const nurse = makeNurse(scene);
 
   function tick(dt) {
     if (!(dt > 0)) return;
     const h = Math.min(dt, 0.05);
-    for (const pair of pairs) {
-      if (pair.a.state === "stand") tickStand(pair.a, pair.b, h, pair);
-      if (pair.b.state === "stand") tickStand(pair.b, pair.a, h, pair);
-      if (pair.a.state === "ragdoll") tickRagdoll(pair.a, h);
-      if (pair.b.state === "ragdoll") tickRagdoll(pair.b, h);
-      if (pair.a.state === "ragdoll" || pair.b.state === "ragdoll") {
-        pair.down += h;
-        if (pair.down >= RAGDOLL_S) {
-          resetFighter(pair.a);
-          resetFighter(pair.b);
-          pair.down = 0;
-          pair.hits = 0;
-          pair.nextBarb = 2 + ((Math.random() * 3) | 0);
-        }
-      }
-    }
+    nurse?.tick?.(h);
+    for (const pair of pairs) tickPair(pair, h, nurse);
+  }
+
+  const meshes = pairs.flatMap((p) => [p.a.mesh, p.b.mesh]);
+  if (nurse?.mesh) {
+    meshes.push(nurse.mesh);
+    liveMeshes.push(nurse.mesh);
+    nurse.mesh.userData.play = playFn;
   }
 
   return {
     tick,
-    meshes: pairs.flatMap((p) => [p.a.mesh, p.b.mesh]),
+    meshes,
     setPlay,
     setSfx,
   };
