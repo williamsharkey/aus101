@@ -225,7 +225,8 @@ function makeTripod(rt) {
 
   const phone = makePhone(rt);
   phone.position.set(0, 1.47, 0.012);
-  phone.rotation.x = -0.1;
+  // Screen is +Z; negative X-tilt aims that normal up at the talent's face.
+  phone.rotation.x = -0.38;
   g.add(phone);
 
   g.userData.legPivots = pivots;

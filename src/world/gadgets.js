@@ -496,8 +496,8 @@ function canHold(npc) {
 
 /**
  * A handset whose origin is the grip point — bottom edge for a phone, side edge
- * for a tablet — with +Y up the device and +Z out of the screen, so the hand
- * closes on the origin and the slab stands out of the fist.
+ * for a tablet — with +Y up the device and +Z out of the SCREEN (normal toward
+ * the viewer's eyes). Grip is at the origin; the slab stands out of the fist.
  */
 function makeHandset(kind, tex, skinM, side) {
   const g = new THREE.Group();
@@ -564,9 +564,10 @@ function makeHandset(kind, tex, skinM, side) {
  * reading as a slab glued to a forearm.
  */
 const POSES = {
-  scroll: { hand: [0.09, -0.2, 0.21], tilt: -0.72, yaw: 0.3, roll: 0.62, head: 0.34 },
-  photo: { hand: [0.1, -0.07, 0.24], tilt: -0.24, yaw: 0.05, roll: 0.7, head: 0.05 },
-  tablet: { hand: [0.1, -0.18, 0.21], tilt: -0.62, yaw: 0.2, roll: 0.55, head: 0.3 },
+  // flip π puts +Z (screen) toward the holder. tilt is then a slight look-down.
+  scroll: { hand: [0.09, -0.18, 0.19], tilt: 0.52, yaw: 0.18, flip: Math.PI, roll: 0.48, head: 0.4 },
+  photo: { hand: [0.09, -0.05, 0.23], tilt: 0.22, yaw: 0.04, flip: Math.PI, roll: 0.55, head: 0.06 },
+  tablet: { hand: [0.1, -0.16, 0.2], tilt: 0.62, yaw: 0.12, flip: Math.PI, roll: 0.42, head: 0.36 },
 };
 
 function handTarget(body, side, pose, out) {
@@ -622,7 +623,7 @@ function poseHolder(h, t) {
 
   // Device attitude, expressed in character space then pulled back through the
   // shoulder + elbow so the grip transform lands it exactly there.
-  _eWant.set(spec.tilt + p.lean, -side * spec.yaw, 0);
+  _eWant.set(spec.tilt + p.lean, (spec.flip || 0) - side * spec.yaw, 0);
   _qWant.setFromEuler(_eWant);
   _qChain.copy(rig.arm.quaternion).multiply(rig.hinge.quaternion).invert().multiply(_qWant);
   h.restQuat.copy(_qChain);
@@ -807,7 +808,7 @@ export function attachGadgets(cast, scene) {
         const { amt, d2 } = nearAmt(ax, az, playerPos, FACE_R);
         if (h.mesh?.userData?.posing) continue;
         poseHolder(h, t);
-        faceScreen(h.yawNode, h.restQuat, playerPos, amt);
+        if (h.kind === "laptop") faceScreen(h.yawNode, h.restQuat, playerPos, amt);
         if (h.kind !== "laptop") {
           h.yawNode.rotateX(Math.sin(t * 1.6 + h.phase) * 0.014);
         }

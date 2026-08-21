@@ -29,6 +29,7 @@ import {
 } from "./coconutsHelpers.js";
 import { buildWisdomHouse } from "./wisdomHouse.js";
 import { buildLibrary } from "./library.js";
+import { buildVoidCave } from "./voidCave.js";
 
 /** Player radius from `createPlayer`. Doors are sized against this. */
 const PLAYER_R = 0.34;
@@ -292,15 +293,21 @@ function lintel(g, cx, cz, w, h, floorY, axis) {
     head.position.set(cx, floorY + DOOR_H + hh / 2, cz);
     g.add(head);
   }
+  const wood = M.timber.clone();
+  wood.polygonOffset = true;
+  wood.polygonOffsetFactor = -2;
+  wood.polygonOffsetUnits = -2;
   for (const s of [-1, 1]) {
+    // Sit IN the opening wrapping the cut, proud of both wall faces — not on
+    // the white wall plane (that z-fought at SLOP IT ON / surf-club door).
     const jamb =
       axis === "x"
-        ? fx(0.12, DOOR_H, T + 0.04, M.timber)
-        : fx(T + 0.04, DOOR_H, 0.12, M.timber);
+        ? fx(0.1, DOOR_H, T + 0.1, wood)
+        : fx(T + 0.1, DOOR_H, 0.1, wood);
     jamb.position.set(
-      axis === "x" ? cx + s * (w / 2 + 0.06) : cx,
+      axis === "x" ? cx + s * (w / 2 - 0.05) : cx,
       floorY + DOOR_H / 2,
-      axis === "x" ? cz : cz + s * (w / 2 + 0.06)
+      axis === "x" ? cz : cz + s * (w / 2 - 0.05)
     );
     g.add(jamb);
   }
@@ -784,6 +791,116 @@ function buildShadeShack(reg) {
   };
 }
 
+/** Three dunny stalls on the sheilas east wall. Last one is a fake wall into the void. */
+function addDunnyStalls(g, reg, B, M) {
+  const n = 3;
+  const depth = 1.08;
+  const wide = 0.84;
+  const gap = 0.04;
+  const h = 1.92;
+  const thick = 0.05;
+  const x1 = B.x1;
+  const xDoor = x1 - depth;
+  const z0 = B.z0 + 0.3;
+  let secret = null;
+
+  for (let i = 0; i < n; i++) {
+    const za = z0 + i * (wide + gap);
+    const zb = za + wide;
+    const zc = (za + zb) * 0.5;
+    const last = i === n - 1;
+    const stall = new THREE.Group();
+    stall.name = last ? "voidStall" : `dunny-${i}`;
+    g.add(stall);
+
+    const south = fx(depth, h, thick, M.tileWall);
+    south.position.set(x1 - depth / 2, B.floorY + h / 2, za);
+    stall.add(south);
+    reg(xDoor, x1, za - thick / 2, za + thick / 2, B.floorY, B.floorY + h);
+
+    const north = fx(depth, h, thick, M.tileWall);
+    north.position.set(x1 - depth / 2, B.floorY + h / 2, zb);
+    stall.add(north);
+    reg(xDoor, x1, zb - thick / 2, zb + thick / 2, B.floorY, B.floorY + h);
+
+    const doorW = last ? 0.64 : 0.5;
+    const wing = Math.max(0.08, (wide - doorW) / 2);
+    for (const s of [-1, 1]) {
+      const w = fx(0.05, h, wing, M.tileWall);
+      w.position.set(xDoor, B.floorY + h / 2, zc + s * (doorW / 2 + wing / 2));
+      stall.add(w);
+      if (!last) {
+        const zA = s < 0 ? za : zc + doorW / 2;
+        const zB = s < 0 ? zc - doorW / 2 : zb;
+        if (zB > zA + 0.04) reg(xDoor - 0.04, xDoor + 0.04, zA, zB, B.floorY, B.floorY + h);
+      }
+    }
+    const leafW = doorW * (last ? 0.7 : 0.92);
+    const leaf = fx(0.04, h - 0.22, leafW, M.timber);
+    if (last) {
+      leaf.position.set(xDoor - 0.03, B.floorY + (h - 0.22) / 2 + 0.05, zc - doorW * 0.1);
+      leaf.rotation.y = 0.62;
+    } else {
+      leaf.position.set(xDoor + 0.02, B.floorY + (h - 0.22) / 2 + 0.05, zc);
+    }
+    stall.add(leaf);
+    const head = fx(0.05, 0.16, wide, M.tileWall);
+    head.position.set(xDoor, B.floorY + h - 0.08, zc);
+    stall.add(head);
+
+    if (last) {
+      stall.userData.portal = "void";
+      stall.userData.kind = "stall";
+      const fake = fx(0.06, h - 0.38, wide - 0.14, M.dark);
+      fake.position.set(x1 - 0.18, B.floorY + (h - 0.38) / 2 + 0.04, zc - 0.06);
+      stall.add(fake);
+      const hole = fx(
+        0.05,
+        h - 0.55,
+        0.4,
+        new THREE.MeshBasicMaterial({ color: 0x050308, fog: false })
+      );
+      hole.position.set(x1 - 0.12, B.floorY + 0.98, zc + 0.14);
+      stall.add(hole);
+      const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.045, 8, 6), M.bulb);
+      bulb.position.set(x1 - 0.24, B.floorY + 1.52, zc + 0.16);
+      stall.add(bulb);
+      const lamp = new THREE.PointLight(0xffb060, 2.35, 3.5, 2);
+      lamp.position.copy(bulb.position);
+      lamp.castShadow = false;
+      stall.add(lamp);
+      const tag = new THREE.Mesh(
+        pgeo(0.38, 0.2),
+        new THREE.MeshBasicMaterial({
+          map: board("OUT OF ORDER", "SINCE '94", 0.38, 0.2),
+          transparent: true,
+        })
+      );
+      tag.position.set(xDoor - 0.05, B.floorY + 1.28, zc - 0.12);
+      tag.rotation.y = -Math.PI / 2;
+      stall.add(tag);
+      secret = {
+        x: xDoor + 0.38,
+        y: 0,
+        z: zc,
+        radius: 1.22,
+        portal: "void",
+        lamp,
+        exit: { x: xDoor - 0.5, y: 0, z: zc },
+        mesh: stall,
+      };
+    } else {
+      const pan = new THREE.Mesh(cgeo(0.16, 0.14, 0.18, 10), M.porcelain);
+      pan.position.set(x1 - 0.28, B.floorY + 0.2, zc);
+      stall.add(pan);
+      const tank = fx(0.16, 0.32, 0.38, M.porcelain);
+      tank.position.set(x1 - 0.18, B.floorY + 0.72, zc);
+      stall.add(tank);
+    }
+  }
+  return secret;
+}
+
 /** Public change rooms / dunny block — two doors, central partition. */
 function buildChangeRooms(reg) {
   const M = mats();
@@ -832,11 +949,9 @@ function buildChangeRooms(reg) {
   sign(g, board("DUNNY", "OUT OF ORDER SINCE '94", 1.7, 0.6), 1.7, 0.6, cx + 0.11, B.floorY + 1.85, 25.2, Math.PI / 2);
 
   // --- fittings ------------------------------------------------------
-  for (const [side, wx] of [
-    ["w", B.x0 + 0.3],
-    ["e", B.x1 - 0.3],
-  ]) {
-    // bench seat along the outer wall
+  // West bench stays. East wall is the dunny row (last stall is the void door).
+  {
+    const wx = B.x0 + 0.3;
     const bench = fx(0.56, 0.09, 2.3, M.timber);
     bench.position.set(wx, B.floorY + 0.44, 24.5);
     g.add(bench);
@@ -847,13 +962,15 @@ function buildChangeRooms(reg) {
     }
     // Bench stops at z 25.7 — past that the walkway must stay clear so the
     // rear of each half (showers / basins) is reachable around the basin bench.
-    reg(side === "w" ? B.x0 : B.x1 - 0.62, side === "w" ? B.x0 + 0.62 : B.x1, 23.3, 25.7, B.floorY, B.floorY + 0.55, true);
+    reg(B.x0, B.x0 + 0.62, 23.3, 25.7, B.floorY, B.floorY + 0.55, true);
     for (let i = 0; i < 4; i++) {
       const hook = fx(0.09, 0.07, 0.07, M.steel);
-      hook.position.set(side === "w" ? B.x0 + 0.08 : B.x1 - 0.08, B.floorY + 1.55, 23.5 + i * 0.7);
+      hook.position.set(B.x0 + 0.08, B.floorY + 1.55, 23.5 + i * 0.7);
       g.add(hook);
     }
   }
+
+  const voidStall = addDunnyStalls(g, reg, B, M);
 
   // basin benches either side of the partition, with mirrors
   for (const s of [-1, 1]) {
@@ -916,6 +1033,8 @@ function buildChangeRooms(reg) {
     fan: null,
     fluoro: tube,
     door: { x: dBlokes, z: B.z0 - T / 2 },
+    voidStall,
+    voidLamp: voidStall?.lamp || null,
   };
 }
 
@@ -957,6 +1076,7 @@ export function spawnInteriors(scene, colliders) {
     buildChangeRooms(reg),
     buildWisdomHouse(reg),
     buildLibrary(reg),
+    buildVoidCave(reg),
   ];
   for (const b of buildings) scene.add(b.group);
 
@@ -1104,7 +1224,7 @@ export function spawnInteriors(scene, colliders) {
       const t = Math.max(tMin, hit - 0.02 / d2);
       camera.position.set(_chest.x + _v.x * t, _chest.y + _v.y * t, _chest.z + _v.z * t);
     }
-    if (here && !(here.pit && player.pos.y < -0.4)) {
+    if (here && !(here.pit && player.pos.y < -0.4) && player.pos.y > -2) {
       const capY = here.ceilingY - 0.28;
       if (camera.position.y > capY) camera.position.y = capY;
       const fl = here.B.floorY + 0.55;
@@ -1128,6 +1248,7 @@ export function spawnInteriors(scene, colliders) {
       // Cull the lamp well outside its own falloff — saves the light loop on iOS.
       const on = d2 < 26 * 26;
       if (b.lamp.visible !== on) b.lamp.visible = on;
+      if (b.voidLamp && b.voidLamp.visible !== on) b.voidLamp.visible = on;
       if (!on) continue;
       let k = 1;
       if (b.fluoro) {

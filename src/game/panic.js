@@ -43,6 +43,9 @@ const SPAWN_R0 = 5.4;
 const SPAWN_GAP = 1.4;
 const HOLD_R = 2.6;
 const FLEE_MAX = 46; // civilians stop and cower once this far from the incident
+const CELL = 1.4;
+const PATH_MAX = 220;
+const PATH_TTL = 0.45;
 
 // ---------------------------------------------------------------------------
 // Shared geometry / materials. Unit primitives scaled per mesh — iPhone-safe.
@@ -161,6 +164,18 @@ function segDist(ax, az, bx, bz, px, pz) {
 function reflectXZ(ix, iz, nx, nz) {
   const d = ix * nx + iz * nz;
   return { x: ix - 2 * d * nx, z: iz - 2 * d * nz };
+}
+
+function cellKey(i, j) {
+  return i + "," + j;
+}
+
+function toCell(x, z) {
+  return [Math.round(x / CELL), Math.round(z / CELL)];
+}
+
+function fromCell(i, j) {
+  return { x: i * CELL, z: j * CELL };
 }
 
 function away(from, pos, out) {
@@ -671,6 +686,12 @@ export function createPanic({
       laserT: 0,
       nextShot: 0,
       elite: !!extra.elite,
+      vx: 0,
+      vz: 0,
+      yaw: 0,
+      path: null,
+      pathI: 0,
+      pathAt: 0,
     };
     if (rec.ranged && hunt) rec.duty = "snipe";
     cops.push(rec);
@@ -769,49 +790,121 @@ export function createPanic({
     addUnit("t101", pos.x, pos.z, waveIndex, { scale, elite: true, ranged: Math.random() < 0.45 });
   }
 
+  function walkable(i, j, r) {
+    const p = fromCell(i, j);
+    if (p.x < BOUNDS.minX + 0.4 || p.x > BOUNDS.maxX - 0.4 || p.z < BOUNDS.minZ + 0.4 || p.z > BOUNDS.maxZ - 0.4) return false;
+    return !blocked(colliders?.COL, p.x, p.z, r);
+  }
+
+  function astar(sx, sz, gx, gz, rad) {
+    const r = rad || 0.38;
+    const [si, sj] = toCell(sx, sz);
+    const [gi, gj] = toCell(gx, gz);
+    if (si === gi && sj === gj) return [{ x: gx, z: gz }];
+    const startK = cellKey(si, sj);
+    const open = [[Math.hypot(si - gi, sj - gj), si, sj]];
+    const came = new Map();
+    const gScore = new Map([[startK, 0]]);
+    let n = 0;
+    const nbr = [
+      [1, 0],
+      [-1, 0],
+      [0, 1],
+      [0, -1],
+      [1, 1],
+      [1, -1],
+      [-1, 1],
+      [-1, -1],
+    ];
+    while (open.length && n++ < PATH_MAX) {
+      let best = 0;
+      for (let k = 1; k < open.length; k++) if (open[k][0] < open[best][0]) best = k;
+      const cur = open[best];
+      open[best] = open[open.length - 1];
+      open.pop();
+      const i = cur[1];
+      const j = cur[2];
+      if (i === gi && j === gj) {
+        const path = [];
+        let ci = i;
+        let cj = j;
+        while (true) {
+          path.push(fromCell(ci, cj));
+          const prev = came.get(cellKey(ci, cj));
+          if (!prev) break;
+          ci = prev[0];
+          cj = prev[1];
+        }
+        path.reverse();
+        path.push({ x: gx, z: gz });
+        return path;
+      }
+      const g0 = gScore.get(cellKey(i, j)) || 0;
+      for (let k = 0; k < nbr.length; k++) {
+        const ni = i + nbr[k][0];
+        const nj = j + nbr[k][1];
+        if (!walkable(ni, nj, r)) continue;
+        const step = nbr[k][0] && nbr[k][1] ? 1.41 : 1;
+        const nk = cellKey(ni, nj);
+        const tg = g0 + step;
+        if (tg >= (gScore.get(nk) ?? 1e9)) continue;
+        came.set(nk, [i, j]);
+        gScore.set(nk, tg);
+        open.push([tg + Math.hypot(ni - gi, nj - gj), ni, nj]);
+      }
+    }
+    return [{ x: gx, z: gz }];
+  }
+
+  function nextStep(c, gx, gz, t) {
+    const r = 0.36 * (c.scale || 1);
+    const stale =
+      !c.path ||
+      t - (c.pathAt || 0) > PATH_TTL ||
+      Math.hypot((c.gx || 0) - gx, (c.gz || 0) - gz) > 2.4;
+    if (stale) {
+      c.path = astar(c.x, c.z, gx, gz, r);
+      c.pathI = 0;
+      c.pathAt = t + ((c.slot || 0) % 9) * 0.04;
+      c.gx = gx;
+      c.gz = gz;
+    }
+    const path = c.path || [{ x: gx, z: gz }];
+    while (c.pathI < path.length - 1) {
+      const p = path[c.pathI];
+      if (Math.hypot(c.x - p.x, c.z - p.z) < CELL * 0.5) c.pathI += 1;
+      else break;
+    }
+    return path[Math.min(c.pathI, path.length - 1)] || { x: gx, z: gz };
+  }
+
   function separate(h) {
     const live = living();
     const n = live.length;
     if (n < 2) return;
     for (let i = 0; i < n; i++) {
       const a = live[i];
-      const ra = (a.scale || 1) * 0.62;
+      if (a.duty === "hold") continue;
+      const ra = (a.scale || 1) * 0.48;
       let ox = 0;
       let oz = 0;
-      let near = 0;
       for (let j = 0; j < n; j++) {
         if (i === j) continue;
         const b = live[j];
         const dx = a.x - b.x;
         const dz = a.z - b.z;
         const d = Math.hypot(dx, dz) || 0.001;
-        const min = ra + (b.scale || 1) * 0.62;
-        if (d < min) {
-          const p = (min - d) / min;
-          ox += (dx / d) * p;
-          oz += (dz / d) * p;
-          near += 1;
-        } else if (d < min * 2.1) {
-          ox += (dx / d) * 0.12;
-          oz += (dz / d) * 0.12;
-          near += 1;
-        }
-      }
-      if (near >= 5) {
-        const px = a.x - lastPlayer.x;
-        const pz = a.z - lastPlayer.z;
-        const pd = Math.hypot(px, pz) || 1;
-        ox += (px / pd) * 1.4;
-        oz += (pz / pd) * 1.4;
+        const min = ra + (b.scale || 1) * 0.48;
+        if (d >= min * 0.92) continue;
+        const p = (min - d) / min;
+        ox += (dx / d) * p;
+        oz += (dz / d) * p;
       }
       if (ox === 0 && oz === 0) continue;
       const L = Math.hypot(ox, oz) || 1;
-      const step = Math.min(2.4, L) * h * 5.2;
-      a.x += (ox / L) * step;
-      a.z += (oz / L) * step;
-      a.x = Math.max(BOUNDS.minX, Math.min(BOUNDS.maxX, a.x));
-      a.z = Math.max(BOUNDS.minZ, Math.min(BOUNDS.maxZ, a.z));
-      a.root.position.set(a.x, 0, a.z);
+      const step = Math.min(0.035, L * h * 2.2);
+      a.vx = (a.vx || 0) + (ox / L) * step * 18;
+      a.vz = (a.vz || 0) + (oz / L) * step * 18;
     }
   }
 
@@ -1130,19 +1223,35 @@ export function createPanic({
       trySnipe(c, playerPos);
     }
 
-    const dx = tx - c.x;
-    const dz = tz - c.z;
+    const stepTo = nextStep(c, tx, tz, performance.now() / 1000);
+    const dx = stepTo.x - c.x;
+    const dz = stepTo.z - c.z;
     const d = Math.hypot(dx, dz) || 1;
-    if (want > 0 && d > 0.08) {
-      const step = Math.min(d, want * h);
-      c.x += (dx / d) * step;
-      c.z += (dz / d) * step;
-    }
+    const spd = want > 0 && d > 0.14 ? Math.min(want, d * 3.2) : 0;
+    c.vx = (c.vx || 0) * 0.8 + (dx / d) * spd * 0.2;
+    c.vz = (c.vz || 0) * 0.8 + (dz / d) * spd * 0.2;
+    const nx = c.x + c.vx * h;
+    const nz = c.z + c.vz * h;
+    const rad = 0.36 * (c.scale || 1);
+    if (!blocked(colliders?.COL, nx, c.z, rad)) c.x = nx;
+    else c.vx *= 0.15;
+    if (!blocked(colliders?.COL, c.x, nz, rad)) c.z = nz;
+    else c.vz *= 0.15;
+    c.x = Math.max(BOUNDS.minX, Math.min(BOUNDS.maxX, c.x));
+    c.z = Math.max(BOUNDS.minZ, Math.min(BOUNDS.maxZ, c.z));
     c.reach += (reachTo - c.reach) * Math.min(1, h * 4);
-    c.phase += h * (2.2 + want * 1.15);
+    const gait = Math.hypot(c.vx, c.vz);
+    c.phase += h * (1.6 + gait * 1.05);
     c.root.position.set(c.x, 0, c.z);
-    if (Math.hypot(faceX, faceZ) > 0.05) c.root.rotation.y = Math.atan2(faceX, faceZ);
-    poseUnit(c, want);
+    if (Math.hypot(faceX, faceZ) > 0.08) {
+      const tyaw = Math.atan2(faceX, faceZ);
+      let dyaw = tyaw - (c.yaw || 0);
+      while (dyaw > Math.PI) dyaw -= Math.PI * 2;
+      while (dyaw < -Math.PI) dyaw += Math.PI * 2;
+      c.yaw = (c.yaw || 0) + dyaw * Math.min(1, h * 7);
+      c.root.rotation.y = c.yaw;
+    }
+    poseUnit(c, gait);
   }
 
   function tick(dt, playerPos) {

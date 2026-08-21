@@ -38,7 +38,8 @@ import { createCombat } from "./game/combat.js";
 import { createPropPhysics } from "./phys/props.js";
 import { createReticuleBay } from "./hud/reticule.js";
 import { createRadioHud } from "./hud/radio.js";
-import { createActionPrompt } from "./hud/actionPrompt.js";
+import { createActionPrompt, ACTION_DESCEND, ACTION_SURFACE } from "./hud/actionPrompt.js";
+import { VOID_STAIRS, VOID_EXITS } from "./world/voidCave.js";
 
 import { createArtist, pickArtistPose } from "./chars/artist.js";
 import { spawnParty } from "./world/party.js";
@@ -52,8 +53,10 @@ import { spawnShitaGuy } from "./world/shitaGuy.js";
 import { spawnConspiracyJock } from "./world/conspiracyJock.js";
 import { spawnInfluencers } from "./world/influencers.js";
 import { spawnInteriors } from "./world/interiors.js";
-import { createTapeSystem } from "./audio/tapeDeck.js";
+import { createTapeSystem, acquireCtx } from "./audio/tapeDeck.js";
 import { midiBus } from "./audio/midiBus.js";
+import { createVoidLooper } from "./audio/voidLooper.js";
+import { createVoidDeck } from "./hud/voidDeck.js";
 
 const BG = 0x0b1210;
 
@@ -85,6 +88,8 @@ const level = buildGoldCoast(scene, colliders);
 const interiors = spawnInteriors(scene, colliders);
 const wisdom = interiors.buildings.find((b) => b.id === "wisdom") || null;
 const library = interiors.buildings.find((b) => b.id === "library") || null;
+const voidCave = interiors.buildings.find((b) => b.id === "void") || null;
+const changeRooms = interiors.buildings.find((b) => b.id === "changeRooms") || null;
 
 const props = createPropPhysics({
   scene,
@@ -131,6 +136,27 @@ const synth = spawnSynthRig(scene, {
   onSave: (p) => tapes.saveFromSynth(p),
 });
 const shita = spawnShitaGuy(scene);
+const voidLooper = createVoidLooper({
+  getEngine: () => shita?.engine || null,
+  getPiano: () => pianoPulse,
+  getVoice: () => voice,
+});
+const _voidBox = new THREE.Box3();
+function playerInVoid() {
+  if (inCave(player.pos)) return true;
+  const named = scene.getObjectByName("void-cave");
+  if (!named || !player.pos) return false;
+  _voidBox.setFromObject(named);
+  if (_voidBox.isEmpty()) return false;
+  const x = player.pos.x;
+  const z = player.pos.z;
+  return x >= _voidBox.min.x && x <= _voidBox.max.x && z >= _voidBox.min.z && z <= _voidBox.max.z;
+}
+const voidDeck = createVoidDeck({
+  looper: voidLooper,
+  scene,
+  inCave: playerInVoid,
+});
 const conspiracy = spawnConspiracyJock(scene);
 const influencers = spawnInfluencers(scene, renderer);
 const roach = spawnRoachIncel(scene, {
@@ -271,7 +297,7 @@ const clock = new THREE.Clock(false);
 const input = installInput({
   dom: canvas,
   isPlaying: () => playing && !arrest.active,
-  blockLock: () => synth.isOpen?.() === true,
+  blockLock: () => synth.isOpen?.() === true || voidDeck.isOpen?.() === true,
 });
 input.bindPlayer(player);
 installTouchControls({
@@ -316,6 +342,10 @@ const SEQ_RANGE = 2.6;
 const LOUNGE_R = 1.55;
 const PUNCH_REACH = 1.55;
 const PUNCH_COS = Math.cos(0.95);
+const CAVE_Y = -9;
+const CAVE_FALLBACK = { x: 7, y: -10.4, z: -29 };
+const PIANO_SURFACE = { x: 7, y: 0, z: -27.5 };
+const CAVE_EXIT_R = 1.85;
 const loungers = [];
 scene.traverse((o) => {
   if (o.userData?.kind === "lounger" && o.userData.seat) loungers.push(o);
@@ -357,6 +387,53 @@ function actHeld() {
   return false;
 }
 
+function caveLanding() {
+  const s = VOID_STAIRS;
+  if (s?.stairsTop && Number.isFinite(s.stairsTop.x)) return s.stairsTop;
+  if (s?.nest && Number.isFinite(s.nest.x)) return s.nest;
+  if (s && Number.isFinite(s.x) && Number.isFinite(s.z)) {
+    return { x: s.x, y: s.y ?? CAVE_FALLBACK.y, z: s.z };
+  }
+  return CAVE_FALLBACK;
+}
+
+function inCave(pos) {
+  if (!pos) return false;
+  if (pos.y < CAVE_Y) return true;
+  return interiors.isIndoors(pos)?.id === "void";
+}
+
+function caveExits() {
+  const src = VOID_EXITS && (VOID_EXITS.piano || VOID_EXITS.stall) ? VOID_EXITS : null;
+  const land = caveLanding();
+  return {
+    piano: src?.piano || { x: land.x, y: land.y, z: land.z, radius: CAVE_EXIT_R },
+    stall: src?.stall || { x: land.x - 1.65, y: land.y, z: land.z + 1.45, radius: CAVE_EXIT_R },
+  };
+}
+
+function stallPortal() {
+  return changeRooms?.voidStall || null;
+}
+
+function worldExit(id) {
+  if (id === "stall") {
+    const s = stallPortal();
+    const ex = s?.exit || s;
+    return { x: ex?.x ?? -24.6, y: 0, z: ex?.z ?? 24.7 };
+  }
+  return PIANO_SURFACE;
+}
+
+function teleportPlayer(dest) {
+  if (!dest || !Number.isFinite(dest.x) || !Number.isFinite(dest.z)) return;
+  player.pos.set(dest.x, dest.y ?? 0, dest.z);
+  player.vel.y = 0;
+  player.vel.x = 0;
+  player.vel.z = 0;
+  follow.snap();
+}
+
 function pollAction(pos) {
   if (!pos || arrest.active) return null;
   if (wisdom?.strapped) {
@@ -369,6 +446,27 @@ function pollAction(pos) {
   const consider = (id, label, dist, target) => {
     if (!best || dist < best.dist) best = { id, label, dist, target };
   };
+  if (inCave(pos)) {
+    const exits = caveExits();
+    for (const id of ["piano", "stall"]) {
+      const p = exits[id];
+      if (!p || !Number.isFinite(p.x)) continue;
+      const d = distXZ(pos.x, pos.z, p.x, p.z);
+      const r = p.radius || CAVE_EXIT_R;
+      if (d <= r) consider("void-surface", ACTION_SURFACE, d, id);
+    }
+    return best;
+  }
+  const hatch = level.hatch;
+  if (hatch) {
+    const d = distXZ(pos.x, pos.z, hatch.x, hatch.z);
+    if (d <= (hatch.radius || 1.45)) consider("void-descend", ACTION_DESCEND, d, "piano");
+  }
+  const stall = stallPortal();
+  if (stall) {
+    const d = distXZ(pos.x, pos.z, stall.x, stall.z);
+    if (d <= (stall.radius || 1.22)) consider("void-descend", ACTION_DESCEND, d, "stall");
+  }
   if (wisdom?.inChairRange?.(pos) && wisdom.center) {
     consider("chair-sit", "sit · any action", distXZ(pos.x, pos.z, wisdom.center.x, wisdom.center.z));
   }
@@ -444,6 +542,12 @@ function activate(a) {
       break;
     case "painting":
       artist.pickupNearest?.(player.pos);
+      break;
+    case "void-descend":
+      teleportPlayer(caveLanding());
+      break;
+    case "void-surface":
+      teleportPlayer(worldExit(a.target));
       break;
     default:
       break;
@@ -528,7 +632,7 @@ function playAlongTone(ctx, midi, vel, dur) {
 window.addEventListener("keydown", (e) => {
   if (!playing || arrest.active || e.repeat) return;
   if (e.metaKey || e.ctrlKey || e.altKey) return;
-  if (synth.isOpen?.()) return;
+  if (synth.isOpen?.() || voidDeck.isOpen?.()) return;
   if (currentAction) return;
   const slot = playAlongSlot(e.code);
   if (slot < 0) return;
@@ -554,7 +658,7 @@ canvas.addEventListener("mousedown", (e) => {
   voice.unlock().catch(() => {});
   sfx.unlock().catch(() => {});
   if (e.button === 2 && combat.hasLaser) {
-    if (synth.isOpen?.()) return;
+    if (synth.isOpen?.() || voidDeck.isOpen?.()) return;
     sfx.laser();
     combat.laser(player.pos, player.yaw, player.pitch);
     return;
@@ -564,7 +668,7 @@ canvas.addEventListener("mousedown", (e) => {
     actionClick = true;
     return;
   }
-  if (synth.isOpen?.()) return;
+  if (synth.isOpen?.() || voidDeck.isOpen?.()) return;
   combat.punch(player.pos, player.yaw, player.pitch);
 });
 canvas.addEventListener("contextmenu", (e) => e.preventDefault());
@@ -594,6 +698,7 @@ async function beginPlay() {
     await voice.unlock();
     await sfx.unlock();
     const ctx = voice.ctx || sfx.ctx;
+    if (ctx) acquireCtx(ctx);
     if (ctx && !carpenter) {
       carpenter = createCarpenterBed(ctx);
       pianoPulse.onVowel = (midi) => {
@@ -709,6 +814,7 @@ function frame() {
         fixedUpdate(player, input.keys, colliders.COL, BOUNDS, TICK);
         panic.shove(player, TICK);
         library?.tickPlayer?.(player, TICK);
+        voidCave?.tickPlayer?.(player, TICK);
       }
     }
     if (playing) arrest.tick(TICK);
@@ -740,6 +846,7 @@ function frame() {
     gadgets.tick(t, player.pos);
     synth.tick(t);
     shita.tick(t, player.pos, cast, (id, o) => voice.play(id, o));
+    voidDeck.tick();
     influencers?.tick?.(renderer, scene, t, player.pos, {
       play: (id, o) => voice.play(id, o),
       fights,
@@ -782,7 +889,7 @@ function frame() {
       if (!aus101.visible) aus101.visible = true;
       updateFollowCam(camera, player, raw || 0.016);
       // Pull the boom in and off the walls once the player is inside a building.
-      interiors.adjustCamera(camera, player);
+      if (!inCave(player.pos)) interiors.adjustCamera(camera, player);
     }
     steps.tick({
       speed: arrest.active ? 0 : speed,

@@ -3,6 +3,9 @@
  * pointer-events none — never steals lotion Space or punches.
  */
 
+export const ACTION_DESCEND = "descend · any action";
+export const ACTION_SURFACE = "surface · any action";
+
 export function createActionPrompt(host) {
   const el = document.createElement("div");
   el.id = "aus101-act";

@@ -604,8 +604,10 @@ export function buildLibrary(reg) {
     const h = dt > 0 ? dt : 0;
     const x = player.pos.x;
     const z = player.pos.z;
-    if (!contains(x, z) && player.pos.y > -0.2) {
-      if (player.pos.y !== 0) player.pos.y = 0;
+    // Other pits (void cave) also use negative Y. Never run library physics
+    // — or snap Y — unless the body is actually in this cylinder.
+    if (!contains(x, z)) {
+      if (player.pos.y > -0.2 && player.pos.y !== 0) player.pos.y = 0;
       climbT = -1;
       return false;
     }

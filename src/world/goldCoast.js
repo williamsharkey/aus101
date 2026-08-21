@@ -29,6 +29,21 @@ import {
 import { pianoPulse, playPianoPluck } from "../audio/shades.js";
 import { acquireCtx } from "../audio/tapeDeck.js";
 import { ken, babe, poseSit } from "../chars/npcs.js";
+import { VOID_STAIRS, VOID_EXITS } from "./voidCave.js";
+
+const HATCH_FALLBACK = { x: 7, y: -10.4, z: -29 };
+/** Proximity radius around the piano hatch (world XZ). */
+export const PIANO_HATCH_R = 1.45;
+
+function resolveVoidStairs() {
+  const s = VOID_STAIRS;
+  if (s && s.stairsTop && Number.isFinite(s.stairsTop.x)) return s.stairsTop;
+  if (s && s.nest && Number.isFinite(s.nest.x)) return s.nest;
+  if (s && Number.isFinite(s.x) && Number.isFinite(s.z)) {
+    return { x: s.x, y: s.y ?? -10.4, z: s.z };
+  }
+  return HATCH_FALLBACK;
+}
 
 export const GC = {
   width: 90,
@@ -624,6 +639,21 @@ export function buildGoldCoast(scene, colliders) {
   pianoRig.rotation.y = 1.92; // treble side + open lid toward the beach
   scene.add(pianoRig);
 
+  // Crawlspace under the raft: dark well + ladder + fairy lights going down.
+  const pianoHatch = buildPianoHatch();
+  pianoHatch.position.set(pianoPos.x, 0.09, pianoPos.z);
+  scene.add(pianoHatch);
+  const hatchInfo = {
+    x: pianoPos.x,
+    y: 0,
+    z: pianoPos.z,
+    radius: PIANO_HATCH_R,
+    action: "descend",
+    dest: resolveVoidStairs(),
+    exits: VOID_EXITS,
+    mesh: pianoHatch,
+  };
+
   // DJ booth + stupid big screen + dancers
   const dj = buildDjBooth(scene, add);
   const dancers = spawnDancers(scene);
@@ -638,6 +668,7 @@ export function buildGoldCoast(scene, colliders) {
     flames,
     bounds: BOUNDS,
     piano: pianoPos,
+    hatch: hatchInfo,
     isWood(x, z) {
       return Math.abs(z - GC.boardwalkZ) < 4.8 && Math.abs(x) < GC.width * 0.4;
     },
@@ -698,6 +729,7 @@ export function buildGoldCoast(scene, colliders) {
         f.scale.setScalar(s);
       }
       pianoRig.userData.tick?.(t);
+      pianoHatch.userData.tick?.(t);
       dj.tick(t);
       for (const d of dancers) d.tick(t);
     },
@@ -801,6 +833,81 @@ function keyboard(w, topY, frontZ, whiteM, blackM) {
   blacks.count = k;
   blacks.instanceMatrix.needsUpdate = true;
   g.add(blacks);
+  return g;
+}
+
+/** Dark well under the grand — crawlspace into the void cave. */
+function buildPianoHatch() {
+  const g = new THREE.Group();
+  g.name = "pianoHatch";
+  g.userData.kind = "hatch";
+  g.userData.action = "descend";
+  g.userData.radius = PIANO_HATCH_R;
+
+  const dark = new THREE.MeshBasicMaterial({ color: 0x050308, fog: false });
+  const wood = mat(0x3a2716, { roughness: 0.92 });
+  const iron = mat(0x2a2420, { roughness: 0.48, metalness: 0.45 });
+  const S = kit();
+
+  const rim = new THREE.Mesh(new THREE.CylinderGeometry(0.46, 0.5, 0.07, 12), wood);
+  rim.position.y = 0.03;
+  rim.castShadow = true;
+  g.add(rim);
+  const mouth = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 0.04, 14), dark);
+  mouth.position.y = -0.01;
+  g.add(mouth);
+  const shaft = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.42, 0.36, 10.2, 12, 1, true),
+    new THREE.MeshStandardMaterial({
+      color: 0x100c0a,
+      roughness: 1,
+      side: THREE.DoubleSide,
+      emissive: 0x08060a,
+    })
+  );
+  shaft.position.y = -5.1;
+  g.add(shaft);
+
+  const railL = box(0.028, 8.8, 0.028, iron);
+  railL.position.set(0.16, -4.35, 0.14);
+  g.add(railL);
+  const railR = box(0.028, 8.8, 0.028, iron);
+  railR.position.set(0.34, -4.35, 0.14);
+  g.add(railR);
+  for (let i = 0; i < 13; i++) {
+    const rung = box(0.26, 0.028, 0.028, iron);
+    rung.position.set(0.25, -0.22 - i * 0.68, 0.14);
+    g.add(rung);
+  }
+
+  const pts = [];
+  for (let i = 0; i <= 18; i++) {
+    const t = i / 18;
+    const a = t * 5.1;
+    pts.push(new THREE.Vector3(Math.cos(a) * 0.2, -0.08 - t * 9.4, Math.sin(a) * 0.2));
+  }
+  g.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), S.cable));
+  const bulbs = [];
+  for (let i = 0; i < pts.length; i++) {
+    const b = new THREE.Mesh(S.bulbLitGeo, S.bulbLit[i % S.bulbLit.length]);
+    b.position.copy(pts[i]);
+    b.scale.set(0.82, 1.15, 0.82);
+    g.add(b);
+    bulbs.push(b);
+  }
+  const glow = new THREE.PointLight(0xffcc88, 1.45, 4.2, 2);
+  glow.position.set(0, -0.35, 0);
+  glow.castShadow = false;
+  g.add(glow);
+
+  g.userData.tick = (t) => {
+    const pulse = 0.78 + Math.sin(t * 3.4) * 0.22;
+    glow.intensity = 1.2 + pulse * 0.5;
+    for (let i = 0; i < bulbs.length; i++) {
+      const s = 0.72 + Math.sin(t * 5.2 + i * 0.7) * 0.18;
+      bulbs[i].scale.setScalar(s);
+    }
+  };
   return g;
 }
 

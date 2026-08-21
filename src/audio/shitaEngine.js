@@ -100,7 +100,8 @@ function whiteNoiseNode(ctx, buf) {
  *   note: Function, drone: Function, applyPreset: Function,
  *   randomize: Function, wtf: Function, tick: Function,
  *   createVoice: Function, nudgeFilter: Function, setPosition: Function,
- *   params: object, presets: typeof PRESETS, started: boolean
+ *   params: object, presets: typeof PRESETS, started: boolean,
+ *   output: GainNode
  * }}
  */
 export function createShita(ctx, dest) {
@@ -235,6 +236,10 @@ export function createShita(ctx, dest) {
   clipGuard.connect(spatial);
   spatial.connect(outGain);
   outGain.connect(dest || ctx.destination);
+  // Pre-mix tap so a looper can record the synth even when live mix is ducked.
+  const recTap = ctx.createGain();
+  recTap.gain.value = 1;
+  clipGuard.connect(recTap);
 
   let started = false;
   let droneOn = false;
@@ -500,6 +505,7 @@ export function createShita(ctx, dest) {
     setPosition,
     params,
     presets: PRESETS,
+    output: recTap,
     get started() {
       return started;
     },
