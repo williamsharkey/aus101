@@ -1741,11 +1741,20 @@ export function createPanic({
   if (house?.robots) {
     for (const bot of house.robots) {
       if (!bot || cops.some((c) => c.root === bot)) continue;
+      bot.updateWorldMatrix(true, false);
+      const e = bot.matrixWorld.elements;
+      const wx = e[12];
+      const wz = e[14];
+      const wyaw = Math.atan2(e[8], e[10]);
+      house.group.remove(bot);
+      scene.add(bot);
+      bot.position.set(wx, 0, wz);
+      bot.rotation.y = wyaw;
       addHitHull(bot);
       const rec = {
         root: bot,
-        x: bot.position.x,
-        z: bot.position.z,
+        x: wx,
+        z: wz,
         phase: Math.random() * Math.PI * 2,
         speed: COP_SPEED * 0.92,
         reach: 0,
@@ -1767,7 +1776,7 @@ export function createPanic({
         elite: false,
         vx: 0,
         vz: 0,
-        yaw: bot.rotation.y || 0,
+        yaw: wyaw,
         path: null,
         pathI: 0,
         pathAt: 0,

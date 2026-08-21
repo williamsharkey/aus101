@@ -8,9 +8,21 @@ const PLAYER_M = 1.25;
 const RESTITUTION = 0.18;
 const FRICTION = 0.35;
 const SLIDE = 0.55;
+const SKIP_KIND = { cop: 1, t101: 1 };
+const SKIP_DUTY = { hold: 1, shove: 1, snipe: 1, stash: 1 };
 
 function meshOf(npc) {
   return npc?.mesh || npc || null;
+}
+
+/** Skip cops/robots so shove/arrest is not fighting circle resolve. */
+function skipNpc(npc, mesh) {
+  const ud = mesh?.userData;
+  const kind = npc?.kind || ud?.kind || "";
+  if (SKIP_KIND[kind]) return true;
+  if (SKIP_DUTY[npc?.duty] || SKIP_DUTY[ud?.duty]) return true;
+  const name = mesh?.name || "";
+  return name === "panic-t101" || name === "patrol-t101" || name === "cop" || name === "panic-cop";
 }
 
 function radiusOf(npc, mesh) {
@@ -49,9 +61,11 @@ const _p = { x: 0, z: 0 };
 /**
  * Resolve the player against the cast. Mutates player.pos / vel and NPC
  * positions plus a decaying `userData.bumpVx/Vz` so pathing NPCs still hitch.
+ * @param {{ skip?: boolean }} [opts]
  * @returns {boolean} true if any contact this step
  */
-export function resolveCrowd(player, cast, dt) {
+export function resolveCrowd(player, cast, dt, opts) {
+  if (opts?.skip || player?.loungeSit || player?.arrested) return false;
   if (!player?.pos || !cast?.length) return false;
   const h = dt > 0 ? dt : 1 / 60;
   let hit = false;
@@ -62,6 +76,7 @@ export function resolveCrowd(player, cast, dt) {
   for (const npc of cast) {
     const mesh = meshOf(npc);
     if (!mesh || mesh.visible === false) continue;
+    if (skipNpc(npc, mesh)) continue;
     if (mesh.userData?.combatDown && (npc.down || mesh.userData.combatDown)) {
       // Downed bodies are flat — step over, don't kick the corpse around.
       continue;

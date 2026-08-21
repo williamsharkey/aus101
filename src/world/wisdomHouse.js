@@ -399,9 +399,10 @@ function makeChair(M, floorY) {
   lap.position.set(0, 0.08, 0.12);
   seatG.add(lap);
 
+  // Eyes off the vinyl near the headrest. rx 0.96 + hinge 1.12 + seat -0.16 = world 1.92 (ceiling TVs).
   const camMount = new THREE.Object3D();
-  camMount.position.set(0, 0.12, -0.55);
-  camMount.rotation.set(1.15, 0, 0);
+  camMount.position.set(0, 0.16, -0.62);
+  camMount.rotation.set(0.96, 0, 0);
   backHinge.add(camMount);
 
   return { root, yawG, rockG, camMount };

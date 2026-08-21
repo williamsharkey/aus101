@@ -42,6 +42,7 @@ import { createReticuleBay } from "./hud/reticule.js";
 import { createBurnWarn } from "./hud/burnWarn.js";
 import { seedSpf, tickSun } from "./game/sun.js";
 import { resolveCrowd, tickCrowdDrift } from "./phys/crowd.js";
+import { placeLoungeRig, resetStand } from "./game/loungePlace.js";
 import { createRadioHud } from "./hud/radio.js";
 import { createActionPrompt, ACTION_DESCEND, ACTION_SURFACE } from "./hud/actionPrompt.js";
 import { VOID_STAIRS, VOID_EXITS } from "./world/voidCave.js";
@@ -258,10 +259,14 @@ if (gun.view) {
 
 function enterFps() {
   if (fpsAim || !combat.hasLaser) return false;
+  if (wisdom?.strapped) return false;
   if (loungeSit) leaveLounger();
   fpsAim = true;
   player.pitch = 0;
-  if (gun.view) gun.view.visible = true;
+  if (gun.view) {
+    if (gun.view.parent !== camera) camera.add(gun.view);
+    gun.view.visible = true;
+  }
   aus101.visible = false;
   follow.snap();
   input.tryLock?.();
@@ -577,9 +582,7 @@ function leaveLounger() {
   player.vel.set(0, 0, 0);
   player.loungeSit = false;
   loungeSit = null;
-  aus101.rotation.order = "XYZ";
-  aus101.rotation.x = 0;
-  aus101.rotation.z = 0;
+  resetStand(aus101);
   follow.snap();
 }
 
@@ -595,17 +598,7 @@ function applyLoungeCam(cam, p) {
   cam.lookAt(hx, 0.55, hz);
 }
 
-function placeLoungeRig(mesh, sit) {
-  const g = sit.group;
-  const yaw = g.rotation.y || 0;
-  const lz = sit.seat.footZ ?? 0.62;
-  const ly = sit.seat.y ?? 0.48;
-  const s = Math.sin(yaw);
-  const c = Math.cos(yaw);
-  mesh.position.set(g.position.x - lz * s, ly, g.position.z + lz * c);
-  mesh.rotation.order = "YXZ";
-  mesh.rotation.set(-Math.PI / 2 + 0.08, yaw + Math.PI, 0);
-}
+
 
 function activate(a) {
   if (!a || arrest.active) return;
@@ -744,7 +737,7 @@ canvas.addEventListener("mousedown", (e) => {
   }
   if (e.button !== 0) return;
   if (fpsAim) {
-    exitFps();
+    tryLaser();
     return;
   }
   if (currentAction && !combat.swinging && !personInPunchArc(player.pos, player.yaw)) {
@@ -902,7 +895,8 @@ function frame() {
           player.pitch = Math.max(-1.45, Math.min(1.45, player.pitch));
         }
         fixedUpdate(player, input.keys, colliders.COL, BOUNDS, TICK);
-        if (resolveCrowd(player, cast, TICK)) sfx.bump?.();
+        player.arrested = !!arrest.active;
+        if (resolveCrowd(player, cast, TICK, { skip: arrest.active })) sfx.bump?.();
         panic.shove(player, TICK);
         library?.tickPlayer?.(player, TICK);
         voidCave?.tickPlayer?.(player, TICK);
@@ -993,9 +987,11 @@ function frame() {
     } else if (fpsAim) {
       aus101.visible = false;
       if (gun.view) {
+        if (gun.view.parent !== camera) camera.add(gun.view);
         gun.view.visible = true;
         const bob = Math.sin((player.step || 0) * 2) * 0.012;
         gun.view.position.set(0.22, -0.2 + bob, -0.42);
+        gun.view.rotation.set(0.06 + player.pitch * 0.1, 0.18, 0.04);
       }
       applyCamera(camera, player);
     } else {

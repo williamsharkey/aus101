@@ -138,10 +138,16 @@ export function installInput({ dom, isPlaying, blockLock }) {
  * @param {number} dt
  */
 export function fixedUpdate(player, keys, COL, bounds, dt) {
-  const f = (keys.KeyW || keys.ArrowUp ? 1 : 0) - (keys.KeyS || keys.ArrowDown ? 1 : 0);
-  const s = (keys.KeyD || keys.ArrowRight ? 1 : 0) - (keys.KeyA || keys.ArrowLeft ? 1 : 0);
+  const mag = keys.analogMag || 0;
+  const analog = mag > 0.08;
+  const f = analog
+    ? keys.analogY || 0
+    : (keys.KeyW || keys.ArrowUp ? 1 : 0) - (keys.KeyS || keys.ArrowDown ? 1 : 0);
+  const s = analog
+    ? keys.analogX || 0
+    : (keys.KeyD || keys.ArrowRight ? 1 : 0) - (keys.KeyA || keys.ArrowLeft ? 1 : 0);
   const run = keys.ShiftLeft || keys.ShiftRight;
-  const speed = run ? 6.4 : 3.4;
+  const speed = (run ? 6.4 : 3.4) * (analog ? Math.min(1, mag) : 1);
   const sy = Math.sin(player.yaw);
   const cy = Math.cos(player.yaw);
   let mx = s * cy - f * sy;
