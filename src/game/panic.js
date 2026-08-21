@@ -48,6 +48,19 @@ const FLEE_MAX = 46; // civilians stop and cower once this far from the incident
 const CELL = 1.4;
 const PATH_MAX = 220;
 const PATH_TTL = 0.45;
+const PATH_TTL_HOME = 2.8;
+/** How many living units may crowd the re-ed room. The rest walk off. */
+const JACK_INSIDE = 10;
+const BEACH_SPOTS = [
+  { x: -11.5, z: -4.2 },
+  { x: 3.4, z: -6.1 },
+  { x: 14.2, z: -2.8 },
+  { x: -22.4, z: 1.6 },
+  { x: 21.8, z: 5.4 },
+  { x: -6.8, z: 8.2 },
+  { x: 9.5, z: 9.6 },
+  { x: -16.2, z: -7.4 },
+];
 
 // ---------------------------------------------------------------------------
 // Shared geometry / materials. Unit primitives scaled per mesh — iPhone-safe.
@@ -904,10 +917,14 @@ export function createPanic({
   }
 
   function nextStep(c, gx, gz, t) {
+    if ((c.duty === "home" || c.duty === "stash") && losClear(c.x, c.z, gx, gz)) {
+      return { x: gx, z: gz };
+    }
     const r = 0.36 * (c.scale || 1);
+    const ttl = c.duty === "home" || c.duty === "stash" ? PATH_TTL_HOME : PATH_TTL;
     const stale =
       !c.path ||
-      t - (c.pathAt || 0) > PATH_TTL ||
+      t - (c.pathAt || 0) > ttl ||
       Math.hypot((c.gx || 0) - gx, (c.gz || 0) - gz) > 2.4;
     if (stale) {
       c.path = astar(c.x, c.z, gx, gz, r);
@@ -1075,6 +1092,54 @@ export function createPanic({
    * on a stash walk. Downed stay down.
    * @param {{ clearFlee?: boolean }} [opts]
    */
+  /**
+   * Player is in the chair. At most `maxInside` living units hold the room;
+   * T-101 extras walk to the factory, human cops to the beach. Hunt stops so
+   * the factory does not keep pouring into the doorway.
+   */
+  function apprehend(maxInside = JACK_INSIDE) {
+    hunt = false;
+    awaitingDrop = false;
+    delivered = true;
+    level = 0;
+    const cap = Math.max(1, maxInside | 0);
+    const live = living().filter((c) => c.duty !== "stash");
+    live.sort((a, b) => {
+      const da = (a.x - JACK.x) * (a.x - JACK.x) + (a.z - JACK.z) * (a.z - JACK.z);
+      const db = (b.x - JACK.x) * (b.x - JACK.x) + (b.z - JACK.z) * (b.z - JACK.z);
+      return da - db;
+    });
+    let extra = 0;
+    for (let i = 0; i < live.length; i++) {
+      const c = live[i];
+      c.path = null;
+      c.pathI = 0;
+      c.onArrive = null;
+      c.vx = 0;
+      c.vz = 0;
+      if (i < cap) {
+        c.duty = "hold";
+        const ang = (i / Math.max(1, cap)) * Math.PI * 2 + 0.4;
+        c.offX = Math.cos(ang) * 1.4;
+        c.offZ = Math.sin(ang) * 1.4;
+        c.tx = JACK.x + c.offX;
+        c.tz = JACK.z + c.offZ;
+        continue;
+      }
+      c.duty = "home";
+      if (c.kind === "t101") {
+        const k = extra++;
+        c.tx = FACTORY_DOCK.x + (k % 4) * 0.9 - 1.3;
+        c.tz = FACTORY_DOCK.z + ((k / 4) | 0) * 0.75 - 0.9;
+      } else {
+        const spot = BEACH_SPOTS[extra % BEACH_SPOTS.length];
+        extra += 1;
+        c.tx = spot.x + (i % 3) * 0.55;
+        c.tz = spot.z + ((i % 5) - 2) * 0.4;
+      }
+    }
+  }
+
   function standDown({ clearFlee = false } = {}) {
     hunt = false;
     screamed = false;
@@ -1730,6 +1795,7 @@ export function createPanic({
     requestWave,
     living,
     standDown,
+    apprehend,
     dispose,
     cops,
     house,

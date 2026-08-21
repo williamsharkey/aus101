@@ -300,7 +300,10 @@ const arrest = createArrest({
   },
   hideGun: (pos) => gun.hide(pos),
 });
-panic.onDelivered = () => arrest.beginJack();
+panic.onDelivered = () => {
+  panic.apprehend(10);
+  arrest.beginJack();
+};
 let radio = null;
 
 // Violence is a physical act, not a keypress: `combat` swings and raycasts, and

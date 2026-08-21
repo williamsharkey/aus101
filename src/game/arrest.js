@@ -62,12 +62,13 @@ export function createArrest({ player, play, sfx, onReprogram, onTakeGun, hideGu
   }
 
   function setDuty(duty, extra = {}) {
-    const list = squad();
+    const list = squad().filter((c) => c.duty !== "stash" && c.duty !== "down");
+    const n = duty === "hold" ? Math.min(10, list.length) : list.length;
     for (let i = 0; i < list.length; i++) {
       const c = list[i];
-      if (c.duty === "stash") continue;
+      if (duty === "hold" && i >= n) continue;
       c.duty = duty;
-      const ang = (i / Math.max(1, list.length)) * Math.PI * 2 + 0.4;
+      const ang = (i / Math.max(1, n)) * Math.PI * 2 + 0.4;
       c.offX = extra.offR ? Math.cos(ang) * extra.offR : 0;
       c.offZ = extra.offR ? Math.sin(ang) * extra.offR : 0;
       if (extra.tx != null) c.tx = extra.tx + c.offX;
@@ -138,7 +139,21 @@ export function createArrest({ player, play, sfx, onReprogram, onTakeGun, hideGu
     player.pos.z = JACK.z;
     player.yaw = 0;
     player.vel.set(0, 0, 0);
-    setDuty("hold", { tx: JACK.x, tz: JACK.z, offR: RING });
+    const holding = squad().filter((c) => c.duty === "hold" && c.duty !== "down");
+    if (holding.length) {
+      const n = holding.length;
+      for (let i = 0; i < n; i++) {
+        const c = holding[i];
+        const ang = (i / n) * Math.PI * 2 + 0.4;
+        c.offX = Math.cos(ang) * RING;
+        c.offZ = Math.sin(ang) * RING;
+        c.tx = JACK.x + c.offX;
+        c.tz = JACK.z + c.offZ;
+        c.onArrive = null;
+      }
+    } else {
+      setDuty("hold", { tx: JACK.x, tz: JACK.z, offR: RING });
+    }
     startJackBeats();
     try {
       sfx?.radioChatter?.();
@@ -257,7 +272,7 @@ export function createArrest({ player, play, sfx, onReprogram, onTakeGun, hideGu
 
   function startJackBeats() {
     roster = squad()
-      .filter((c) => c.duty !== "stash")
+      .filter((c) => c.duty === "hold")
       .slice(0, BEATS_MAX);
     beatI = 0;
     beatT = 0;
