@@ -5,7 +5,13 @@
 
 import { midiBus } from "../audio/midiBus.js";
 
-const PROGRAMS = ["boardwalk", "apply", "menu"];
+const PROGRAMS = [
+  { id: "carpenter", title: "JUNO 106", song: "dj_song_01" },
+  { id: "galway", title: "WIZBALL SHORE", song: "dj_song_02" },
+  { id: "fm7", title: "FM7 DUSK", song: "dj_song_03" },
+  { id: "dx", title: "DX ZINC", song: "dj_song_01" },
+  { id: "chip", title: "CHIP PATROL", song: "dj_song_02" },
+];
 const SONGS = ["dj_song_01", "dj_song_02", "dj_song_03"];
 const QUIP_N = 49;
 const BTN = 26;
@@ -152,9 +158,8 @@ function fillQuips() {
  * @param {{ carpenter?: { setState?: Function, start?: Function, stop?: Function, setMix?: Function, state?: string, running?: boolean }, voice?: { play?: Function, busy?: boolean }, isTalking?: (now: number) => boolean }} opts
  * @returns {{ el: HTMLElement, tick: () => void, dispose: () => void }}
  */
-export function createRadioHud({ carpenter, voice, isTalking } = {}) {
-  let idx = PROGRAMS.indexOf(carpenter?.state);
-  if (idx < 0) idx = 0;
+export function createRadioHud({ carpenter, tracker, scores, voice, isTalking } = {}) {
+  let idx = 0;
   let paused = carpenter ? carpenter.running === false : false;
   let vol = 1;
   let pending = false;
@@ -229,6 +234,20 @@ export function createRadioHud({ carpenter, voice, isTalking } = {}) {
   pauseBtn.style.position = "relative";
   pauseBtn.appendChild(pip);
   cluster.append(prevBtn, pauseBtn, nextBtn);
+  const tag = el(
+    "span",
+    {
+      font: "9px ui-sans-serif, system-ui, sans-serif",
+      letterSpacing: "0.12em",
+      color: "rgba(255,215,106,0.88)",
+      textShadow: "0 1px 3px #000",
+      pointerEvents: "none",
+      maxWidth: "92px",
+      overflow: "hidden",
+      whiteSpace: "nowrap",
+    },
+    cluster
+  );
 
   function talkingNow() {
     if (voice?.busy) return true;
@@ -257,7 +276,7 @@ export function createRadioHud({ carpenter, voice, isTalking } = {}) {
       return;
     }
     pending = false;
-    const song = SONGS[idx] || "dj_song_01";
+    const song = PROGRAMS[idx]?.song || SONGS[idx % SONGS.length] || "dj_song_01";
     const handle = voice.play(song);
     handle.ready?.then((ok) => {
       if (!ok) {
@@ -277,7 +296,8 @@ export function createRadioHud({ carpenter, voice, isTalking } = {}) {
   function setVolume(v) {
     vol = Math.max(0, Math.min(1, v));
     if (slider.value !== String(vol)) slider.value = String(vol);
-    carpenter?.setMix?.(vol);
+    carpenter?.setMix?.(PROGRAMS[idx]?.id === "carpenter" ? vol : 0);
+    tracker?.setMix?.(PROGRAMS[idx]?.id === "carpenter" ? 0 : vol);
   }
 
   function paintPause() {
@@ -287,17 +307,29 @@ export function createRadioHud({ carpenter, voice, isTalking } = {}) {
   }
 
   function paintProgram() {
-    const colors = ["#ffd76a", "#fbf6ea", "#ff6a4a"];
+    const colors = ["#ffd76a", "#7ec8ff", "#ff8ad4", "#9dffb0", "#ffb347"];
     pip.style.background = colors[idx] || colors[0];
     pip.style.boxShadow = `0 0 6px ${colors[idx] || colors[0]}`;
+    if (tag) tag.textContent = PROGRAMS[idx]?.title || "";
   }
 
   function applyProgram(announceIt) {
-    carpenter?.setState?.(PROGRAMS[idx]);
-    midiBus.emit({ type: "program", id: PROGRAMS[idx], src: "radio" });
-    if (!paused) {
-      carpenter?.start?.();
-      carpenter?.setMix?.(vol);
+    const p = PROGRAMS[idx] || PROGRAMS[0];
+    midiBus.emit({ type: "program", id: p.id, src: "radio" });
+    if (p.id === "carpenter") {
+      tracker?.stop?.();
+      carpenter?.setState?.("boardwalk");
+      if (!paused) {
+        carpenter?.start?.();
+        carpenter?.setMix?.(vol);
+      }
+    } else {
+      carpenter?.setMix?.(0);
+      const song = scores?.[p.id];
+      if (song && !paused) {
+        tracker?.play?.(song);
+        tracker?.setMix?.(vol);
+      }
     }
     paintProgram();
     if (announceIt) announce();
@@ -310,12 +342,10 @@ export function createRadioHud({ carpenter, voice, isTalking } = {}) {
 
   function togglePause() {
     paused = !paused;
-    if (paused) carpenter?.stop?.();
-    else {
-      carpenter?.setState?.(PROGRAMS[idx]);
-      carpenter?.start?.();
-      carpenter?.setMix?.(vol);
-    }
+    if (paused) {
+      carpenter?.stop?.();
+      tracker?.stop?.();
+    } else applyProgram(false);
     paintPause();
   }
 

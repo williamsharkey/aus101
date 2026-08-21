@@ -251,6 +251,37 @@ export class SfxBank {
     });
   }
 
+  /**
+   * Shove / heave / uh / oof — comic-book punches of breath, not one loop.
+   * Random pick so a pack doesn't chorus the same blip.
+   */
+  copShove() {
+    const now = typeof performance !== "undefined" ? performance.now() : 0;
+    if (now && now - (this._shoveAt || 0) < 90) return;
+    this._shoveAt = now;
+    const k = (Math.random() * 8) | 0;
+    if (k === 0) {
+      this._beep({ freq: 140 + Math.random() * 40, dur: 0.09, type: "sine", gain: 0.09, slide: -50 });
+    } else if (k === 1) {
+      this._beep({ freq: 220 + Math.random() * 50, dur: 0.07, type: "sawtooth", gain: 0.06, slide: -90 });
+      this._noiseBurst({ dur: 0.05, gain: 0.03, freq: 400, type: "lowpass", Q: 0.8 });
+    } else if (k === 2) {
+      this._noiseBurst({ dur: 0.08, gain: 0.045, freq: 280, type: "lowpass", Q: 1.1 });
+    } else if (k === 3) {
+      this._beep({ freq: 310, dur: 0.045, type: "square", gain: 0.04, slide: -40 });
+      this._beep({ freq: 180, dur: 0.08, type: "sine", gain: 0.07, slide: -30 });
+    } else if (k === 4) {
+      this._beep({ freq: 95 + Math.random() * 20, dur: 0.12, type: "triangle", gain: 0.1, slide: 25 });
+    } else if (k === 5) {
+      this._noiseBurst({ dur: 0.06, gain: 0.038, freq: 900, type: "bandpass", Q: 2.2 });
+    } else if (k === 6) {
+      this._beep({ freq: 260, dur: 0.05, type: "sine", gain: 0.08, slide: -20 });
+      this._noiseBurst({ dur: 0.04, gain: 0.025, freq: 160, type: "lowpass", Q: 0.6 });
+    } else {
+      this._beep({ freq: 190 + Math.random() * 80, dur: 0.06, type: "sawtooth", gain: 0.055, slide: -70 });
+    }
+  }
+
   /** Cop/t101 going down — short yell then thud. */
   copDie() {
     this._beep({

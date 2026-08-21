@@ -9,6 +9,7 @@ import { VoiceBank } from "./audio/voice.js";
 import { playRubVo } from "./audio/rubVo.js";
 import { SfxBank, installLotionFoley } from "./audio/sfx.js";
 import { createCarpenterBed } from "./audio/carpenter.js";
+import { createTracker, SCORES } from "./audio/tracker/index.js";
 import { initOcean } from "./audio/ocean.js";
 import { createFootstepPlayer } from "./audio/footsteps.js";
 import {
@@ -253,6 +254,7 @@ window.addEventListener("keydown", (e) => {
 });
 
 let carpenter = null;
+let trackerBed = null;
 let oceanBed = null;
 let shades = null;
 let music = null;
@@ -594,6 +596,7 @@ async function beginPlay() {
     const ctx = voice.ctx || sfx.ctx;
     if (ctx && !carpenter) {
       carpenter = createCarpenterBed(ctx);
+      trackerBed = createTracker(ctx);
       oceanBed = initOcean(ctx);
       shades = createShadesBed(ctx);
       shades.start();
@@ -611,11 +614,14 @@ async function beginPlay() {
       const find = (id) => spots.find((s) => s.id === id);
       radio = createRadioHud({
         carpenter,
+        tracker: trackerBed,
+        scores: SCORES,
         voice,
         isTalking: (now) => walkby.isTalking(now ?? performance.now()),
       });
       music = createMusicDirector({
         carpenter,
+        tracker: trackerBed,
         shades,
         locals: [
           { id: "piano", getPos: () => level.piano, radius: 12, bed: shades },

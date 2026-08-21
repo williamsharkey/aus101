@@ -29,6 +29,9 @@ const SHOVE_PULSE = 8.5;
 const SHOVE_PULSE_R = 1.7;
 const JACK_R = 1.35;
 const DELIVER_N = 3;
+const CLUB = { x0: -22.3, x1: -13.7, z0: 11.2, z1: 16.7 };
+const DOOR = { x: -15.9, z: 17.65 };
+const FAN_RAD = (25 * Math.PI) / 180;
 const SPAWN_R0 = 5.4;
 const SPAWN_GAP = 1.4;
 const HOLD_R = 2.6;
@@ -99,6 +102,42 @@ function part(mat, sx, sy, sz, geo = GEO.box) {
   m.receiveShadow = true;
   m.scale.set(sx, sy, sz);
   return m;
+}
+
+/** Next steer point so cops walk around the club to the north door, then JACK. */
+function steerPoint(px, pz) {
+  if (Math.hypot(px - JACK.x, pz - JACK.z) < 1.7) return JACK;
+  const { x0, x1, z0, z1 } = CLUB;
+  const inX = px > x0 - 0.85 && px < x1 + 0.85;
+  const south = pz < z0 + 0.5;
+  const east = px >= x1 - 0.2;
+  const west = px <= x0 + 0.2;
+  if (south && inX && !east && !west) {
+    const goEast = Math.abs(px - (x1 + 1.1)) <= Math.abs(px - (x0 - 1.1));
+    return goEast ? { x: x1 + 1.2, z: Math.min(pz, z0) } : { x: x0 - 1.2, z: Math.min(pz, z0) };
+  }
+  if ((east || px > x1) && pz < DOOR.z - 0.4) return { x: Math.max(px, x1 + 1.1), z: DOOR.z };
+  if ((west || px < x0) && pz < DOOR.z - 0.4) return { x: Math.min(px, x0 - 1.1), z: DOOR.z };
+  if (pz > z1 - 0.1) {
+    if (Math.abs(px - DOOR.x) > 0.5) return { x: DOOR.x, z: Math.max(pz, DOOR.z) };
+    if (pz > 15.8) return { x: DOOR.x, z: 15.3 };
+  }
+  return JACK;
+}
+
+function pathDir(px, pz) {
+  const w = steerPoint(px, pz);
+  const dx = w.x - px;
+  const dz = w.z - pz;
+  const L = Math.hypot(dx, dz) || 1;
+  return { x: dx / L, z: dz / L, w };
+}
+
+function fanDir(base, slot) {
+  const a = ((slot % 7) - 3) * (FAN_RAD / 3);
+  const c = Math.cos(a);
+  const s = Math.sin(a);
+  return { x: base.x * c - base.z * s, z: base.x * s + base.z * c, a };
 }
 
 function away(from, pos, out) {
@@ -410,6 +449,7 @@ export function createPanic({
   let waveWanted = 0;
   let awaitingDrop = false;
   let lastSx = 0;
+  let shoveFoleyAt = 0;
   let lastSz = 0;
   let slotSeq = 0;
   let sawPlayer = false;
@@ -834,18 +874,12 @@ export function createPanic({
       faceZ = playerPos.z - c.z;
       reachTo = d < 1.4 ? 1 : 0;
     } else if ((duty === "shove" || duty === "chase") && hunt && playerPos) {
-      const jx = JACK.x - playerPos.x;
-      const jz = JACK.z - playerPos.z;
-      const jL = Math.hypot(jx, jz) || 1;
-      const ux = jx / jL;
-      const uz = jz / jL;
-      const px = -uz;
-      const pz = ux;
-      const spread = ((c.slot % 9) - 4) * 0.38;
-      tx = playerPos.x - ux * 0.95 + px * spread;
-      tz = playerPos.z - uz * 0.95 + pz * spread;
+      const pd = pathDir(playerPos.x, playerPos.z);
+      const fan = fanDir(pd, c.slot || 0);
+      tx = playerPos.x - fan.x * 1.12;
+      tz = playerPos.z - fan.z * 1.12;
       const dAim = Math.hypot(tx - c.x, tz - c.z);
-      want = dAim > 0.28 ? c.speed : 0;
+      want = dAim > 0.22 ? c.speed : 0;
       faceX = playerPos.x - c.x;
       faceZ = playerPos.z - c.z;
       const dPlayer = Math.hypot(c.x - playerPos.x, c.z - playerPos.z);
@@ -936,25 +970,34 @@ export function createPanic({
     }
     if (n <= 0) return 0;
 
-    let dx = JACK.x - px;
-    let dz = JACK.z - pz;
-    const distJack = Math.hypot(dx, dz);
+    const distJack = Math.hypot(px - JACK.x, pz - JACK.z);
     if (distJack <= JACK_R && n >= DELIVER_N) {
       fireDelivered();
       return n;
     }
-    if (distJack < 0.02) return n;
 
+    const pd = pathDir(px, pz);
+    let sx = 0;
+    let sz = 0;
     let pulse = 0;
     for (const c of cops) {
       if (!isLiving(c)) continue;
-      if (Math.hypot(c.x - px, c.z - pz) <= SHOVE_PULSE_R) pulse += 1;
+      const d = Math.hypot(c.x - px, c.z - pz);
+      if (d > SHOVE_R) continue;
+      const fan = fanDir(pd, c.slot || 0);
+      let k = SHOVE_PER;
+      if (d <= SHOVE_PULSE_R) {
+        k += SHOVE_PULSE;
+        pulse += 1;
+      }
+      sx += fan.x * k;
+      sz += fan.z * k;
     }
-    const mag = Math.min(SHOVE_MAX, n * SHOVE_PER + pulse * SHOVE_PULSE);
-    dx /= distJack;
-    dz /= distJack;
-    const sx = dx * mag;
-    const sz = dz * mag;
+    const mag = Math.hypot(sx, sz);
+    if (mag > SHOVE_MAX) {
+      sx *= SHOVE_MAX / mag;
+      sz *= SHOVE_MAX / mag;
+    }
     lastSx = sx;
     lastSz = sz;
     player.vel.x += sx;
@@ -965,15 +1008,34 @@ export function createPanic({
     let nx = player.pos.x + sx * h;
     let nz = player.pos.z + sz * h;
     if (col) {
-      if (blocked(col, nx, player.pos.z, r)) {
+      const hitX = blocked(col, nx, player.pos.z, r);
+      const hitZ = blocked(col, player.pos.x, nz, r);
+      if (hitX) {
         nx = player.pos.x;
         player.vel.x -= sx;
         lastSx = 0;
+        const slide = pd.z >= 0 ? 1 : -1;
+        const tryZ = player.pos.z + slide * Math.abs(sz) * h * 1.4;
+        if (!blocked(col, nx, tryZ, r)) nz = tryZ;
       }
       if (blocked(col, nx, nz, r)) {
         nz = player.pos.z;
         player.vel.z -= sz;
         lastSz = 0;
+        const slide = pd.x >= 0 ? 1 : -1;
+        const tryX = player.pos.x + slide * Math.abs(sx) * h * 1.4;
+        if (!blocked(col, tryX, nz, r)) nx = tryX;
+      }
+    }
+    if (pulse > 0 && sfxRef?.copShove) {
+      const tnow = performance.now();
+      if (tnow - (shoveFoleyAt || 0) > 160 + Math.random() * 220) {
+        shoveFoleyAt = tnow;
+        try {
+          sfxRef.copShove();
+        } catch {
+          /* */
+        }
       }
     }
     player.pos.x = Math.max(BOUNDS.minX, Math.min(BOUNDS.maxX, nx));
