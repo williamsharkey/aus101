@@ -282,6 +282,20 @@ export class SfxBank {
     }
   }
 
+  /** T-101 zap: thin electric crack, not a fat boom. */
+  copZap() {
+    this._beep({ freq: 2100 + Math.random() * 400, dur: 0.045, type: "square", gain: 0.07, slide: 500 });
+    this._noiseBurst({ dur: 0.04, gain: 0.04, freq: 2800, type: "highpass", Q: 0.7 });
+    this._beep({ freq: 880, dur: 0.03, type: "sine", gain: 0.05, slide: -200 });
+  }
+
+  /** Ricochet off copper — metallic ping. */
+  copPing() {
+    this._beep({ freq: 2400 + Math.random() * 600, dur: 0.07, type: "sine", gain: 0.09, slide: -900 });
+    this._beep({ freq: 3600 + Math.random() * 400, dur: 0.04, type: "triangle", gain: 0.05, slide: -400 });
+    this._noiseBurst({ dur: 0.03, gain: 0.03, freq: 4200, type: "bandpass", Q: 4.5 });
+  }
+
   /** Cop/t101 going down — short yell then thud. */
   copDie() {
     this._beep({

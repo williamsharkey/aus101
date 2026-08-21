@@ -32,6 +32,13 @@ const DELIVER_N = 3;
 const CLUB = { x0: -22.3, x1: -13.7, z0: 11.2, z1: 16.7 };
 const DOOR = { x: -15.9, z: 17.65 };
 const FAN_RAD = (25 * Math.PI) / 180;
+const SNIPER_MIN = 1.22;
+const SNIPER_MAX = 9.14;
+const SNIPER_HOLD = 5.6;
+const SNIPER_FRAC = 0.4;
+const COP_BEAM_R = 0.95;
+const ZAP_SHOVE = 4.4;
+const ZAP_RANGE = 14;
 const SPAWN_R0 = 5.4;
 const SPAWN_GAP = 1.4;
 const HOLD_R = 2.6;
@@ -138,6 +145,22 @@ function fanDir(base, slot) {
   const c = Math.cos(a);
   const s = Math.sin(a);
   return { x: base.x * c - base.z * s, z: base.x * s + base.z * c, a };
+}
+
+function segDist(ax, az, bx, bz, px, pz) {
+  const abx = bx - ax;
+  const abz = bz - az;
+  const len2 = abx * abx + abz * abz || 1e-6;
+  let t = ((px - ax) * abx + (pz - az) * abz) / len2;
+  t = Math.max(0, Math.min(1, t));
+  const qx = ax + abx * t;
+  const qz = az + abz * t;
+  return Math.hypot(px - qx, pz - qz);
+}
+
+function reflectXZ(ix, iz, nx, nz) {
+  const d = ix * nx + iz * nz;
+  return { x: ix - 2 * d * nx, z: iz - 2 * d * nz };
 }
 
 function away(from, pos, out) {
@@ -438,6 +461,24 @@ export function createPanic({
   const fleeing = [];
   let screamed = false;
   const house = scene ? spawnPatrolHouse(scene, colliders) : null;
+  const bolts = [];
+  if (scene) {
+    const mat = new THREE.LineBasicMaterial({
+      color: 0xff3a2a,
+      transparent: true,
+      opacity: 0.95,
+      depthWrite: false,
+    });
+    for (let i = 0; i < 8; i++) {
+      const g = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3(0, 1.4, 1)]);
+      const line = new THREE.Line(g, mat.clone());
+      line.visible = false;
+      line.frustumCulled = false;
+      scene.add(line);
+      bolts.push({ line, g, until: 0 });
+    }
+  }
+  let boltI = 0;
   const HOME = house?.home || PATROL_HOME;
   let onDelivered = typeof onDeliveredOpt === "function" ? onDeliveredOpt : null;
   let onNeedDropships = typeof onNeedOpt === "function" ? onNeedOpt : null;
@@ -450,6 +491,8 @@ export function createPanic({
   let awaitingDrop = false;
   let lastSx = 0;
   let shoveFoleyAt = 0;
+  let zapSx = 0;
+  let zapSz = 0;
   let lastSz = 0;
   let slotSeq = 0;
   let sawPlayer = false;
@@ -558,7 +601,7 @@ export function createPanic({
 
   function poseUnit(c, want) {
     if (c.kind === "t101") {
-      poseT101(c.root, { walkPhase: c.phase, speed: want });
+      poseT101(c.root, { walkPhase: c.phase, speed: want, laserT: c.laserT || 0 });
       return;
     }
     poseCop(c.root, { walkPhase: c.phase, speed: want, reach: c.reach, slapT: c.slapT || 0 });
@@ -609,7 +652,11 @@ export function createPanic({
       kind: k,
       wave: Number.isFinite(wave) ? wave : waveIndex,
       slot: slotSeq++,
+      ranged: k === "t101" && Math.random() < SNIPER_FRAC,
+      laserT: 0,
+      nextShot: 0,
     };
+    if (rec.ranged && hunt) rec.duty = "snipe";
     cops.push(rec);
     waveSpawned += 1;
     try {
@@ -761,7 +808,7 @@ export function createPanic({
     for (const c of cops) {
       if (c.duty === "down" || c.root?.userData?.combatDown) continue;
       if (c.duty === "stash") c.onArrive?.();
-      c.duty = "shove";
+      c.duty = c.ranged ? "snipe" : "shove";
       c.onArrive = null;
     }
     spawnWave(WAVE_BASE, from);
@@ -830,6 +877,105 @@ export function createPanic({
     }
   }
 
+  function showBolt(ax, ay, az, bx, by, bz, life = 0.12, color = 0xff3a2a) {
+    const b = bolts[boltI++ % bolts.length];
+    if (!b) return;
+    const pos = b.g.attributes.position;
+    pos.setXYZ(0, ax, ay, az);
+    pos.setXYZ(1, bx, by, bz);
+    pos.needsUpdate = true;
+    b.line.material.color.setHex(color);
+    b.line.material.opacity = 0.95;
+    b.line.visible = true;
+    b.until = performance.now() + life * 1000;
+  }
+
+  function losClear(ax, az, bx, bz) {
+    const col = colliders?.COL;
+    if (!col) return true;
+    const n = 7;
+    for (let i = 1; i < n; i++) {
+      const u = i / n;
+      const x = ax + (bx - ax) * u;
+      const z = az + (bz - az) * u;
+      if (blocked(col, x, z, 0.18)) return false;
+    }
+    return true;
+  }
+
+  function officerInLane(ax, az, bx, bz, skip) {
+    for (const o of cops) {
+      if (o === skip || !isLiving(o)) continue;
+      if (o.kind === "t101") continue;
+      const d = segDist(ax, az, bx, bz, o.x, o.z);
+      if (d < COP_BEAM_R) return true;
+    }
+    return false;
+  }
+
+  function bounceHitsCop(ax, az, rx, rz, skip) {
+    const bx = ax + rx * ZAP_RANGE;
+    const bz = az + rz * ZAP_RANGE;
+    for (const o of cops) {
+      if (o === skip || !isLiving(o)) continue;
+      if (o.kind === "t101") continue;
+      if (segDist(ax, az, bx, bz, o.x, o.z) < 0.7) return o;
+    }
+    return null;
+  }
+
+  function trySnipe(c, playerPos) {
+    if (!playerPos) return;
+    const now = performance.now();
+    if (now < (c.nextShot || 0)) return;
+    const dx = playerPos.x - c.x;
+    const dz = playerPos.z - c.z;
+    const d = Math.hypot(dx, dz);
+    if (d < SNIPER_MIN || d > SNIPER_MAX) return;
+    if (!losClear(c.x, c.z, playerPos.x, playerPos.z)) return;
+    if (officerInLane(c.x, c.z, playerPos.x, playerPos.z, c)) return;
+    c.nextShot = now + 1050 + Math.random() * 1500;
+    c.laserT = 1;
+    const ix = dx / d;
+    const iz = dz / d;
+    const y0 = 1.58;
+    const y1 = 1.35;
+    showBolt(c.x, y0, c.z, playerPos.x, y1, playerPos.z, 0.11, 0xff2a22);
+    try {
+      sfxRef?.copZap?.();
+    } catch {
+      /* */
+    }
+    zapSx += ix * ZAP_SHOVE;
+    zapSz += iz * ZAP_SHOVE;
+    let nx = -ix;
+    let nz = -iz;
+    const tilt = (Math.random() - 0.5) * 0.42;
+    const cs = Math.cos(tilt);
+    const sn = Math.sin(tilt);
+    const n2x = nx * cs - nz * sn;
+    const n2z = nx * sn + nz * cs;
+    const nL = Math.hypot(n2x, n2z) || 1;
+    nx = n2x / nL;
+    nz = n2z / nL;
+    const r = reflectXZ(ix, iz, nx, nz);
+    const rL = Math.hypot(r.x, r.z) || 1;
+    r.x /= rL;
+    r.z /= rL;
+    const hx = playerPos.x + nx * 0.34;
+    const hz = playerPos.z + nz * 0.34;
+    const ex = hx + r.x * ZAP_RANGE;
+    const ez = hz + r.z * ZAP_RANGE;
+    showBolt(hx, y1, hz, ex, y1 + 0.2, ez, 0.14, 0xffd36a);
+    try {
+      sfxRef?.copPing?.();
+    } catch {
+      /* */
+    }
+    const hit = bounceHitsCop(hx, hz, r.x, r.z, c);
+    if (hit) dropUnit(hit);
+  }
+
   function driveCop(c, playerPos, h) {
     if (c.duty === "down" || c.root?.userData?.combatDown) {
       c.duty = "down";
@@ -885,6 +1031,24 @@ export function createPanic({
       const dPlayer = Math.hypot(c.x - playerPos.x, c.z - playerPos.z);
       reachTo = dPlayer < 1.7 ? 1 : 0;
       if (dPlayer > HOLD_R + 1.4) want = c.speed;
+    } else if (duty === "snipe" && hunt && playerPos) {
+      const dxp = playerPos.x - c.x;
+      const dzp = playerPos.z - c.z;
+      const dPlayer = Math.hypot(dxp, dzp) || 1;
+      const ux = dxp / dPlayer;
+      const uz = dzp / dPlayer;
+      let hold = SNIPER_HOLD;
+      if (dPlayer < SNIPER_MIN + 0.4) hold = SNIPER_MIN + 0.8;
+      if (dPlayer > SNIPER_MAX - 0.6) hold = SNIPER_MAX - 1.2;
+      tx = playerPos.x - ux * hold;
+      tz = playerPos.z - uz * hold;
+      const dAim = Math.hypot(tx - c.x, tz - c.z);
+      want = dAim > 0.35 ? COP_WALK * 1.3 : 0;
+      faceX = dxp;
+      faceZ = dzp;
+      reachTo = 0;
+      c.laserT = Math.max(0, (c.laserT || 0) - h * 2.4);
+      trySnipe(c, playerPos);
     }
 
     const dx = tx - c.x;
@@ -931,6 +1095,13 @@ export function createPanic({
     }
 
     for (const c of cops) driveCop(c, playerPos, h);
+    const now = performance.now();
+    for (const b of bolts) {
+      if (b.line.visible && now > b.until) {
+        b.line.material.opacity *= 0.6;
+        if (b.line.material.opacity < 0.08) b.line.visible = false;
+      }
+    }
   }
 
   function fireDelivered() {
@@ -960,6 +1131,19 @@ export function createPanic({
     lastSz = 0;
     if (!hunt || !player?.pos || delivered || !(dt > 0)) return 0;
     rememberPlayer(player.pos);
+    if (zapSx || zapSz) {
+      const h0 = Math.min(dt, 0.05);
+      player.vel.x += zapSx;
+      player.vel.z += zapSz;
+      player.pos.x += zapSx * h0;
+      player.pos.z += zapSz * h0;
+      zapSx *= 0.35;
+      zapSz *= 0.35;
+      if (Math.hypot(zapSx, zapSz) < 0.15) {
+        zapSx = 0;
+        zapSz = 0;
+      }
+    }
     const h = Math.min(dt, 0.05);
     const px = player.pos.x;
     const pz = player.pos.z;
