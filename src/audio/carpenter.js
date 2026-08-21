@@ -1,12 +1,14 @@
 /** AUS101 Carpenter/Juno bed. Original D-minor pulse, no WASM/scores.
  *  iPhone after gesture: bed = createCarpenterBed(ctx); bed.start(); */
 
+import { midiBus } from "./midiBus.js";
+
 const BPM = 112, MIX = 0.4, FADE = 0.45;
 // bass, pad, rim, out, cut
 const ST = {
   menu: [0.22, 0.16, 0, 0.3, 380],
   boardwalk: [0.55, 0.2, 0.32, 0.42, 640],
-  apply: [0.28, 0.12, 0.16, 0.36, 980],
+  apply: [0.34, 0.08, 0.1, 0.3, 240],
 };
 const hz = (m) => 440 * 2 ** ((m - 69) / 12);
 
@@ -74,18 +76,30 @@ export function createCarpenterBed(ctx, dest) {
   padA.connect(padPre);
   padPre.connect(padLp);
   const lfo = bbd(ctx, padTrem, padBus);
-  const apD = osc(ctx, "sawtooth", hz(74));
-  const apA = osc(ctx, "sawtooth", hz(81));
-  apD.detune.value = 5;
-  const apHp = bq(ctx, "highpass", 400, 0.5);
-  apD.connect(apHp);
-  apA.connect(apHp).connect(applyG);
+  // apply: low guga pulse, ~40–90 Hz, amp LFO ~6 Hz. Quiet, dirty, not a scream.
+  const apLo = osc(ctx, "sine", 62);
+  const apSq = osc(ctx, "square", 55);
+  apSq.detune.value = -11;
+  const apSqMix = gn(ctx, 0.3);
+  const apVca = gn(ctx, 0.55);
+  const apLp = bq(ctx, "lowpass", 140, 1.2);
+  apLo.connect(apVca);
+  apSq.connect(apSqMix).connect(apVca);
+  apVca.connect(apLp).connect(applyG);
+  const apLfo = osc(ctx, "sine", 5.7);
+  const apAmp = gn(ctx, 0.42);
+  apLfo.connect(apAmp);
+  apAmp.connect(apVca.gain);
+  const apPitch = gn(ctx, 16);
+  apLfo.connect(apPitch);
+  apPitch.connect(apLo.frequency);
+  apPitch.connect(apSq.frequency);
   const n = (ctx.sampleRate * 0.05) | 0;
   const clickBuf = ctx.createBuffer(1, n, ctx.sampleRate);
   const nd = clickBuf.getChannelData(0);
   for (let i = 0; i < n; i++) nd[i] = Math.random() * 2 - 1;
   let state = "menu", running = false, booted = false, timer = 0, nextT = 0, eighth = 0;
-  const live = [bassSaw, bassSq, padD, padA, lfo, apD, apA];
+  const live = [bassSaw, bassSq, padD, padA, lfo, apLo, apSq, apLfo];
 
   function click(t, tom) {
     const s = ctx.createBufferSource();
@@ -102,12 +116,15 @@ export function createCarpenterBed(ctx, dest) {
     applyG.gain.cancelScheduledValues(t);
     if (on) {
       applyG.gain.setValueAtTime(0.0001, t);
-      applyG.gain.linearRampToValueAtTime(0.2, t + 0.9);
+      applyG.gain.linearRampToValueAtTime(0.11, t + 0.9);
     } else applyG.gain.setValueAtTime(0, t);
   }
 
   function pulse(t, i) {
-    const bar = (i >> 3) & 15, e = i & 7, f = hz(bar >= 8 ? 38 : 26);
+    const bar = (i >> 3) & 15, e = i & 7, midi = bar >= 8 ? 38 : 26, f = hz(midi);
+    if (out.gain.value > 0.05) {
+      midiBus.emit({ midi, vel: (e & 1) ? 0.22 : 0.65, src: "carpenter", dur: (e & 1) ? 0.07 : 0.13 });
+    }
     bassSaw.frequency.setValueAtTime(f, t);
     bassSq.frequency.setValueAtTime(f * 0.9977, t);
     const ghost = e & 1;
@@ -147,7 +164,7 @@ export function createCarpenterBed(ctx, dest) {
     ramp(rimBus.gain, row[2], s, t);
     ramp(out.gain, running ? row[3] : 0, s, t);
     ramp(bassLp.frequency, row[4], s, t);
-    ramp(padLp.frequency, state === "apply" ? 1400 : 880, s * 1.2, t);
+    ramp(padLp.frequency, state === "apply" ? 480 : 880, s * 1.2, t);
   }
 
   return {

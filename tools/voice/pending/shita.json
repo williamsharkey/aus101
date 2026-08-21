@@ -1,0 +1,195 @@
+{
+  "version": 1,
+  "lines": [
+    {
+      "id": "shita_heckle_01",
+      "text": "oh my god what is that noise",
+      "voice": "en_au_001",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": ["shita", "heckle", "babe"],
+      "cooldownMs": 9000
+    },
+    {
+      "id": "shita_heckle_02",
+      "text": "get that landfill off the sand",
+      "voice": "en_au_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": ["shita", "heckle", "ken"],
+      "cooldownMs": 9000
+    },
+    {
+      "id": "shita_heckle_03",
+      "text": "sir this is a beach",
+      "voice": "en_au_001",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": ["shita", "heckle", "babe"],
+      "cooldownMs": 9000
+    },
+    {
+      "id": "shita_heckle_04",
+      "text": "that box is hurting the air",
+      "voice": "en_au_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": ["shita", "heckle", "ken"],
+      "cooldownMs": 9000
+    },
+    {
+      "id": "shita_heckle_05",
+      "text": "take the landfill back to the hostel",
+      "voice": "en_au_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": ["shita", "heckle", "ken"],
+      "cooldownMs": 9000
+    },
+    {
+      "id": "shita_heckle_06",
+      "text": "I came here for the sun not a modem",
+      "voice": "en_au_001",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": ["shita", "heckle", "babe"],
+      "cooldownMs": 9000
+    },
+    {
+      "id": "shita_heckle_07",
+      "text": "security, the noise is walking",
+      "voice": "en_au_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": ["shita", "heckle", "ken"],
+      "cooldownMs": 9000
+    },
+    {
+      "id": "shita_heckle_08",
+      "text": "my tan is peeling from the treble",
+      "voice": "en_au_001",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": ["shita", "heckle", "babe"],
+      "cooldownMs": 9000
+    },
+    {
+      "id": "shita_cool_01",
+      "text": "that is kinda cool",
+      "voice": "en_us_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": ["shita", "cool", "goth"],
+      "cooldownMs": 11000
+    },
+    {
+      "id": "shita_cool_02",
+      "text": "wait the rot on that filter",
+      "voice": "en_us_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": ["shita", "cool", "goth"],
+      "cooldownMs": 11000
+    },
+    {
+      "id": "shita_cool_03",
+      "text": "based noise",
+      "voice": "en_us_007",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": ["shita", "cool", "incel", "sigma07"],
+      "cooldownMs": 11000
+    },
+    {
+      "id": "shita_cool_04",
+      "text": "keep cooking that garbage",
+      "voice": "en_us_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": ["shita", "cool", "goth"],
+      "cooldownMs": 11000
+    },
+    {
+      "id": "shita_cool_05",
+      "text": "finally a honest frequency",
+      "voice": "en_us_007",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": ["shita", "cool", "incel", "sigma07"],
+      "cooldownMs": 11000
+    },
+    {
+      "id": "shita_cool_06",
+      "text": "the cardboard preset is a lifestyle",
+      "voice": "en_us_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": ["shita", "cool", "goth"],
+      "cooldownMs": 11000
+    },
+    {
+      "id": "shita_cool_07",
+      "text": "analog death, I am listening",
+      "voice": "en_us_007",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": ["shita", "cool", "incel", "sigma07"],
+      "cooldownMs": 11000
+    },
+    {
+      "id": "shita_cool_08",
+      "text": "do not stop, the void likes this",
+      "voice": "en_us_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": ["shita", "cool", "goth"],
+      "cooldownMs": 11000
+    },
+    {
+      "id": "shita_lad_01",
+      "text": "sound is garbage, therefore honest",
+      "voice": "en_us_c3po",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": ["shita", "lad"],
+      "cooldownMs": 18000
+    },
+    {
+      "id": "shita_lad_02",
+      "text": "this preset is wet cardboard. correct",
+      "voice": "en_us_c3po",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": ["shita", "lad"],
+      "cooldownMs": 18000
+    },
+    {
+      "id": "shita_lad_03",
+      "text": "beach harmony is a lie",
+      "voice": "en_us_c3po",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": ["shita", "lad"],
+      "cooldownMs": 18000
+    }
+  ]
+}

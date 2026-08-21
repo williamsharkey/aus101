@@ -6,6 +6,7 @@ import * as THREE from "three";
 import { applyDocumentShell, createSafeAreaProbe, sizeRenderer, installEdgeSwipeGuard } from "./shell/viewport.js";
 
 import { VoiceBank } from "./audio/voice.js";
+import { playRubVo } from "./audio/rubVo.js";
 import { SfxBank, installLotionFoley } from "./audio/sfx.js";
 import { createCarpenterBed } from "./audio/carpenter.js";
 import { initOcean } from "./audio/ocean.js";
@@ -22,7 +23,7 @@ import { installTouchControls, getLookStick } from "./input/touchControls.js";
 import { createShadesBed } from "./audio/shades.js";
 import { buildGoldCoast, setupGoldCoastLights, BOUNDS, GC } from "./world/goldCoast.js";
 import { createAus101, poseAus101 } from "./chars/aus101.js";
-import { spawnBeachCast } from "./chars/npcs.js";
+import { spawnBeachCast, spawnRoachIncel } from "./chars/npcs.js";
 import { createWalkbyDirector } from "./audio/walkby.js";
 import { createLotion } from "./game/lotion.js";
 import { runApplyFrame } from "./game/applyFlow.js";
@@ -44,8 +45,10 @@ import { createMusicDirector } from "./audio/musicDirector.js";
 import { createBoomBed, createGuitarBed, createDjBed } from "./audio/localBeds.js";
 import { attachGadgets } from "./world/gadgets.js";
 import { spawnSynthRig } from "./world/synthRig.js";
+import { spawnShitaGuy } from "./world/shitaGuy.js";
 import { spawnInteriors } from "./world/interiors.js";
 import { createTapeSystem } from "./audio/tapeDeck.js";
+import { midiBus } from "./audio/midiBus.js";
 
 const BG = 0x0b1210;
 
@@ -121,6 +124,10 @@ const tapes = createTapeSystem({
 const synth = spawnSynthRig(scene, {
   onSave: (p) => tapes.saveFromSynth(p),
 });
+const shita = spawnShitaGuy(scene);
+const roach = spawnRoachIncel(scene, {
+  play: (id, o) => voice.play(id, o),
+});
 
 function enroll(mesh, kind, ageBand) {
   if (!mesh || !mesh.isObject3D) return;
@@ -137,6 +144,7 @@ for (const mesh of party.people || []) enroll(mesh);
 for (const mesh of fights.meshes || []) enroll(mesh, "ken", "adult");
 if (artist.painter) enroll(artist.painter, "artist", "adult");
 if (synth.lad) enroll(synth.lad, "ken", "adult");
+if (shita.mesh) enroll(shita.mesh, "shita", "adult");
 for (const name of [
   "ken-guitar-a",
   "ken-guitar-b",
@@ -145,6 +153,7 @@ for (const name of [
   "piano-ken",
   "dj-ken",
   "synth-lad",
+  "shita-lad",
   "artist-painter",
 ]) {
   enroll(scene.getObjectByName(name));
@@ -279,6 +288,144 @@ Object.assign(hint.style, {
   whiteSpace: "nowrap",
 });
 document.body.appendChild(hint);
+
+// midi-playalong
+const PLAY_WIN = 800;
+const PLAY_MAJOR = [0, 2, 4, 5, 7, 9, 11, 12];
+const PLAY_MINOR = [0, 2, 3, 5, 7, 8, 10, 12];
+const PLAY_ZROW = ["KeyZ", "KeyX", "KeyC", "KeyV", "KeyB", "KeyN", "KeyM"];
+const PLAY_QROW = ["KeyQ", "KeyW", "KeyE", "KeyR", "KeyT", "KeyY", "KeyU", "KeyI"];
+const playHint = document.createElement("div");
+playHint.id = "aus101-playalong";
+Object.assign(playHint.style, {
+  position: "fixed",
+  left: "50%",
+  bottom: "max(28px, calc(env(safe-area-inset-bottom) + 22px))",
+  transform: "translateX(-50%)",
+  zIndex: "9",
+  pointerEvents: "none",
+  font: "11px ui-sans-serif, system-ui, sans-serif",
+  letterSpacing: "0.14em",
+  color: "rgba(255,215,106,0.88)",
+  textShadow: "0 1px 3px #000",
+  display: "none",
+  whiteSpace: "nowrap",
+});
+document.body.appendChild(playHint);
+playHint._until = 0;
+
+function playAlongSlot(code) {
+  if (code.startsWith("Digit")) {
+    const n = code.charCodeAt(5) - 49;
+    if (n >= 0 && n <= 7) return n;
+  }
+  if (code.startsWith("Numpad")) {
+    const n = +code.slice(6) - 1;
+    if (n >= 0 && n <= 7) return n;
+  }
+  const z = PLAY_ZROW.indexOf(code);
+  if (z >= 0) return z;
+  const q = PLAY_QROW.indexOf(code);
+  if (q >= 0 && code !== "KeyW" && code !== "KeyE") return q;
+  return -1;
+}
+
+function nearMusicSpot() {
+  const pos = player.pos;
+  if (!pos) return null;
+  const spots = party.musicSpots || [];
+  for (const s of spots) {
+    const p = s.position;
+    if (!p) continue;
+    if (Math.hypot(pos.x - p.x, pos.z - p.z) < (s.radius || 8)) return s;
+  }
+  const piano = level.piano;
+  if (piano && Math.hypot(pos.x - piano.x, pos.z - piano.z) < 14) {
+    return { id: "piano", position: piano, radius: 14 };
+  }
+  return null;
+}
+
+function playAlongNotes() {
+  return midiBus.recent(PLAY_WIN).filter((e) => e.midi != null && e.type !== "program");
+}
+
+function playAlongScale(midi) {
+  const pc = ((midi % 12) + 12) % 12;
+  if (pc === 0 || pc === 2 || pc === 4 || pc === 5 || pc === 9 || pc === 10) return PLAY_MINOR;
+  return PLAY_MAJOR;
+}
+
+function playAlongTone(ctx, midi, vel, dur) {
+  if (!ctx || midi == null) return;
+  const t = ctx.currentTime + 0.01;
+  const f = 440 * 2 ** ((midi - 69) / 12);
+  const o = ctx.createOscillator();
+  o.type = "sine";
+  o.frequency.value = f;
+  const o2 = ctx.createOscillator();
+  o2.type = "triangle";
+  o2.frequency.value = f;
+  o2.detune.value = 6;
+  const g = ctx.createGain();
+  const pk = Math.max(0.0001, vel);
+  const rel = Math.max(0.12, dur || 0.28);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(pk, t + 0.012);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + rel);
+  o.connect(g);
+  o2.connect(g);
+  g.connect(ctx.destination);
+  o.start(t);
+  o2.start(t);
+  o.stop(t + rel + 0.05);
+  o2.stop(t + rel + 0.05);
+}
+
+function flashPlayAlong(midi) {
+  playHint.textContent = `PLAY ALONG  ${midi | 0}`;
+  playHint.style.opacity = "0.95";
+  playHint.style.display = "block";
+  playHint._until = performance.now() + 700;
+}
+
+function tickPlayAlongHud() {
+  const now = performance.now();
+  if (playHint._until && now < playHint._until) return;
+  const rec = playAlongNotes();
+  const note = rec.length ? rec[rec.length - 1] : null;
+  if (playing && nearMusicSpot() && note) {
+    playHint.textContent = `PLAY ALONG  ${note.midi | 0}`;
+    playHint.style.opacity = "0.55";
+    playHint.style.display = "block";
+  } else {
+    playHint.style.display = "none";
+  }
+}
+
+window.addEventListener("keydown", (e) => {
+  if (!playing || arrest.active || e.repeat) return;
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  if (synth.isOpen?.()) return;
+  const slot = playAlongSlot(e.code);
+  if (slot < 0) return;
+  if (!nearMusicSpot()) return;
+  const rec = playAlongNotes();
+  if (!rec.length) return;
+  const lastN = rec[rec.length - 1];
+  const want = lastN.midi | 0;
+  const scale = playAlongScale(want);
+  const midi = want + scale[slot % scale.length];
+  const pc = (m) => ((m % 12) + 12) % 12;
+  const hit = pc(midi) === pc(want);
+  const ctx = voice.ctx || sfx.ctx;
+  if (!ctx) return;
+  playAlongTone(ctx, midi, hit ? 0.42 : 0.12, lastN.dur || 0.3);
+  flashPlayAlong(midi);
+  e.preventDefault();
+  e.stopImmediatePropagation();
+});
+// midi-playalong
 
 let wisdomClick = false;
 canvas.addEventListener("mousedown", (e) => {
@@ -436,12 +583,15 @@ function frame() {
     psa.tick(player.pos, audioOn);
     gadgets.tick(t, player.pos);
     synth.tick(t);
+    shita.tick(t, player.pos, cast, (id, o) => voice.play(id, o));
+    roach?.tick?.(raw || TICK, performance.now());
     {
       const act = synth.tryInteract(player.pos, input.keys);
       if (act === "save" || act === "take") tapes.saveFromSynth(synth.snapshot());
     }
     tapes.tick(player.pos);
     radio?.tick?.();
+    tickPlayAlongHud(); // midi-playalong
     recall.tick(raw || TICK, player.pos);
     panic.tick(raw || TICK, player.pos);
     // After recall/panic: recall.onHarm reads the lastPos its own tick stores.
@@ -509,8 +659,8 @@ function frame() {
       if (applyT <= 0) lotionAim = null;
     }
     tickBottle(aus101, lotion, raw || TICK);
-    if (painted && audioOn && !walkby.isTalking(performance.now()) && Math.random() < 0.012) {
-      voice.play("rub_pleasure_01", { gain: 1.2 });
+    if (painted?.npc && audioOn && !walkby.isTalking(performance.now()) && Math.random() < 0.012) {
+      playRubVo(voice, painted.npc);
     }
     if (audioOn) walkby.tick(performance.now(), player.pos);
     music?.tick(player.pos, audioOn);

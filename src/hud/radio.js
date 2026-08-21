@@ -3,6 +3,8 @@
  * Safe-area, z-index 12. Programs drive carpenter.setState.
  */
 
+import { midiBus } from "../audio/midiBus.js";
+
 const PROGRAMS = ["boardwalk", "apply", "menu"];
 const SONGS = ["dj_song_01", "dj_song_02", "dj_song_03"];
 const QUIP_N = 49;
@@ -292,6 +294,7 @@ export function createRadioHud({ carpenter, voice, isTalking } = {}) {
 
   function applyProgram(announceIt) {
     carpenter?.setState?.(PROGRAMS[idx]);
+    midiBus.emit({ type: "program", id: PROGRAMS[idx], src: "radio" });
     if (!paused) {
       carpenter?.start?.();
       carpenter?.setMix?.(vol);

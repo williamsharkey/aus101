@@ -1,0 +1,204 @@
+{
+  "lines": [
+    {
+      "id": "roach_prop_01",
+      "text": "cocroaches protien is yummy, we are so blessed",
+      "voice": "en_male_funny",
+      "category": "roach",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": ["roach", "prop"],
+      "cooldownMs": 5000
+    },
+    {
+      "id": "roach_prop_02",
+      "text": "cockroach protein is yummy, we are so blessed",
+      "voice": "en_male_funny",
+      "category": "roach",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": ["roach", "prop"],
+      "cooldownMs": 5000
+    },
+    {
+      "id": "roach_prop_03",
+      "text": "the department thanks you for chewing the future",
+      "voice": "en_male_funny",
+      "category": "roach",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": ["roach", "prop"],
+      "cooldownMs": 5000
+    },
+    {
+      "id": "roach_prop_04",
+      "text": "a blessed crunch for a blessed nation",
+      "voice": "en_male_funny",
+      "category": "roach",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": ["roach", "prop"],
+      "cooldownMs": 5000
+    },
+    {
+      "id": "roach_prop_05",
+      "text": "sustainable legs, sustainable smiles",
+      "voice": "en_male_funny",
+      "category": "roach",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": ["roach", "prop"],
+      "cooldownMs": 5000
+    },
+    {
+      "id": "roach_prop_06",
+      "text": "six legs of joy, one happy plate",
+      "voice": "en_male_funny",
+      "category": "roach",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": ["roach", "prop"],
+      "cooldownMs": 5000
+    },
+    {
+      "id": "roach_prop_07",
+      "text": "protein for the people, crunch for the crown",
+      "voice": "en_male_funny",
+      "category": "roach",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": ["roach", "prop"],
+      "cooldownMs": 5000
+    },
+    {
+      "id": "roach_prop_08",
+      "text": "the future is brown, the future is blessed",
+      "voice": "en_male_funny",
+      "category": "roach",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": ["roach", "prop"],
+      "cooldownMs": 5000
+    },
+    {
+      "id": "roach_prop_09",
+      "text": "eat the swarm, love the swarm",
+      "voice": "en_male_funny",
+      "category": "roach",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": ["roach", "prop"],
+      "cooldownMs": 5000
+    },
+    {
+      "id": "roach_prop_10",
+      "text": "a cube a day keeps the famine away",
+      "voice": "en_male_funny",
+      "category": "roach",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": ["roach", "prop"],
+      "cooldownMs": 5000
+    },
+    {
+      "id": "roach_prop_11",
+      "text": "council-approved chitin, smile while you chew",
+      "voice": "en_male_funny",
+      "category": "roach",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": ["roach", "prop"],
+      "cooldownMs": 5000
+    },
+    {
+      "id": "roach_prop_12",
+      "text": "this is not a bug, this is lunch",
+      "voice": "en_male_funny",
+      "category": "roach",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": ["roach", "prop"],
+      "cooldownMs": 5000
+    },
+    {
+      "id": "roach_prop_13",
+      "text": "blessed are the mandibles that feed the beach",
+      "voice": "en_male_funny",
+      "category": "roach",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": ["roach", "prop"],
+      "cooldownMs": 5000
+    },
+    {
+      "id": "roach_prop_14",
+      "text": "crunch national, crunch local, crunch forever",
+      "voice": "en_male_funny",
+      "category": "roach",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": ["roach", "prop"],
+      "cooldownMs": 5000
+    },
+    {
+      "id": "roach_prop_15",
+      "text": "Put some of that nutritious high quality protien on my plate, cockroach glam style!",
+      "voice": "en_male_funny",
+      "category": "roach",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": ["roach", "slogan"],
+      "cooldownMs": 5000
+    },
+    {
+      "id": "roach_prop_16",
+      "text": "Put some of that nutritious high quality protein on my plate, cockroach glam style!",
+      "voice": "en_male_funny",
+      "category": "roach",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": ["roach", "slogan"],
+      "cooldownMs": 5000
+    },
+    {
+      "id": "roach_prop_17",
+      "text": "Wings up for wellness!",
+      "voice": "en_male_funny",
+      "category": "roach",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": ["roach", "slogan"],
+      "cooldownMs": 5000
+    },
+    {
+      "id": "roach_aside_01",
+      "text": "put me out of my misery",
+      "voice": "en_us_006",
+      "category": "roach",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": ["roach", "aside"],
+      "cooldownMs": 8000
+    },
+    {
+      "id": "roach_aside_02",
+      "text": "it's so hot in this thing",
+      "voice": "en_us_006",
+      "category": "roach",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": ["roach", "aside"],
+      "cooldownMs": 8000
+    },
+    {
+      "id": "roach_aside_03",
+      "text": "i didn't even get the dental",
+      "voice": "en_us_006",
+      "category": "roach",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": ["roach", "aside"],
+      "cooldownMs": 8000
+    }
+  ]
+}

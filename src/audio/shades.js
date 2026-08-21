@@ -4,6 +4,8 @@
  * Near the Gold Coast piano (~14m), musicDirector fades this up; plucks get
  * louder and more frequent. playPianoPluck is the shared sine/triangle strike.
  */
+import { midiBus } from "./midiBus.js";
+
 const hz = (m) => 440 * 2 ** ((m - 69) / 12);
 
 const NOTES = [62, 64, 69, 57, 50];
@@ -64,6 +66,7 @@ export function playPianoPluck(ctx, dest, when, midi, peak = PLUCK_PEAK) {
   o2.stop(t + 2.05);
   pianoPulse.at = performance.now();
   pianoPulse.midi = note;
+  midiBus.emit({ midi: note, vel: Math.min(1, pk / PLUCK_PEAK), src: "piano", dur: 1.85 });
   return { o, o2, g, midi: note };
 }
 

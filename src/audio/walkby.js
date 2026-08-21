@@ -78,6 +78,7 @@ export function createWalkbyDirector(voice, cast) {
         kind,
         lines.filter((l) => {
           if (isInterjection(l)) return false;
+          if (l.category === "rub") return false;
           const t = l.tags || [];
           if (kind === "kid" && t.some((x) => ADULT_TROPES.has(x))) return false;
           if (kind === "gull" && t.some((x) => ADULT_TROPES.has(x))) return false;

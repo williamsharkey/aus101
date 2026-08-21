@@ -5,6 +5,7 @@
  */
 import * as THREE from "three";
 import { GC as WORLD } from "../world/goldCoast.js";
+import { spawnRoachIncel } from "./roachIncel.js";
 
 const TAU = Math.PI * 2;
 
@@ -34,6 +35,13 @@ const GEO = {
 
 function std(color, extra = {}) {
   return new THREE.MeshStandardMaterial({ color, roughness: 0.72, metalness: 0.04, ...extra });
+}
+
+/** Unique skin mat per body-part band so zinc stays local (coverage.js). */
+function cloneSkin(src, region) {
+  const m = src.clone();
+  m.userData.skinRegion = region;
+  return m;
 }
 
 const MAT = {
@@ -100,8 +108,16 @@ function buildBiped({
   const shirtM = shirt == null ? null : std(shirt);
   const pantM = std(bottoms);
   const shoeM = std(shoe, { roughness: 0.62 });
-  const torsoMat = shirtM || skinM;
-  const sleeveM = shirtM && sleeves ? shirtM : skinM;
+  const headM = cloneSkin(skinM, "head");
+  const armLM = cloneSkin(skinM, "armL");
+  const armRM = cloneSkin(skinM, "armR");
+  const torsoSkinM = shirt == null ? cloneSkin(skinM, "torso") : null;
+  const needLegSkin = cover !== "pants" || footwear === "bare";
+  const legLM = needLegSkin ? cloneSkin(skinM, "legL") : null;
+  const legRM = needLegSkin ? cloneSkin(skinM, "legR") : null;
+  const torsoMat = shirtM || torsoSkinM;
+  const sleeveL = shirtM && sleeves ? shirtM : armLM;
+  const sleeveR = shirtM && sleeves ? shirtM : armRM;
 
   const headR = 0.12 * s;
   const neckH = 0.12 * s;
@@ -140,7 +156,7 @@ function buildBiped({
   // Neck runs from inside the clavicle up into the skull, so nothing floats.
   const neckTop = headY - headR * 0.6;
   const neckBot = shoulderY - 0.06 * s;
-  const neck = part(GEO.cyl12, skinM, 0.052 * s, neckTop - neckBot, 0.05 * s);
+  const neck = part(GEO.cyl12, headM, 0.052 * s, neckTop - neckBot, 0.05 * s);
   neck.position.y = (neckTop + neckBot) * 0.5;
   g.add(neck);
   const trap = part(GEO.sphereLo, torsoMat, 0.1 * s, 0.055 * s, 0.075 * s);
@@ -149,21 +165,21 @@ function buildBiped({
 
   const head = new THREE.Group();
   head.position.y = headY;
-  const skull = part(GEO.skull, skinM, headR * 0.94, headR * 1.03, headR);
+  const skull = part(GEO.skull, headM, headR * 0.94, headR * 1.03, headR);
   head.add(skull);
   // Chin juts just past the skull so the head is not a plain ball in profile.
-  const jaw = part(GEO.sphere, skinM, headR * 0.58, headR * 0.4, headR * 0.62);
+  const jaw = part(GEO.sphere, headM, headR * 0.58, headR * 0.4, headR * 0.62);
   jaw.position.set(0, -headR * 0.58, headR * 0.3);
   head.add(jaw);
   for (const side of [-1, 1]) {
     const eye = part(GEO.sphere, MAT.eye, 0.016 * s);
     eye.position.set(side * 0.038 * s, 0.012 * s, headR * 0.8);
     head.add(eye);
-    const ear = part(GEO.sphereLo, skinM, 0.014 * s, 0.03 * s, 0.018 * s);
+    const ear = part(GEO.sphereLo, headM, 0.014 * s, 0.03 * s, 0.018 * s);
     ear.position.set(side * headR * 0.92, -0.004 * s, -0.01 * s);
     head.add(ear);
   }
-  const nose = part(GEO.cone4, skinM, 0.014 * s, 0.03 * s, 0.03 * s);
+  const nose = part(GEO.cone4, headM, 0.014 * s, 0.03 * s, 0.03 * s);
   nose.rotation.x = Math.PI / 2;
   nose.position.set(0, -0.006 * s, headR * 0.84);
   head.add(nose);
@@ -178,6 +194,9 @@ function buildBiped({
     // Pivot pulled inboard so the deltoid sits INSIDE the yoke instead of beside it.
     arm.position.set(side * (shoulderW * 0.5 - aR * 0.5), shoulderY - 0.015 * s, 0);
     arm.rotation.z = side * 0.07;
+
+    const sleeveM = side < 0 ? sleeveL : sleeveR;
+    const handM = side < 0 ? armLM : armRM;
 
     const delt = part(GEO.sphere, sleeveM, aR * 1.5, aR * 1.85, aR * 1.45);
     delt.position.y = -aR * 0.45;
@@ -198,11 +217,11 @@ function buildBiped({
     const hand = new THREE.Group();
     hand.name = "hand";
     hand.position.y = -upperLen - foreLen;
-    const palm = part(GEO.box, skinM, 0.058 * s, 0.088 * s, 0.032 * s);
+    const palm = part(GEO.box, handM, 0.058 * s, 0.088 * s, 0.032 * s);
     palm.position.y = -0.044 * s;
-    const fingers = part(GEO.box, skinM, 0.052 * s, 0.05 * s, 0.026 * s);
+    const fingers = part(GEO.box, handM, 0.052 * s, 0.05 * s, 0.026 * s);
     fingers.position.y = -0.105 * s;
-    const thumb = part(GEO.box, skinM, 0.018 * s, 0.04 * s, 0.018 * s);
+    const thumb = part(GEO.box, handM, 0.018 * s, 0.04 * s, 0.018 * s);
     thumb.position.set(side * 0.038 * s, -0.052 * s, 0.012 * s);
     thumb.rotation.z = side * 0.65;
     hand.add(palm, fingers, thumb);
@@ -212,15 +231,16 @@ function buildBiped({
     arms.push(arm);
   }
 
-  const thighCover = cover === "bikini" ? skinM : pantM;
-  const shinCover = cover === "pants" ? pantM : skinM;
-  const footCover = footwear === "bare" ? skinM : shoeM;
   const legs = [];
   const feet = [];
   for (const side of [-1, 1]) {
     const leg = new THREE.Group();
     leg.name = side < 0 ? "legL" : "legR";
     leg.position.set(side * hipW * 0.3, hipY, 0);
+    const legSkin = side < 0 ? legLM : legRM;
+    const thighCover = cover === "bikini" ? legSkin : pantM;
+    const shinCover = cover === "pants" ? pantM : legSkin;
+    const footCover = footwear === "bare" ? legSkin : shoeM;
 
     // Hip ball buried in the pelvis box; the thigh grows straight out of it.
     const hipJoint = part(GEO.sphere, thighCover, lR * 1.3, lR * 1.35, lR * 1.25);
@@ -299,7 +319,11 @@ function buildBiped({
     footL: feet[0],
     footR: feet[1],
   };
-  g.userData.skinMats = [skinM];
+  const skinMats = [headM, armLM, armRM];
+  if (torsoSkinM) skinMats.push(torsoSkinM);
+  if (legLM) skinMats.push(legLM);
+  if (legRM) skinMats.push(legRM);
+  g.userData.skinMats = skinMats;
   g.userData.bareColor = skinM.color.clone();
   g.userData.coverage = 0;
   g.userData.paintTarget = shirt == null;
@@ -404,7 +428,7 @@ function ken({ hair = 0xf4c431, shorts = 0x1f6f78, skin = 0xd4a06a } = {}) {
     armR: 0.05,
     legR: 0.062,
   });
-  const { head, headR, shoulderY, hipY, scale: s, chestD, hairM, skinM } = g.userData.body;
+  const { head, headR, shoulderY, hipY, scale: s, chestD, hairM } = g.userData.body;
   // Quiff rides on top of the crown shell rather than replacing it.
   const quiff = part(GEO.sphereHi, hairM, headR * 0.78, headR * 0.34, headR * 0.66);
   quiff.position.set(0, headR * 0.74, headR * 0.42);
@@ -414,12 +438,14 @@ function ken({ hair = 0xf4c431, shorts = 0x1f6f78, skin = 0xd4a06a } = {}) {
 
   // Pecs and abs are sunk into the chest box — only the crown of each shape shows.
   const pecM = std(skin, { roughness: 0.5, metalness: 0.06 });
+  pecM.userData.skinRegion = "torso";
   for (const side of [-1, 1]) {
     const pec = part(GEO.sphereHi, pecM, 0.098 * s, 0.062 * s, 0.055 * s);
     pec.position.set(side * 0.082 * s, shoulderY - 0.14 * s, chestD * 0.5 - 0.042 * s);
     g.add(pec);
   }
   const absM = std(skin, { roughness: 0.48, metalness: 0.08 });
+  absM.userData.skinRegion = "torso";
   for (let row = 0; row < 3; row++) {
     for (const side of [-1, 1]) {
       // Domed cells, mostly buried — they catch light instead of sitting on the chest as panels.
@@ -718,7 +744,7 @@ function place(mesh, x, y, z, yaw = 0) {
  * @param {THREE.Scene} scene
  * @returns {{ mesh: THREE.Group, kind: string, ageBand: string }[]}
  */
-export { ken, babe, sigma07, goth, kid, seagull };
+export { ken, babe, sigma07, goth, kid, seagull, spawnRoachIncel };
 // full-body planted bipeds — keep this marker in the bundle
 
 export function spawnBeachCast(scene) {
@@ -766,6 +792,7 @@ export function spawnBeachCast(scene) {
     { mesh: place(sigma07(), 15.5, 0, 9.0, -1.8), kind: "sigma_07", ageBand: "adult" },
     { mesh: place(seagull(), -10.0, 1.2, railZ, 0.8), kind: "gull", ageBand: "gull" },
     { mesh: place(kid(), 10.2, 0, 4.8, -0.4), kind: "kid", ageBand: "child" },
+    { mesh: spawnRoachIncel(scene).mesh, kind: "roach_incel", ageBand: "adult" },
   ];
 
   for (const npc of cast) {

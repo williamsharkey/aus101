@@ -3,6 +3,8 @@
  * iPhone-safe: OscillatorNode + short generated noise, no files / worklets.
  */
 
+import { midiBus } from "./midiBus.js";
+
 const hz = (m) => 440 * 2 ** ((m - 69) / 12);
 
 function osc(ctx, type, f) {
@@ -61,6 +63,7 @@ function bedShell(ctx, dest, peak) {
       clearTimeout(timer);
       ramp(out.gain, 0, 0.08, ctx.currentTime);
     },
+    get mix() { return mix; },
     clock(ahead, step, pulse) {
       if (!running) return;
       const hor = ctx.currentTime + ahead;
@@ -113,6 +116,7 @@ export function createBoomBed(ctx, dest) {
     o.connect(g); o2.connect(g); g.connect(panBus);
     o.start(t); o.stop(t + 0.3);
     o2.start(t); o2.stop(t + 0.3);
+    if (shell.mix > 0.08) midiBus.emit({ midi, vel: 0.45, src: "tape", dur: 0.28 });
   }
 
   function pulse(t, i) {
@@ -128,6 +132,7 @@ export function createBoomBed(ctx, dest) {
     if ((e & 3) === 0) {
       bassV.gain.exponentialRampToValueAtTime(0.55, t + 0.012);
       bassV.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
+      if (shell.mix > 0.08) midiBus.emit({ midi: roots[(e >> 2) & 3], vel: 0.55, src: "tape", dur: 0.18 });
     }
     if (e === 4 || e === 12) steel(t, e === 4 ? 79 : 76);
     if (e === 10) steel(t, 72);
@@ -169,6 +174,7 @@ export function createGuitarBed(ctx, dest) {
     o.connect(g); o2.connect(g); g.connect(body);
     o.start(t); o.stop(t + 1.9);
     o2.start(t); o2.stop(t + 1.9);
+    if (shell.mix > 0.08) midiBus.emit({ midi, vel: 0.7, src: "guitar", dur: 1.8 });
     if (midi >= 55 && (midi & 1)) {
       const fifth = osc(ctx, "sine", hz(midi + 7));
       const g5 = envGain(ctx, t, 0.08, 0.02, 1.4);
@@ -211,7 +217,9 @@ export function createDjBed(ctx, dest) {
 
   function pulse(t, i) {
     const bar = (i >> 3) & 7, e = i & 7;
-    const f = hz(bar >= 4 ? 31 : 28);
+    const midi = bar >= 4 ? 31 : 28;
+    const f = hz(midi);
+    if (shell.mix > 0.08) midiBus.emit({ midi, vel: (e & 1) ? 0.22 : 0.7, src: "tape", dur: (e & 1) ? 0.06 : 0.12 });
     bass.frequency.setValueAtTime(f, t);
     bassSq.frequency.setValueAtTime(f * 0.997, t);
     const ghost = e & 1;

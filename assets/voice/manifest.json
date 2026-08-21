@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "generatedAt": "2026-08-20T23:36:52Z",
-  "count": 244,
+  "generatedAt": "2026-08-21T00:44:57Z",
+  "count": 313,
   "placeholder": false,
   "engine": "tiktok-weilnet-proxy",
   "note": "Baked via tiktok-tts.weilnet.workers.dev \u2014 no TikTok sessionid. Unofficial; may break.",
@@ -4187,6 +4187,1228 @@
       ],
       "cooldownMs": 14000,
       "text": "make the shoulders huge bro, that's my brand",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "roach_prop_01",
+      "file": "roach_prop_01.mp3",
+      "voice": "en_male_funny",
+      "category": "roach",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "roach",
+        "prop",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 5000,
+      "text": "cocroaches protien is yummy, we are so blessed",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "roach_prop_02",
+      "file": "roach_prop_02.mp3",
+      "voice": "en_male_funny",
+      "category": "roach",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "roach",
+        "prop",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 5000,
+      "text": "cockroach protein is yummy, we are so blessed",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "roach_prop_03",
+      "file": "roach_prop_03.mp3",
+      "voice": "en_male_funny",
+      "category": "roach",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "roach",
+        "prop",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 5000,
+      "text": "the department thanks you for chewing the future",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "roach_prop_04",
+      "file": "roach_prop_04.mp3",
+      "voice": "en_male_funny",
+      "category": "roach",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "roach",
+        "prop",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 5000,
+      "text": "a blessed crunch for a blessed nation",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "roach_prop_05",
+      "file": "roach_prop_05.mp3",
+      "voice": "en_male_funny",
+      "category": "roach",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "roach",
+        "prop",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 5000,
+      "text": "sustainable legs, sustainable smiles",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "roach_prop_06",
+      "file": "roach_prop_06.mp3",
+      "voice": "en_male_funny",
+      "category": "roach",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "roach",
+        "prop",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 5000,
+      "text": "six legs of joy, one happy plate",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "roach_prop_07",
+      "file": "roach_prop_07.mp3",
+      "voice": "en_male_funny",
+      "category": "roach",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "roach",
+        "prop",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 5000,
+      "text": "protein for the people, crunch for the crown",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "roach_prop_08",
+      "file": "roach_prop_08.mp3",
+      "voice": "en_male_funny",
+      "category": "roach",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "roach",
+        "prop",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 5000,
+      "text": "the future is brown, the future is blessed",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "roach_prop_09",
+      "file": "roach_prop_09.mp3",
+      "voice": "en_male_funny",
+      "category": "roach",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "roach",
+        "prop",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 5000,
+      "text": "eat the swarm, love the swarm",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "roach_prop_10",
+      "file": "roach_prop_10.mp3",
+      "voice": "en_male_funny",
+      "category": "roach",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "roach",
+        "prop",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 5000,
+      "text": "a cube a day keeps the famine away",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "roach_prop_11",
+      "file": "roach_prop_11.mp3",
+      "voice": "en_male_funny",
+      "category": "roach",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "roach",
+        "prop",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 5000,
+      "text": "council-approved chitin, smile while you chew",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "roach_prop_12",
+      "file": "roach_prop_12.mp3",
+      "voice": "en_male_funny",
+      "category": "roach",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "roach",
+        "prop",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 5000,
+      "text": "this is not a bug, this is lunch",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "roach_prop_13",
+      "file": "roach_prop_13.mp3",
+      "voice": "en_male_funny",
+      "category": "roach",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "roach",
+        "prop",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 5000,
+      "text": "blessed are the mandibles that feed the beach",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "roach_prop_14",
+      "file": "roach_prop_14.mp3",
+      "voice": "en_male_funny",
+      "category": "roach",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "roach",
+        "prop",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 5000,
+      "text": "crunch national, crunch local, crunch forever",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "roach_prop_15",
+      "file": "roach_prop_15.mp3",
+      "voice": "en_male_funny",
+      "category": "roach",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "roach",
+        "slogan",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 5000,
+      "text": "Put some of that nutritious high quality protien on my plate, cockroach glam style!",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "roach_prop_16",
+      "file": "roach_prop_16.mp3",
+      "voice": "en_male_funny",
+      "category": "roach",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "roach",
+        "slogan",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 5000,
+      "text": "Put some of that nutritious high quality protein on my plate, cockroach glam style!",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "roach_prop_17",
+      "file": "roach_prop_17.mp3",
+      "voice": "en_male_funny",
+      "category": "roach",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "roach",
+        "slogan",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 5000,
+      "text": "Wings up for wellness!",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "roach_aside_01",
+      "file": "roach_aside_01.mp3",
+      "voice": "en_us_006",
+      "category": "roach",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "roach",
+        "aside",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 8000,
+      "text": "put me out of my misery",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "roach_aside_02",
+      "file": "roach_aside_02.mp3",
+      "voice": "en_us_006",
+      "category": "roach",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "roach",
+        "aside",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 8000,
+      "text": "it's so hot in this thing",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "roach_aside_03",
+      "file": "roach_aside_03.mp3",
+      "voice": "en_us_006",
+      "category": "roach",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "roach",
+        "aside",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 8000,
+      "text": "i didn't even get the dental",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "rub_babe_01",
+      "file": "rub_babe_01.mp3",
+      "voice": "en_female_emotional",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure",
+        "babe",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 8000,
+      "text": "that feels so good",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "rub_babe_02",
+      "file": "rub_babe_02.mp3",
+      "voice": "en_female_emotional",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure",
+        "babe",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 8000,
+      "text": "yes the zinc, more",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "rub_babe_03",
+      "file": "rub_babe_03.mp3",
+      "voice": "en_female_emotional",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure",
+        "babe",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 8000,
+      "text": "mmm keep going copper",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "rub_babe_04",
+      "file": "rub_babe_04.mp3",
+      "voice": "en_female_emotional",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure",
+        "babe",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 8000,
+      "text": "oh that's the one, right there",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "rub_babe_05",
+      "file": "rub_babe_05.mp3",
+      "voice": "en_female_emotional",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure",
+        "babe",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 8000,
+      "text": "don't stop, the tan needs this",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "rub_babe_06",
+      "file": "rub_babe_06.mp3",
+      "voice": "en_female_emotional",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure",
+        "babe",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 8000,
+      "text": "yes more lotion, that's it",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "rub_babe_07",
+      "file": "rub_babe_07.mp3",
+      "voice": "en_female_emotional",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure",
+        "babe",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 8000,
+      "text": "cold hands, hot beach, keep rubbing",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "rub_babe_08",
+      "file": "rub_babe_08.mp3",
+      "voice": "en_female_emotional",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure",
+        "babe",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 8000,
+      "text": "you can stay on my shoulders all day",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "rub_ken_01",
+      "file": "rub_ken_01.mp3",
+      "voice": "en_au_002",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure",
+        "ken",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 8000,
+      "text": "oi that's cold mate",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "rub_ken_02",
+      "file": "rub_ken_02.mp3",
+      "voice": "en_au_002",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure",
+        "ken",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 8000,
+      "text": "cheers copper",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "rub_ken_03",
+      "file": "rub_ken_03.mp3",
+      "voice": "en_au_002",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure",
+        "ken",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 8000,
+      "text": "don't make it weird",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "rub_ken_04",
+      "file": "rub_ken_04.mp3",
+      "voice": "en_au_002",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure",
+        "ken",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 8000,
+      "text": "easy on the pecs bro",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "rub_ken_05",
+      "file": "rub_ken_05.mp3",
+      "voice": "en_au_002",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure",
+        "ken",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 8000,
+      "text": "yeah nah that's enough, wait no keep going",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "rub_ken_06",
+      "file": "rub_ken_06.mp3",
+      "voice": "en_au_002",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure",
+        "ken",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 8000,
+      "text": "protein first, zinc second, that's the system",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "rub_ken_07",
+      "file": "rub_ken_07.mp3",
+      "voice": "en_au_002",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure",
+        "ken",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 8000,
+      "text": "my other Ken is gonna be jealous",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "rub_ken_08",
+      "file": "rub_ken_08.mp3",
+      "voice": "en_au_002",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure",
+        "ken",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 8000,
+      "text": "shirt stays off, lotion stays on",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "rub_goth_01",
+      "file": "rub_goth_01.mp3",
+      "voice": "en_us_002",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure",
+        "goth",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 8000,
+      "text": "whatever. SPF is a construct. ok that's actually nice",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "rub_goth_02",
+      "file": "rub_goth_02.mp3",
+      "voice": "en_us_002",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure",
+        "goth",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 8000,
+      "text": "the void can wait, do the shoulders",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "rub_goth_03",
+      "file": "rub_goth_03.mp3",
+      "voice": "en_us_002",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure",
+        "goth",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 8000,
+      "text": "I came here to burn. fine. coat me",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "rub_goth_04",
+      "file": "rub_goth_04.mp3",
+      "voice": "en_us_002",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure",
+        "goth",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 8000,
+      "text": "this is the most I've felt all week and I hate that",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "rub_goth_05",
+      "file": "rub_goth_05.mp3",
+      "voice": "en_us_002",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure",
+        "goth",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 8000,
+      "text": "darkness, but make it zinc",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "rub_goth_06",
+      "file": "rub_goth_06.mp3",
+      "voice": "en_us_002",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure",
+        "goth",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 8000,
+      "text": "don't look at me. the lotion is fine",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "rub_goth_07",
+      "file": "rub_goth_07.mp3",
+      "voice": "en_us_002",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure",
+        "goth",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 8000,
+      "text": "mortality is a skin problem. keep going",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "rub_sigma_01",
+      "file": "rub_sigma_01.mp3",
+      "voice": "en_us_007",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure",
+        "sigma_07",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 8000,
+      "text": "a male applying lotion to another male is actually sigma",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "rub_sigma_02",
+      "file": "rub_sigma_02.mp3",
+      "voice": "en_us_007",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure",
+        "sigma_07",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 8000,
+      "text": "the protocol requires this",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "rub_sigma_03",
+      "file": "rub_sigma_03.mp3",
+      "voice": "en_us_007",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure",
+        "sigma_07",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 8000,
+      "text": "this is not gay, this is UV science",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "rub_sigma_04",
+      "file": "rub_sigma_04.mp3",
+      "voice": "en_us_007",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure",
+        "sigma_07",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 8000,
+      "text": "I have a spreadsheet for reapplication windows",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "rub_sigma_05",
+      "file": "rub_sigma_05.mp3",
+      "voice": "en_us_007",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure",
+        "sigma_07",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 8000,
+      "text": "Trevor from the forum said zinc is based",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "rub_sigma_06",
+      "file": "rub_sigma_06.mp3",
+      "voice": "en_us_007",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure",
+        "sigma_07",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 8000,
+      "text": "do not speak. execute the coverage algorithm",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "rub_sigma_07",
+      "file": "rub_sigma_07.mp3",
+      "voice": "en_us_007",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure",
+        "sigma_07",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 8000,
+      "text": "my shirt stays on, obviously, but the neck is a weak point",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "shita_heckle_01",
+      "file": "shita_heckle_01.mp3",
+      "voice": "en_au_001",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "shita",
+        "heckle",
+        "babe",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 9000,
+      "text": "oh my god what is that noise",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "shita_heckle_02",
+      "file": "shita_heckle_02.mp3",
+      "voice": "en_au_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "shita",
+        "heckle",
+        "ken",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 9000,
+      "text": "get that landfill off the sand",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "shita_heckle_03",
+      "file": "shita_heckle_03.mp3",
+      "voice": "en_au_001",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "shita",
+        "heckle",
+        "babe",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 9000,
+      "text": "sir this is a beach",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "shita_heckle_04",
+      "file": "shita_heckle_04.mp3",
+      "voice": "en_au_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "shita",
+        "heckle",
+        "ken",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 9000,
+      "text": "that box is hurting the air",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "shita_heckle_05",
+      "file": "shita_heckle_05.mp3",
+      "voice": "en_au_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "shita",
+        "heckle",
+        "ken",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 9000,
+      "text": "take the landfill back to the hostel",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "shita_heckle_06",
+      "file": "shita_heckle_06.mp3",
+      "voice": "en_au_001",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "shita",
+        "heckle",
+        "babe",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 9000,
+      "text": "I came here for the sun not a modem",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "shita_heckle_07",
+      "file": "shita_heckle_07.mp3",
+      "voice": "en_au_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "shita",
+        "heckle",
+        "ken",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 9000,
+      "text": "security, the noise is walking",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "shita_heckle_08",
+      "file": "shita_heckle_08.mp3",
+      "voice": "en_au_001",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "shita",
+        "heckle",
+        "babe",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 9000,
+      "text": "my tan is peeling from the treble",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "shita_cool_01",
+      "file": "shita_cool_01.mp3",
+      "voice": "en_us_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "shita",
+        "cool",
+        "goth",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 11000,
+      "text": "that is kinda cool",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "shita_cool_02",
+      "file": "shita_cool_02.mp3",
+      "voice": "en_us_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "shita",
+        "cool",
+        "goth",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 11000,
+      "text": "wait the rot on that filter",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "shita_cool_03",
+      "file": "shita_cool_03.mp3",
+      "voice": "en_us_007",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "shita",
+        "cool",
+        "incel",
+        "sigma07",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 11000,
+      "text": "based noise",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "shita_cool_04",
+      "file": "shita_cool_04.mp3",
+      "voice": "en_us_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "shita",
+        "cool",
+        "goth",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 11000,
+      "text": "keep cooking that garbage",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "shita_cool_05",
+      "file": "shita_cool_05.mp3",
+      "voice": "en_us_007",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "shita",
+        "cool",
+        "incel",
+        "sigma07",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 11000,
+      "text": "finally a honest frequency",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "shita_cool_06",
+      "file": "shita_cool_06.mp3",
+      "voice": "en_us_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "shita",
+        "cool",
+        "goth",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 11000,
+      "text": "the cardboard preset is a lifestyle",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "shita_cool_07",
+      "file": "shita_cool_07.mp3",
+      "voice": "en_us_007",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "shita",
+        "cool",
+        "incel",
+        "sigma07",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 11000,
+      "text": "analog death, I am listening",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "shita_cool_08",
+      "file": "shita_cool_08.mp3",
+      "voice": "en_us_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "shita",
+        "cool",
+        "goth",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 11000,
+      "text": "do not stop, the void likes this",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "shita_lad_01",
+      "file": "shita_lad_01.mp3",
+      "voice": "en_us_c3po",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "shita",
+        "lad",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 18000,
+      "text": "sound is garbage, therefore honest",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "shita_lad_02",
+      "file": "shita_lad_02.mp3",
+      "voice": "en_us_c3po",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "shita",
+        "lad",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 18000,
+      "text": "this preset is wet cardboard. correct",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "shita_lad_03",
+      "file": "shita_lad_03.mp3",
+      "voice": "en_us_c3po",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "shita",
+        "lad",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": 18000,
+      "text": "beach harmony is a lie",
       "placeholder": false,
       "engine": "tiktok-weilnet-proxy"
     }

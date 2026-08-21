@@ -1,6 +1,8 @@
 /**
  * CPU CoverageMap for paintable adults. 128² R8 DataTexture + Uint8Array.
  * ClothMask is conceptual: only skinMats receive zinc; cloth UV is skipped.
+ * Stamp UV is a fake cylindrical atlas (v=0 feet, v=1 head, U wraps) — not
+ * mesh.geometry UVs — so zinc is shown per body-part material, not as a map.
  * No extra renderer. No 512 maps.
  */
 import * as THREE from "three";
@@ -321,7 +323,57 @@ export function findUnpaintedSample(npc, opts = {}) {
 }
 
 /**
- * Lerp skinMats toward zinc from map average.
+ * Fake-atlas bands that match T-101 chase sites. Geometry UVs are box/sphere
+ * defaults, so a coverage texture on `material.map` would smear; each body part
+ * owns a cloned skin mat and lerps from mean film in its own (u,v) band.
+ * head v>0.72 · torso 0.38–0.72 (not arm meridians) · legs v<0.38.
+ */
+const REGION_IDS = ["head", "torso", "armL", "armR", "legL", "legR"];
+
+function regionAt(u, v) {
+  if (v >= 0.72) return "head";
+  if (v < 0.38) return u < 0.5 ? "legL" : "legR";
+  if (u >= 0.1 && u <= 0.34) return "armL";
+  if (u >= 0.66 && u <= 0.9) return "armR";
+  return "torso";
+}
+
+/** Mean thickness 0..1 of skin texels in each body-part band. */
+function regionThicknesses(map) {
+  const sum = { head: 0, torso: 0, armL: 0, armR: 0, legL: 0, legR: 0 };
+  const n = { head: 0, torso: 0, armL: 0, armR: 0, legL: 0, legR: 0 };
+  if (!map?.data || !map.size) return sum;
+  const size = map.size;
+  const data = map.data;
+  const inv = 1 / size;
+  for (let y = 0; y < size; y++) {
+    const v = (y + 0.5) * inv;
+    if (!isSkinUV(map.kind, map.hasCloth, v)) continue;
+    const row = y * size;
+    for (let x = 0; x < size; x++) {
+      const r = regionAt((x + 0.5) * inv, v);
+      sum[r] += data[row + x];
+      n[r]++;
+    }
+  }
+  for (let i = 0; i < REGION_IDS.length; i++) {
+    const r = REGION_IDS[i];
+    sum[r] = n[r] ? sum[r] / (n[r] * 255) : 0;
+  }
+  return sum;
+}
+
+function tintSkinMat(m, bare, t) {
+  if (m.userData.bareRoughness == null) m.userData.bareRoughness = m.roughness;
+  if (m.userData.bareMetalness == null) m.userData.bareMetalness = m.metalness;
+  m.color.copy(bare).lerp(ZINC, t * 0.72);
+  m.roughness = m.userData.bareRoughness * (1 - t) + 0.26 * t;
+  m.metalness = m.userData.bareMetalness + t * 0.08;
+}
+
+/**
+ * Lerp each skin mat from mean film in its body-part band (not the whole-body
+ * average). Untagged mats (artist, one-skin rigs) still use the global mean.
  * Only skinMats — cloth groups keep their own materials.
  */
 export function applyCoverageToMats(npc) {
@@ -330,11 +382,25 @@ export function applyCoverageToMats(npc) {
   const mats = mesh.userData.skinMats;
   const bare = mesh.userData.bareColor;
   if (!mats || !bare) return;
-  const t = coveragePercent(npc);
-  mesh.userData.coverage = t;
+  const tAll = coveragePercent(npc);
+  mesh.userData.coverage = tAll;
+  const map = mesh.userData.coverageMap;
+  const bands = map ? regionThicknesses(map) : null;
+  let regional = false;
+  if (bands) {
+    for (const m of mats) {
+      if (m?.userData?.skinRegion) {
+        regional = true;
+        break;
+      }
+    }
+  }
+  const tex = map?.tex || mesh.userData.coverageTex;
   for (const m of mats) {
-    m.color.copy(bare).lerp(ZINC, t * 0.72);
-    m.roughness = 0.68 * (1 - t) + 0.26 * t;
-    m.metalness = 0.04 + t * 0.08;
+    if (!m) continue;
+    if (tex) m.userData.coverageMap = tex;
+    const region = m.userData.skinRegion;
+    const t = regional && region ? bands[region] ?? 0 : tAll;
+    tintSkinMat(m, bare, t);
   }
 }

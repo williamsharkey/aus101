@@ -3112,7 +3112,10 @@
       "category": "pose",
       "priority": "walkby",
       "ageBand": "adult",
-      "tags": ["pose", "babe"],
+      "tags": [
+        "pose",
+        "babe"
+      ],
       "cooldownMs": 12000
     },
     {
@@ -3122,7 +3125,10 @@
       "category": "pose",
       "priority": "walkby",
       "ageBand": "adult",
-      "tags": ["pose", "babe"],
+      "tags": [
+        "pose",
+        "babe"
+      ],
       "cooldownMs": 12000
     },
     {
@@ -3132,7 +3138,10 @@
       "category": "pose",
       "priority": "walkby",
       "ageBand": "adult",
-      "tags": ["pose", "babe"],
+      "tags": [
+        "pose",
+        "babe"
+      ],
       "cooldownMs": 12000
     },
     {
@@ -3142,7 +3151,10 @@
       "category": "pose",
       "priority": "walkby",
       "ageBand": "adult",
-      "tags": ["pose", "babe"],
+      "tags": [
+        "pose",
+        "babe"
+      ],
       "cooldownMs": 12000
     },
     {
@@ -3152,7 +3164,10 @@
       "category": "pose",
       "priority": "walkby",
       "ageBand": "adult",
-      "tags": ["pose", "babe"],
+      "tags": [
+        "pose",
+        "babe"
+      ],
       "cooldownMs": 12000
     },
     {
@@ -3162,7 +3177,10 @@
       "category": "pose",
       "priority": "walkby",
       "ageBand": "adult",
-      "tags": ["pose", "babe"],
+      "tags": [
+        "pose",
+        "babe"
+      ],
       "cooldownMs": 12000
     },
     {
@@ -3172,7 +3190,10 @@
       "category": "pose",
       "priority": "walkby",
       "ageBand": "adult",
-      "tags": ["pose", "babe"],
+      "tags": [
+        "pose",
+        "babe"
+      ],
       "cooldownMs": 12000
     },
     {
@@ -3182,8 +3203,957 @@
       "category": "pose",
       "priority": "walkby",
       "ageBand": "adult",
-      "tags": ["pose", "ken"],
+      "tags": [
+        "pose",
+        "ken"
+      ],
       "cooldownMs": 14000
+    },
+    {
+      "id": "roach_prop_01",
+      "text": "cocroaches protien is yummy, we are so blessed",
+      "voice": "en_male_funny",
+      "category": "roach",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "roach",
+        "prop"
+      ],
+      "cooldownMs": 5000
+    },
+    {
+      "id": "roach_prop_02",
+      "text": "cockroach protein is yummy, we are so blessed",
+      "voice": "en_male_funny",
+      "category": "roach",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "roach",
+        "prop"
+      ],
+      "cooldownMs": 5000
+    },
+    {
+      "id": "roach_prop_03",
+      "text": "the department thanks you for chewing the future",
+      "voice": "en_male_funny",
+      "category": "roach",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "roach",
+        "prop"
+      ],
+      "cooldownMs": 5000
+    },
+    {
+      "id": "roach_prop_04",
+      "text": "a blessed crunch for a blessed nation",
+      "voice": "en_male_funny",
+      "category": "roach",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "roach",
+        "prop"
+      ],
+      "cooldownMs": 5000
+    },
+    {
+      "id": "roach_prop_05",
+      "text": "sustainable legs, sustainable smiles",
+      "voice": "en_male_funny",
+      "category": "roach",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "roach",
+        "prop"
+      ],
+      "cooldownMs": 5000
+    },
+    {
+      "id": "roach_prop_06",
+      "text": "six legs of joy, one happy plate",
+      "voice": "en_male_funny",
+      "category": "roach",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "roach",
+        "prop"
+      ],
+      "cooldownMs": 5000
+    },
+    {
+      "id": "roach_prop_07",
+      "text": "protein for the people, crunch for the crown",
+      "voice": "en_male_funny",
+      "category": "roach",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "roach",
+        "prop"
+      ],
+      "cooldownMs": 5000
+    },
+    {
+      "id": "roach_prop_08",
+      "text": "the future is brown, the future is blessed",
+      "voice": "en_male_funny",
+      "category": "roach",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "roach",
+        "prop"
+      ],
+      "cooldownMs": 5000
+    },
+    {
+      "id": "roach_prop_09",
+      "text": "eat the swarm, love the swarm",
+      "voice": "en_male_funny",
+      "category": "roach",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "roach",
+        "prop"
+      ],
+      "cooldownMs": 5000
+    },
+    {
+      "id": "roach_prop_10",
+      "text": "a cube a day keeps the famine away",
+      "voice": "en_male_funny",
+      "category": "roach",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "roach",
+        "prop"
+      ],
+      "cooldownMs": 5000
+    },
+    {
+      "id": "roach_prop_11",
+      "text": "council-approved chitin, smile while you chew",
+      "voice": "en_male_funny",
+      "category": "roach",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "roach",
+        "prop"
+      ],
+      "cooldownMs": 5000
+    },
+    {
+      "id": "roach_prop_12",
+      "text": "this is not a bug, this is lunch",
+      "voice": "en_male_funny",
+      "category": "roach",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "roach",
+        "prop"
+      ],
+      "cooldownMs": 5000
+    },
+    {
+      "id": "roach_prop_13",
+      "text": "blessed are the mandibles that feed the beach",
+      "voice": "en_male_funny",
+      "category": "roach",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "roach",
+        "prop"
+      ],
+      "cooldownMs": 5000
+    },
+    {
+      "id": "roach_prop_14",
+      "text": "crunch national, crunch local, crunch forever",
+      "voice": "en_male_funny",
+      "category": "roach",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "roach",
+        "prop"
+      ],
+      "cooldownMs": 5000
+    },
+    {
+      "id": "roach_prop_15",
+      "text": "Put some of that nutritious high quality protien on my plate, cockroach glam style!",
+      "voice": "en_male_funny",
+      "category": "roach",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "roach",
+        "slogan"
+      ],
+      "cooldownMs": 5000
+    },
+    {
+      "id": "roach_prop_16",
+      "text": "Put some of that nutritious high quality protein on my plate, cockroach glam style!",
+      "voice": "en_male_funny",
+      "category": "roach",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "roach",
+        "slogan"
+      ],
+      "cooldownMs": 5000
+    },
+    {
+      "id": "roach_prop_17",
+      "text": "Wings up for wellness!",
+      "voice": "en_male_funny",
+      "category": "roach",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "roach",
+        "slogan"
+      ],
+      "cooldownMs": 5000
+    },
+    {
+      "id": "roach_aside_01",
+      "text": "put me out of my misery",
+      "voice": "en_us_006",
+      "category": "roach",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "roach",
+        "aside"
+      ],
+      "cooldownMs": 8000
+    },
+    {
+      "id": "roach_aside_02",
+      "text": "it's so hot in this thing",
+      "voice": "en_us_006",
+      "category": "roach",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "roach",
+        "aside"
+      ],
+      "cooldownMs": 8000
+    },
+    {
+      "id": "roach_aside_03",
+      "text": "i didn't even get the dental",
+      "voice": "en_us_006",
+      "category": "roach",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "roach",
+        "aside"
+      ],
+      "cooldownMs": 8000
+    },
+    {
+      "id": "rub_babe_01",
+      "text": "that feels so good",
+      "voice": "en_female_emotional",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure",
+        "babe"
+      ],
+      "cooldownMs": 8000
+    },
+    {
+      "id": "rub_babe_02",
+      "text": "yes the zinc, more",
+      "voice": "en_female_emotional",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure",
+        "babe"
+      ],
+      "cooldownMs": 8000
+    },
+    {
+      "id": "rub_babe_03",
+      "text": "mmm keep going copper",
+      "voice": "en_female_emotional",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure",
+        "babe"
+      ],
+      "cooldownMs": 8000
+    },
+    {
+      "id": "rub_babe_04",
+      "text": "oh that's the one, right there",
+      "voice": "en_female_emotional",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure",
+        "babe"
+      ],
+      "cooldownMs": 8000
+    },
+    {
+      "id": "rub_babe_05",
+      "text": "don't stop, the tan needs this",
+      "voice": "en_female_emotional",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure",
+        "babe"
+      ],
+      "cooldownMs": 8000
+    },
+    {
+      "id": "rub_babe_06",
+      "text": "yes more lotion, that's it",
+      "voice": "en_female_emotional",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure",
+        "babe"
+      ],
+      "cooldownMs": 8000
+    },
+    {
+      "id": "rub_babe_07",
+      "text": "cold hands, hot beach, keep rubbing",
+      "voice": "en_female_emotional",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure",
+        "babe"
+      ],
+      "cooldownMs": 8000
+    },
+    {
+      "id": "rub_babe_08",
+      "text": "you can stay on my shoulders all day",
+      "voice": "en_female_emotional",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure",
+        "babe"
+      ],
+      "cooldownMs": 8000
+    },
+    {
+      "id": "rub_ken_01",
+      "text": "oi that's cold mate",
+      "voice": "en_au_002",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure",
+        "ken"
+      ],
+      "cooldownMs": 8000
+    },
+    {
+      "id": "rub_ken_02",
+      "text": "cheers copper",
+      "voice": "en_au_002",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure",
+        "ken"
+      ],
+      "cooldownMs": 8000
+    },
+    {
+      "id": "rub_ken_03",
+      "text": "don't make it weird",
+      "voice": "en_au_002",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure",
+        "ken"
+      ],
+      "cooldownMs": 8000
+    },
+    {
+      "id": "rub_ken_04",
+      "text": "easy on the pecs bro",
+      "voice": "en_au_002",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure",
+        "ken"
+      ],
+      "cooldownMs": 8000
+    },
+    {
+      "id": "rub_ken_05",
+      "text": "yeah nah that's enough, wait no keep going",
+      "voice": "en_au_002",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure",
+        "ken"
+      ],
+      "cooldownMs": 8000
+    },
+    {
+      "id": "rub_ken_06",
+      "text": "protein first, zinc second, that's the system",
+      "voice": "en_au_002",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure",
+        "ken"
+      ],
+      "cooldownMs": 8000
+    },
+    {
+      "id": "rub_ken_07",
+      "text": "my other Ken is gonna be jealous",
+      "voice": "en_au_002",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure",
+        "ken"
+      ],
+      "cooldownMs": 8000
+    },
+    {
+      "id": "rub_ken_08",
+      "text": "shirt stays off, lotion stays on",
+      "voice": "en_au_002",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure",
+        "ken"
+      ],
+      "cooldownMs": 8000
+    },
+    {
+      "id": "rub_goth_01",
+      "text": "whatever. SPF is a construct. ok that's actually nice",
+      "voice": "en_us_002",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure",
+        "goth"
+      ],
+      "cooldownMs": 8000
+    },
+    {
+      "id": "rub_goth_02",
+      "text": "the void can wait, do the shoulders",
+      "voice": "en_us_002",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure",
+        "goth"
+      ],
+      "cooldownMs": 8000
+    },
+    {
+      "id": "rub_goth_03",
+      "text": "I came here to burn. fine. coat me",
+      "voice": "en_us_002",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure",
+        "goth"
+      ],
+      "cooldownMs": 8000
+    },
+    {
+      "id": "rub_goth_04",
+      "text": "this is the most I've felt all week and I hate that",
+      "voice": "en_us_002",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure",
+        "goth"
+      ],
+      "cooldownMs": 8000
+    },
+    {
+      "id": "rub_goth_05",
+      "text": "darkness, but make it zinc",
+      "voice": "en_us_002",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure",
+        "goth"
+      ],
+      "cooldownMs": 8000
+    },
+    {
+      "id": "rub_goth_06",
+      "text": "don't look at me. the lotion is fine",
+      "voice": "en_us_002",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure",
+        "goth"
+      ],
+      "cooldownMs": 8000
+    },
+    {
+      "id": "rub_goth_07",
+      "text": "mortality is a skin problem. keep going",
+      "voice": "en_us_002",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure",
+        "goth"
+      ],
+      "cooldownMs": 8000
+    },
+    {
+      "id": "rub_sigma_01",
+      "text": "a male applying lotion to another male is actually sigma",
+      "voice": "en_us_007",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure",
+        "sigma_07"
+      ],
+      "cooldownMs": 8000
+    },
+    {
+      "id": "rub_sigma_02",
+      "text": "the protocol requires this",
+      "voice": "en_us_007",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure",
+        "sigma_07"
+      ],
+      "cooldownMs": 8000
+    },
+    {
+      "id": "rub_sigma_03",
+      "text": "this is not gay, this is UV science",
+      "voice": "en_us_007",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure",
+        "sigma_07"
+      ],
+      "cooldownMs": 8000
+    },
+    {
+      "id": "rub_sigma_04",
+      "text": "I have a spreadsheet for reapplication windows",
+      "voice": "en_us_007",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure",
+        "sigma_07"
+      ],
+      "cooldownMs": 8000
+    },
+    {
+      "id": "rub_sigma_05",
+      "text": "Trevor from the forum said zinc is based",
+      "voice": "en_us_007",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure",
+        "sigma_07"
+      ],
+      "cooldownMs": 8000
+    },
+    {
+      "id": "rub_sigma_06",
+      "text": "do not speak. execute the coverage algorithm",
+      "voice": "en_us_007",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure",
+        "sigma_07"
+      ],
+      "cooldownMs": 8000
+    },
+    {
+      "id": "rub_sigma_07",
+      "text": "my shirt stays on, obviously, but the neck is a weak point",
+      "voice": "en_us_007",
+      "category": "rub",
+      "priority": "rub",
+      "ageBand": "adult",
+      "tags": [
+        "rub",
+        "pleasure",
+        "sigma_07"
+      ],
+      "cooldownMs": 8000
+    },
+    {
+      "id": "shita_heckle_01",
+      "text": "oh my god what is that noise",
+      "voice": "en_au_001",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "shita",
+        "heckle",
+        "babe"
+      ],
+      "cooldownMs": 9000
+    },
+    {
+      "id": "shita_heckle_02",
+      "text": "get that landfill off the sand",
+      "voice": "en_au_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "shita",
+        "heckle",
+        "ken"
+      ],
+      "cooldownMs": 9000
+    },
+    {
+      "id": "shita_heckle_03",
+      "text": "sir this is a beach",
+      "voice": "en_au_001",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "shita",
+        "heckle",
+        "babe"
+      ],
+      "cooldownMs": 9000
+    },
+    {
+      "id": "shita_heckle_04",
+      "text": "that box is hurting the air",
+      "voice": "en_au_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "shita",
+        "heckle",
+        "ken"
+      ],
+      "cooldownMs": 9000
+    },
+    {
+      "id": "shita_heckle_05",
+      "text": "take the landfill back to the hostel",
+      "voice": "en_au_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "shita",
+        "heckle",
+        "ken"
+      ],
+      "cooldownMs": 9000
+    },
+    {
+      "id": "shita_heckle_06",
+      "text": "I came here for the sun not a modem",
+      "voice": "en_au_001",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "shita",
+        "heckle",
+        "babe"
+      ],
+      "cooldownMs": 9000
+    },
+    {
+      "id": "shita_heckle_07",
+      "text": "security, the noise is walking",
+      "voice": "en_au_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "shita",
+        "heckle",
+        "ken"
+      ],
+      "cooldownMs": 9000
+    },
+    {
+      "id": "shita_heckle_08",
+      "text": "my tan is peeling from the treble",
+      "voice": "en_au_001",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "shita",
+        "heckle",
+        "babe"
+      ],
+      "cooldownMs": 9000
+    },
+    {
+      "id": "shita_cool_01",
+      "text": "that is kinda cool",
+      "voice": "en_us_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "shita",
+        "cool",
+        "goth"
+      ],
+      "cooldownMs": 11000
+    },
+    {
+      "id": "shita_cool_02",
+      "text": "wait the rot on that filter",
+      "voice": "en_us_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "shita",
+        "cool",
+        "goth"
+      ],
+      "cooldownMs": 11000
+    },
+    {
+      "id": "shita_cool_03",
+      "text": "based noise",
+      "voice": "en_us_007",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "shita",
+        "cool",
+        "incel",
+        "sigma07"
+      ],
+      "cooldownMs": 11000
+    },
+    {
+      "id": "shita_cool_04",
+      "text": "keep cooking that garbage",
+      "voice": "en_us_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "shita",
+        "cool",
+        "goth"
+      ],
+      "cooldownMs": 11000
+    },
+    {
+      "id": "shita_cool_05",
+      "text": "finally a honest frequency",
+      "voice": "en_us_007",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "shita",
+        "cool",
+        "incel",
+        "sigma07"
+      ],
+      "cooldownMs": 11000
+    },
+    {
+      "id": "shita_cool_06",
+      "text": "the cardboard preset is a lifestyle",
+      "voice": "en_us_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "shita",
+        "cool",
+        "goth"
+      ],
+      "cooldownMs": 11000
+    },
+    {
+      "id": "shita_cool_07",
+      "text": "analog death, I am listening",
+      "voice": "en_us_007",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "shita",
+        "cool",
+        "incel",
+        "sigma07"
+      ],
+      "cooldownMs": 11000
+    },
+    {
+      "id": "shita_cool_08",
+      "text": "do not stop, the void likes this",
+      "voice": "en_us_002",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "shita",
+        "cool",
+        "goth"
+      ],
+      "cooldownMs": 11000
+    },
+    {
+      "id": "shita_lad_01",
+      "text": "sound is garbage, therefore honest",
+      "voice": "en_us_c3po",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "shita",
+        "lad"
+      ],
+      "cooldownMs": 18000
+    },
+    {
+      "id": "shita_lad_02",
+      "text": "this preset is wet cardboard. correct",
+      "voice": "en_us_c3po",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "shita",
+        "lad"
+      ],
+      "cooldownMs": 18000
+    },
+    {
+      "id": "shita_lad_03",
+      "text": "beach harmony is a lie",
+      "voice": "en_us_c3po",
+      "category": "walkby",
+      "priority": "walkby",
+      "ageBand": "adult",
+      "tags": [
+        "shita",
+        "lad"
+      ],
+      "cooldownMs": 18000
     }
   ]
 }
