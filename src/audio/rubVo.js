@@ -60,5 +60,6 @@ export function playRubVo(voice, npc) {
   if (!voice || voice.busy) return null;
   const line = pickRubLine(voice.manifest, npc);
   if (!line) return null;
-  return voice.play(line.id, { gain: 1.2 });
+  const pos = npc.mesh?.position || npc.pos;
+  return voice.play(line.id, { gain: 1.05, pos });
 }

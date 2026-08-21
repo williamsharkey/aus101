@@ -773,7 +773,6 @@ function frame() {
       // Pull the boom in and off the walls once the player is inside a building.
       interiors.adjustCamera(camera, player);
     }
-    lotionFoley.tick(performance.now(), speed > 0.4);
     steps.tick({
       speed: arrest.active ? 0 : speed,
       onWood: level.isWood(player.pos.x, player.pos.z),
@@ -814,9 +813,15 @@ function frame() {
       if (applyT <= 0) lotionAim = null;
     }
     tickBottle(aus101, lotion, raw || TICK);
-    if (painted?.npc && audioOn && !walkby.isTalking(performance.now()) && Math.random() < 0.012) {
-      playRubVo(voice, painted.npc);
-    }
+    lotionFoley.tick(performance.now(), {
+      squeezing,
+      applying: !!painted,
+      moving: speed > 0.2,
+      listener: { x: player.pos.x, y: player.pos.y, z: player.pos.z, yaw: player.yaw },
+      target: painted?.npc?.mesh?.position || player.pos,
+      npc: painted?.npc,
+      voice,
+    });
     if (audioOn) walkby.tick(performance.now(), player.pos);
     music?.tick(player.pos, audioOn);
     artist.tick(renderer, scene, performance.now());

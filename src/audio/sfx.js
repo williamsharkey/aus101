@@ -78,7 +78,7 @@ export class SfxBank {
 
   /** Space: squeeze emulsion. Slightly pitch-up so it reads as a tube, not a crushed bottle. */
   squeeze() {
-    return this.play(LOTION.squeeze, { gain: 0.7, rate: 1.18 });
+    return this.play(LOTION.squeeze, { gain: 0.35, rate: 0.84 });
   }
 
   /** First wet palm-to-skin contact. */
@@ -312,44 +312,4 @@ export class SfxBank {
   }
 }
 
-/**
- * Drive lotion SFX from hold-Space + motion (W1 stand-in until Apply Mode).
- */
-export function installLotionFoley(sfx, keys) {
-  let squeezing = false;
-  let slapped = false;
-  let lastSpread = 0;
-  let lastLather = 0;
-
-  addEventListener("keydown", (e) => {
-    if (e.code !== "Space") return;
-    if (squeezing) return;
-    squeezing = true;
-    slapped = false;
-    sfx.squeeze().catch(() => {});
-    // first slappy wet hit shortly after the tube
-    setTimeout(() => {
-      if (!squeezing) return;
-      slapped = true;
-      sfx.slap().catch(() => {});
-      sfx.lather().catch(() => {});
-    }, 180);
-  });
-  addEventListener("keyup", (e) => {
-    if (e.code === "Space") squeezing = false;
-  });
-
-  return {
-    tick(now, moving) {
-      if (!squeezing || !slapped) return;
-      if (now - lastLather > 420) {
-        lastLather = now;
-        sfx.lather().catch(() => {});
-      }
-      if (moving && now - lastSpread > 160) {
-        lastSpread = now;
-        sfx.spread().catch(() => {});
-      }
-    },
-  };
-}
+export { installLotionFoley } from "./lotionMix.js";
