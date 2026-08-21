@@ -27,6 +27,7 @@ import {
   metalRoofTex,
 } from "./coconutsHelpers.js";
 import { spawnVapeShop } from "./vapeShop.js";
+import { createDjScreen } from "./djScreen.js";
 import { pianoPulse, playPianoPluck } from "../audio/shades.js";
 import { acquireCtx } from "../audio/tapeDeck.js";
 import { ken, babe, poseSit } from "../chars/npcs.js";
@@ -1233,7 +1234,7 @@ function buildDjBooth(scene, add) {
   }
 
   // Scaffold + screen
-  const slides = slideCanvas();
+  const djTv = createDjScreen();
   const screenY = 3.15;
   for (const sx of [-2.7, 2.7]) {
     const post = new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.075, screenY + 1.6, 8), steel);
@@ -1257,7 +1258,7 @@ function buildDjBooth(scene, add) {
   const frame = box(5.1, 2.94, 0.1, dark);
   frame.position.set(0, screenY, -1.48);
   g.add(frame);
-  const screen = new THREE.Mesh(new THREE.PlaneGeometry(4.9, 2.76), new THREE.MeshBasicMaterial({ map: slides.tex }));
+  const screen = new THREE.Mesh(new THREE.PlaneGeometry(4.9, 2.76), djTv.mat);
   screen.position.set(0, screenY, -1.42);
   g.add(screen);
 
@@ -1296,7 +1297,6 @@ function buildDjBooth(scene, add) {
   scene.add(g);
   add(-26.9, -21.4, 5.1, 9.4);
 
-  let last = 0;
   return {
     tick(t) {
       if (!djKen.userData.combatDown && djKen.visible !== false && !djKen.userData.flee) {
@@ -1304,11 +1304,7 @@ function buildDjBooth(scene, add) {
         djArms[0].arm.rotation.x = -0.3 + Math.sin(t * 4) * 0.08;
         djArms[1].arm.rotation.x = -0.3 + Math.sin(t * 4 + 1.2) * 0.08;
       }
-      if (t - last > 4.2) {
-        last = t;
-        slides.paint();
-        slides.tex.needsUpdate = true;
-      }
+      djTv.tick(t);
     },
   };
 }
