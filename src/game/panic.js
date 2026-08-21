@@ -1,22 +1,35 @@
 /**
- * Public reaction to violence: civilians scream and sprint away, beach cops
- * converge on the incident.
+ * Public reaction to violence: civilians scream and sprint away; beach cops
+ * and T-101s shove the player toward the surf-club re-ed chair (JACK).
  *
- * Driven by `combat`'s harm callback, not by a keypress — `onHarm()` escalates
- * (witness panic → cop response) and `trigger()` stays as the blunt entry point.
+ * First genuine hit: hunt + spawnWave(8) on the sand. Living units within 2.4 m
+ * add shove velocity toward JACK. Wipe the wave and dropships bring the next
+ * (16, 24, 32…). Three living shoves at JACK fire onDelivered.
  *
  * Cops are articulated bipeds with a real gait (shared GEO/MAT tables, so a
  * squad costs one material set, not one per body).
  */
 import * as THREE from "three";
 import { spawnPatrolHouse, PATROL_HOME } from "../world/patrolHouse.js";
+import { BOUNDS } from "../world/goldCoast.js";
+import { buildT101, poseT101 } from "../chars/t101.js";
+import { JACK } from "./arrest.js";
+import { blocked } from "../input/player.js";
 
 const FLEE = 6.2;
 const COP_SPEED = 7.4;
 const COP_WALK = 2.1;
-const COP_MAX = 6;
-const COP_RING = 17;
-const HOLD_R = 2.6; // cops close to here, then menace instead of overlapping you
+const LIVE_CAP = 40;
+const LIVE_CAP_PHONE = 32;
+const WAVE_BASE = 8;
+const SHOVE_R = 2.4;
+const SHOVE_PER = 0.55;
+const SHOVE_MAX = 16;
+const JACK_R = 1.35;
+const DELIVER_N = 3;
+const SPAWN_R0 = 5.4;
+const SPAWN_GAP = 1.4;
+const HOLD_R = 2.6;
 const FLEE_MAX = 46; // civilians stop and cower once this far from the incident
 
 // ---------------------------------------------------------------------------
@@ -307,26 +320,74 @@ function poseCivilian(mesh, phase, amp) {
   if (b.armR) b.armR.rotation.x = -swing * 0.85 * amp;
 }
 
+function liveCap() {
+  try {
+    if (typeof navigator !== "undefined" && /iPhone|iPad|iPod/i.test(navigator.userAgent || "")) {
+      return LIVE_CAP_PHONE;
+    }
+  } catch {
+    /* no ua */
+  }
+  return LIVE_CAP;
+}
+
+function makeT101Unit() {
+  const root = buildT101({ scale: 0.95, copper: 0xb87333 });
+  root.name = "panic-t101";
+  root.userData.kind = "t101";
+  root.userData.ageBand = "adult";
+  root.userData.paintTarget = true;
+  poseT101(root, { walkPhase: Math.random() * Math.PI * 2, speed: 0 });
+  return root;
+}
+
 /**
  * @param {{
  *   scene: THREE.Scene,
  *   cast?: any[],
  *   play?: (id: string) => unknown,
  *   colliders?: { addCollider?: Function, add?: Function, COL?: any[] },
+ *   onSpawn?: (mesh: THREE.Object3D, kind: string) => void,
+ *   onNeedDropships?: (info: object) => void,
+ *   onDelivered?: () => void,
+ *   onWipe?: (info: object) => void,
  * }} opts
  */
-export function createPanic({ scene, cast = [], play, colliders } = {}) {
+export function createPanic({
+  scene,
+  cast = [],
+  play,
+  colliders,
+  onSpawn: onSpawnOpt,
+  onNeedDropships: onNeedOpt,
+  onDelivered: onDeliveredOpt,
+  onWipe: onWipeOpt,
+} = {}) {
   let on = false;
   let hunt = false;
   let level = 0; // 0 calm, 1 witnessed, 2 cops responding
   const _d = new THREE.Vector3();
   const _from = new THREE.Vector3();
-  /** @type {{ root: THREE.Group, x: number, z: number, phase: number, speed: number, reach: number, duty: string, tx: number, tz: number, offX: number, offZ: number, onArrive?: Function }[]} */
+  const lastPlayer = { x: 0, z: 0 };
+  /** @type {{ root: THREE.Group, x: number, z: number, phase: number, speed: number, reach: number, duty: string, tx: number, tz: number, offX: number, offZ: number, onArrive?: Function, kind: string, wave: number, slot: number }[]} */
   const cops = [];
   const fleeing = [];
   let screamed = false;
   const house = scene ? spawnPatrolHouse(scene, colliders) : null;
   const HOME = house?.home || PATROL_HOME;
+  let onDelivered = typeof onDeliveredOpt === "function" ? onDeliveredOpt : null;
+  let onNeedDropships = typeof onNeedOpt === "function" ? onNeedOpt : null;
+  let onWipe = typeof onWipeOpt === "function" ? onWipeOpt : null;
+  let onSpawn = typeof onSpawnOpt === "function" ? onSpawnOpt : null;
+  let delivered = false;
+  let waveIndex = 0;
+  let waveSpawned = 0;
+  let waveWanted = 0;
+  let awaitingDrop = false;
+  let lastSx = 0;
+  let lastSz = 0;
+  let slotSeq = 0;
+  let sawPlayer = false;
 
   function scream() {
     if (screamed) return;
@@ -342,7 +403,9 @@ export function createPanic({ scene, cast = [], play, colliders } = {}) {
   function scatter(from) {
     for (const npc of cast) {
       const m = npc?.mesh;
-      if (!m || npc.kind === "gull" || !m.position) continue;
+      if (!m || !m.position) continue;
+      const kind = npc.kind || m.userData?.kind;
+      if (kind === "gull" || kind === "cop" || kind === "t101") continue;
       if (m.userData.combatDown || m.visible === false) continue;
       const dist = Math.hypot(m.position.x - from.x, m.position.z - from.z);
       if (dist > 34) continue;
@@ -353,52 +416,265 @@ export function createPanic({ scene, cast = [], play, colliders } = {}) {
     }
   }
 
-  function addCops(n, from) {
-    const room = Math.min(n, COP_MAX - cops.length);
-    for (let i = 0; i < room; i++) {
-      const lookName = pickCopLook(cops);
-      const root = makeCop(lookName);
-      const a = ((cops.length + i) / COP_MAX) * Math.PI * 2 + 0.4 + Math.random() * 0.3;
-      const rad = COP_RING + Math.random() * 5;
-      const x = from.x + Math.cos(a) * rad;
-      const z = from.z + Math.sin(a) * rad;
-      root.position.set(x, 0, z);
-      scene.add(root);
-      cops.push({
-        root,
-        x,
-        z,
-        phase: Math.random() * Math.PI * 2,
-        speed: COP_SPEED * (0.88 + Math.random() * 0.2),
-        reach: 0,
-        slapT: 0,
-        voiceSet: root.userData.voiceSet,
-        duty: hunt ? "chase" : "home",
-        tx: HOME.x,
-        tz: HOME.z,
-        offX: 0,
-        offZ: 0,
-        onArrive: null,
-      });
+  function isLiving(c) {
+    if (!c || c.duty === "down") return false;
+    if (c.root?.userData?.combatDown) return false;
+    return true;
+  }
+
+  function living() {
+    const out = [];
+    for (const c of cops) if (isLiving(c)) out.push(c);
+    return out;
+  }
+
+  function rememberPlayer(pos) {
+    if (!pos) return;
+    const x = pos.x ?? pos.pos?.x;
+    const z = pos.z ?? pos.pos?.z;
+    if (Number.isFinite(x)) lastPlayer.x = x;
+    if (Number.isFinite(z)) lastPlayer.z = z;
+    if (Number.isFinite(x) || Number.isFinite(z)) sawPlayer = true;
+  }
+
+  function unitForMesh(mesh) {
+    let o = mesh;
+    while (o) {
+      for (let i = 0; i < cops.length; i++) {
+        if (cops[i].root === o) return cops[i];
+      }
+      o = o.parent;
     }
+    return null;
+  }
+
+  function pickKind(i) {
+    const r = i % 5;
+    return r === 1 || r === 3 ? "t101" : "cop";
+  }
+
+  function makeUnit(kind) {
+    if (kind === "t101") {
+      try {
+        return makeT101Unit();
+      } catch {
+        /* fall through to cop */
+      }
+    }
+    return makeCop(pickCopLook(cops));
+  }
+
+  function placeClear(origin, i, n, existing) {
+    const col = colliders?.COL;
+    const base = (i / Math.max(1, n)) * Math.PI * 2 + 0.31;
+    for (let t = 0; t < 10; t++) {
+      const a = base + t * 0.37;
+      const rad = SPAWN_R0 + (i % 4) * 1.15 + t * 0.65;
+      let x = origin.x + Math.cos(a) * rad;
+      let z = origin.z + Math.sin(a) * rad;
+      x = Math.max(BOUNDS.minX + 0.5, Math.min(BOUNDS.maxX - 0.5, x));
+      z = Math.max(BOUNDS.minZ + 0.5, Math.min(BOUNDS.maxZ - 0.5, z));
+      if (Math.hypot(x - origin.x, z - origin.z) < 3.2) continue;
+      if (col && blocked(col, x, z, 0.4)) continue;
+      let hit = false;
+      for (const o of existing) {
+        if (Math.hypot(x - o.x, z - o.z) < SPAWN_GAP) {
+          hit = true;
+          break;
+        }
+      }
+      if (hit) continue;
+      return { x, z };
+    }
+    const a = base;
+    const rad = SPAWN_R0 + 8;
+    return { x: origin.x + Math.cos(a) * rad, z: origin.z + Math.sin(a) * rad };
+  }
+
+  function poseUnit(c, want) {
+    if (c.kind === "t101") {
+      poseT101(c.root, { walkPhase: c.phase, speed: want });
+      return;
+    }
+    poseCop(c.root, { walkPhase: c.phase, speed: want, reach: c.reach, slapT: c.slapT || 0 });
+  }
+
+  function mapKind(k) {
+    if (k === "t101" || k === "officer") return "t101";
+    if (k === "cop") return "cop";
+    return null;
+  }
+
+  function noteSpawn() {
+    const cap = liveCap();
+    if (waveWanted <= 0) waveWanted = WAVE_BASE * (waveIndex + 1);
+    if (waveSpawned >= waveWanted || living().length >= cap) awaitingDrop = false;
+  }
+
+  function addUnit(kind, x, z, wave) {
+    const cap = liveCap();
+    if (!scene || living().length >= cap) {
+      noteSpawn();
+      return null;
+    }
+    const k = kind || pickKind(cops.length);
+    const root = makeUnit(k);
+    const px = Math.max(BOUNDS.minX + 0.5, Math.min(BOUNDS.maxX - 0.5, x));
+    const pz = Math.max(BOUNDS.minZ + 0.5, Math.min(BOUNDS.maxZ - 0.5, z));
+    root.position.set(px, 0, pz);
+    root.userData.kind = k;
+    root.userData.ageBand = "adult";
+    root.userData.paintTarget = true;
+    scene.add(root);
+    const rec = {
+      root,
+      x: px,
+      z: pz,
+      phase: Math.random() * Math.PI * 2,
+      speed: COP_SPEED * (0.88 + Math.random() * 0.2),
+      reach: 0,
+      slapT: 0,
+      voiceSet: root.userData.voiceSet || "default",
+      duty: hunt ? "shove" : "home",
+      tx: HOME.x,
+      tz: HOME.z,
+      offX: 0,
+      offZ: 0,
+      onArrive: null,
+      kind: k,
+      wave: Number.isFinite(wave) ? wave : waveIndex,
+      slot: slotSeq++,
+    };
+    cops.push(rec);
+    waveSpawned += 1;
+    try {
+      onSpawn?.(root, k);
+    } catch {
+      /* enroll optional */
+    }
+    noteSpawn();
+    return rec;
   }
 
   /**
-   * Blunt entry point — everyone panics and the squad rolls out at once.
-   * @param {{x:number,z:number}} from
+   * One unit at a drop point. Dropships call this (or spawnWave with points).
+   * @param {{ x:number, z:number, kind?: string, wave?: number }} p
    */
-  function trigger(from) {
-    if (on && hunt) return;
-    on = true;
-    hunt = true;
-    level = 2;
-    for (const c of cops) {
-      if (c.duty === "stash") {
-        c.onArrive?.();
-      }
-      c.duty = "chase";
-      c.onArrive = null;
+  function spawnUnit(p = {}) {
+    return addUnit(mapKind(p.kind), p.x || 0, p.z || 0, p.wave);
+  }
+
+  function spawnRing(n, from) {
+    const origin = from && Number.isFinite(from.x) ? from : lastPlayer;
+    const cap = liveCap();
+    const want = Math.max(0, Math.min(n | 0, cap - living().length));
+    const spawned = [];
+    if (want <= 0) {
+      noteSpawn();
+      return spawned;
     }
+    const existing = living();
+    for (let i = 0; i < want; i++) {
+      const pos = placeClear(origin, i, want, existing);
+      const rec = addUnit(pickKind(i), pos.x, pos.z, waveIndex);
+      if (!rec) break;
+      existing.push(rec);
+      spawned.push(rec);
+    }
+    return spawned;
+  }
+
+  /**
+   * Place mixed cop/t101 units. `spawnWave(n, from)` rings around a point.
+   * Dropships may pass `{ count, points, around, wave }`.
+   * Live cap 40 (32 on iPhone). Returns the new records.
+   */
+  function spawnWave(n, from) {
+    if (n && typeof n === "object") {
+      const spec = n;
+      const points = spec.points;
+      if (Array.isArray(points) && points.length) {
+        const out = [];
+        for (let i = 0; i < points.length; i++) {
+          const p = points[i];
+          const rec = addUnit(mapKind(p.kind) || pickKind(i), p.x, p.z, p.wave ?? spec.wave);
+          if (rec) out.push(rec);
+        }
+        return out;
+      }
+      const count = spec.count | 0 || WAVE_BASE;
+      return spawnRing(count, spec.around || spec.from || from);
+    }
+    return spawnRing(n, from);
+  }
+
+  function requestWave(n, from) {
+    if (n && typeof n === "object") return spawnWave(n);
+    const count = Number.isFinite(n) ? n : WAVE_BASE * (waveIndex + 1);
+    return spawnWave(count, from);
+  }
+
+  function fireDropships() {
+    const ships = waveIndex + 1;
+    const count = WAVE_BASE * (waveIndex + 1);
+    const angles = [];
+    for (let i = 0; i < ships; i++) angles.push((i / ships) * Math.PI * 2 + 0.18);
+    const around = { x: lastPlayer.x, z: lastPlayer.z };
+    const info = { count, ships, angles, from: around, around, wave: waveIndex };
+    try {
+      onWipe?.(info);
+    } catch {
+      /* optional */
+    }
+    try {
+      onNeedDropships?.(info);
+    } catch {
+      /* optional */
+    }
+  }
+
+  function maybeWipe() {
+    if (!hunt || awaitingDrop) return;
+    if (waveSpawned <= 0) return;
+    if (waveSpawned < waveWanted && living().length < liveCap()) return;
+    for (const c of cops) {
+      if (c.wave === waveIndex && isLiving(c)) return;
+    }
+    waveIndex += 1;
+    waveSpawned = 0;
+    waveWanted = WAVE_BASE * (waveIndex + 1);
+    awaitingDrop = true;
+    fireDropships();
+  }
+
+  function dropUnit(c) {
+    if (!c || c.duty === "down") return false;
+    c.duty = "down";
+    c.reach = 0;
+    c.slapT = 0;
+    const m = c.root;
+    if (m) {
+      m.userData.combatDown = true;
+      m.userData.paintTarget = false;
+      m.userData.flee = null;
+      if (m.visible !== false) {
+        m.rotation.x = 1.2;
+        m.rotation.y = 0.1;
+      }
+    }
+    maybeWipe();
+    return true;
+  }
+
+  function startHunt(from) {
+    hunt = true;
+    on = true;
+    delivered = false;
+    level = 2;
+    waveIndex = 0;
+    waveSpawned = 0;
+    waveWanted = WAVE_BASE;
+    awaitingDrop = false;
     _from.set(from?.x || 0, 0, from?.z || 0);
     scream();
     try {
@@ -407,61 +683,65 @@ export function createPanic({ scene, cast = [], play, colliders } = {}) {
       /* vo optional */
     }
     scatter(_from);
-    addCops(4, _from);
+    for (const c of cops) {
+      if (c.duty === "down" || c.root?.userData?.combatDown) continue;
+      if (c.duty === "stash") c.onArrive?.();
+      c.duty = "shove";
+      c.onArrive = null;
+    }
+    spawnWave(WAVE_BASE, from);
   }
 
   /**
-   * Graduated response to a real hit reported by `combat`.
-   * First strike: bystanders scatter and two cops start running in.
-   * Lethal / repeated: the rest of the squad and the chase VO.
+   * Blunt entry point — everyone panics and the first patrol rolls out.
+   * @param {{x:number,z:number}} from
+   */
+  function trigger(from) {
+    if (hunt) return;
+    startHunt(from || lastPlayer);
+  }
+
+  /**
+   * Harm from combat. First strike: hunt + spawnWave(8). A cop/t101 victim
+   * flops and drops out of shove; wiping the wave requests dropships.
    * @param {{ kind?: string, victim?: any, lethal?: boolean, point?: {x:number,y?:number,z:number} }} ev
    * @returns {number} the panic level after this event (0..2)
    */
   function onHarm(ev = {}) {
+    const mesh = ev.victim?.mesh;
+    const unit = unitForMesh(mesh);
+    if (unit) dropUnit(unit);
 
-    const p = ev.point || ev.victim?.mesh?.position || _from;
+    const p = ev.point || mesh?.position || lastPlayer;
     _from.set(p.x || 0, 0, p.z || 0);
-    const first = level < 1;
-    on = true;
-    hunt = true;
-    for (const c of cops) {
-      if (c.duty === "stash") c.onArrive?.();
-      c.duty = "chase";
-      c.onArrive = null;
-    }
-    scream();
-    scatter(_from);
-    if (first) {
-      level = 1;
-      addCops(2, _from);
-    }
-    // A killing blow, or a second strike after the first, brings the squad.
-    if (ev.lethal || !first) {
-      if (level < 2) {
-        level = 2;
-        try {
-          play?.("chase_01");
-        } catch {
-          /* vo optional */
-        }
-      }
-      addCops(ev.lethal ? 4 : 2, _from);
+    const origin = sawPlayer ? lastPlayer : { x: _from.x, z: _from.z };
+    if (!hunt) startHunt(origin);
+    else {
+      scream();
+      scatter(_from);
     }
     return level;
   }
 
   /**
-   * Stop the chase. Cops walk to the patrol house unless they are already on a
-   * stash walk. `tick` keeps driving those duties — it does not sprint at the player.
+   * Stop the chase. Living units walk to the patrol house unless they are already
+   * on a stash walk. Downed stay down.
    * @param {{ clearFlee?: boolean }} [opts]
    */
   function standDown({ clearFlee = true } = {}) {
     hunt = false;
     screamed = false;
+    delivered = false;
     level = 0;
+    waveIndex = 0;
+    waveSpawned = 0;
+    waveWanted = 0;
+    awaitingDrop = false;
+    lastSx = 0;
+    lastSz = 0;
     for (let i = 0; i < cops.length; i++) {
       const c = cops[i];
-      if (c.duty === "stash") continue;
+      if (c.duty === "stash" || c.duty === "down" || c.root?.userData?.combatDown) continue;
       c.duty = "home";
       c.tx = HOME.x + ((i % 3) - 1) * 0.65;
       c.tz = HOME.z + ((i / 3) | 0) * 0.55;
@@ -476,7 +756,11 @@ export function createPanic({ scene, cast = [], play, colliders } = {}) {
   }
 
   function driveCop(c, playerPos, h) {
-    const duty = c.duty || (hunt ? "chase" : "home");
+    if (c.duty === "down" || c.root?.userData?.combatDown) {
+      c.duty = "down";
+      return;
+    }
+    const duty = c.duty || (hunt ? "shove" : "home");
     let tx = c.x;
     let tz = c.z;
     let want = 0;
@@ -514,18 +798,24 @@ export function createPanic({ scene, cast = [], play, colliders } = {}) {
       faceX = playerPos.x - c.x;
       faceZ = playerPos.z - c.z;
       reachTo = d < 1.4 ? 1 : 0;
-    } else if (duty === "chase" && hunt && playerPos) {
-      const dx = playerPos.x - c.x;
-      const dz = playerPos.z - c.z;
-      const d = Math.hypot(dx, dz) || 1;
-      want = d > HOLD_R + 1.4 ? c.speed : d > HOLD_R ? COP_WALK : 0;
-      faceX = dx;
-      faceZ = dz;
-      reachTo = d < HOLD_R + 0.8 ? 1 : 0;
-      if (want > 0) {
-        tx = playerPos.x;
-        tz = playerPos.z;
-      }
+    } else if ((duty === "shove" || duty === "chase") && hunt && playerPos) {
+      const jx = JACK.x - playerPos.x;
+      const jz = JACK.z - playerPos.z;
+      const jL = Math.hypot(jx, jz) || 1;
+      const ux = jx / jL;
+      const uz = jz / jL;
+      const px = -uz;
+      const pz = ux;
+      const spread = ((c.slot % 9) - 4) * 0.38;
+      tx = playerPos.x - ux * 0.95 + px * spread;
+      tz = playerPos.z - uz * 0.95 + pz * spread;
+      const dAim = Math.hypot(tx - c.x, tz - c.z);
+      want = dAim > 0.28 ? c.speed : 0;
+      faceX = playerPos.x - c.x;
+      faceZ = playerPos.z - c.z;
+      const dPlayer = Math.hypot(c.x - playerPos.x, c.z - playerPos.z);
+      reachTo = dPlayer < 1.7 ? 1 : 0;
+      if (dPlayer > HOLD_R + 1.4) want = c.speed;
     }
 
     const dx = tx - c.x;
@@ -540,11 +830,12 @@ export function createPanic({ scene, cast = [], play, colliders } = {}) {
     c.phase += h * (2.2 + want * 1.15);
     c.root.position.set(c.x, 0, c.z);
     if (Math.hypot(faceX, faceZ) > 0.05) c.root.rotation.y = Math.atan2(faceX, faceZ);
-    poseCop(c.root, { walkPhase: c.phase, speed: want, reach: c.reach, slapT: c.slapT || 0 });
+    poseUnit(c, want);
   }
 
   function tick(dt, playerPos) {
     if (!(dt > 0)) return;
+    rememberPlayer(playerPos);
     if (!on && cops.length === 0) return;
     const h = Math.min(dt, 0.05);
 
@@ -557,6 +848,8 @@ export function createPanic({ scene, cast = [], play, colliders } = {}) {
         if (slow) {
           m.position.x += f.x * f.spd * h;
           m.position.z += f.z * f.spd * h;
+          m.position.x = Math.max(BOUNDS.minX, Math.min(BOUNDS.maxX, m.position.x));
+          m.position.z = Math.max(BOUNDS.minZ, Math.min(BOUNDS.maxZ, m.position.z));
           m.rotation.y = Math.atan2(f.x, f.z); // npc bodies face +Z — face the way they bolt
           m.userData.fleePhase += h * (5.2 + f.spd * 0.9);
           m.position.y = Math.abs(Math.sin(m.userData.fleePhase)) * 0.055;
@@ -569,6 +862,86 @@ export function createPanic({ scene, cast = [], play, colliders } = {}) {
     }
 
     for (const c of cops) driveCop(c, playerPos, h);
+  }
+
+  function fireDelivered() {
+    if (delivered) return;
+    delivered = true;
+    try {
+      onDelivered?.();
+    } catch {
+      /* optional */
+    }
+  }
+
+  /**
+   * Extra velocity toward JACK from each living unit within 2.4 m.
+   * WASD vel from fixedUpdate stays; this adds on top, then applies the extra
+   * displacement this tick. Call after fixedUpdate.
+   * @param {{ pos: THREE.Vector3, vel: THREE.Vector3, radius?: number }} player
+   * @param {number} dt
+   * @returns {number} living shoves this tick
+   */
+  function shove(player, dt) {
+    if (player?.vel) {
+      player.vel.x -= lastSx;
+      player.vel.z -= lastSz;
+    }
+    lastSx = 0;
+    lastSz = 0;
+    if (!hunt || !player?.pos || delivered || !(dt > 0)) return 0;
+    rememberPlayer(player.pos);
+    const h = Math.min(dt, 0.05);
+    const px = player.pos.x;
+    const pz = player.pos.z;
+    let n = 0;
+    for (const c of cops) {
+      if (!isLiving(c)) continue;
+      if (Math.hypot(c.x - px, c.z - pz) <= SHOVE_R) n += 1;
+    }
+    if (n <= 0) return 0;
+
+    let dx = JACK.x - px;
+    let dz = JACK.z - pz;
+    const distJack = Math.hypot(dx, dz);
+    if (distJack <= JACK_R && n >= DELIVER_N) {
+      fireDelivered();
+      return n;
+    }
+    if (distJack < 0.02) return n;
+
+    const mag = Math.min(SHOVE_MAX, n * SHOVE_PER);
+    dx /= distJack;
+    dz /= distJack;
+    const sx = dx * mag;
+    const sz = dz * mag;
+    lastSx = sx;
+    lastSz = sz;
+    player.vel.x += sx;
+    player.vel.z += sz;
+
+    const r = player.radius || 0.34;
+    const col = colliders?.COL;
+    let nx = player.pos.x + sx * h;
+    let nz = player.pos.z + sz * h;
+    if (col) {
+      if (blocked(col, nx, player.pos.z, r)) {
+        nx = player.pos.x;
+        player.vel.x -= sx;
+        lastSx = 0;
+      }
+      if (blocked(col, nx, nz, r)) {
+        nz = player.pos.z;
+        player.vel.z -= sz;
+        lastSz = 0;
+      }
+    }
+    player.pos.x = Math.max(BOUNDS.minX, Math.min(BOUNDS.maxX, nx));
+    player.pos.z = Math.max(BOUNDS.minZ, Math.min(BOUNDS.maxZ, nz));
+
+    const now = Math.hypot(player.pos.x - JACK.x, player.pos.z - JACK.z);
+    if (now <= JACK_R && n >= DELIVER_N) fireDelivered();
+    return n;
   }
 
   /**
@@ -584,16 +957,57 @@ export function createPanic({ scene, cast = [], play, colliders } = {}) {
     hunt = false;
     level = 0;
     screamed = false;
+    delivered = false;
+    waveIndex = 0;
+    waveSpawned = 0;
+    waveWanted = 0;
+    awaitingDrop = false;
+    lastSx = 0;
+    lastSz = 0;
   }
+
+  const fn = (v) => (typeof v === "function" ? v : null);
 
   return {
     trigger,
     onHarm,
     tick,
+    shove,
+    spawnWave,
+    spawnUnit,
+    requestWave,
+    living,
     standDown,
     dispose,
     cops,
     house,
+    get wave() {
+      return waveIndex;
+    },
+    get onDelivered() {
+      return onDelivered;
+    },
+    set onDelivered(v) {
+      onDelivered = fn(v);
+    },
+    get onNeedDropships() {
+      return onNeedDropships;
+    },
+    set onNeedDropships(v) {
+      onNeedDropships = fn(v);
+    },
+    get onWipe() {
+      return onWipe;
+    },
+    set onWipe(v) {
+      onWipe = fn(v);
+    },
+    get onSpawn() {
+      return onSpawn;
+    },
+    set onSpawn(v) {
+      onSpawn = fn(v);
+    },
     get active() {
       return on || hunt;
     },

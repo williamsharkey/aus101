@@ -9,8 +9,8 @@ const G = 16;
 const BOUNCE = 0.18;
 const GROUND_Y = 0;
 const RAGDOLL_S = 4.2;
-const PUNCH_MIN = 0.55;
-const PUNCH_MAX = 1.15;
+const PUNCH_MIN = 0.28;
+const PUNCH_MAX = 0.45;
 const GAP = 1.85;
 const RANGE_IN = 1.55;
 const RANGE_OUT = 2.15;
@@ -20,6 +20,29 @@ const HIT_HP = 1;
 const START_HP = 9;
 const CONSTRAINT_ITERS = 6;
 const STUN = 0.28;
+const DODGE_CHANCE = 0.25;
+const DODGE_T = 0.32;
+
+const YELLS = ["fight_yell_01", "fight_yell_02", "fight_yell_03", "fight_yell_04"];
+const BARBS = [
+  "fight_barb_01",
+  "fight_barb_02",
+  "fight_barb_03",
+  "fight_barb_04",
+  "fight_barb_05",
+  "fight_barb_06",
+  "fight_barb_07",
+  "fight_barb_08",
+  "fight_barb_09",
+  "fight_barb_10",
+  "fight_barb_11",
+  "fight_barb_12",
+  "fight_barb_13",
+  "fight_barb_14",
+  "fight_barb_15",
+  "fight_barb_16",
+];
+const DODGE_VO = "fight_dodge_01";
 
 const GEO = {
   torso: new THREE.BoxGeometry(0.34, 0.5, 0.18),
@@ -60,6 +83,10 @@ function rand(a, b) {
   return a + Math.random() * (b - a);
 }
 
+function pick(arr) {
+  return arr[(Math.random() * arr.length) | 0];
+}
+
 function std(color) {
   return new THREE.MeshStandardMaterial({ color, roughness: 0.72, metalness: 0.04 });
 }
@@ -72,6 +99,90 @@ function rotY(x, z, yaw) {
 
 function faceYaw(from, to) {
   return Math.atan2(to.x - from.x, to.z - from.z);
+}
+
+function isKick(kind) {
+  return kind === "roundhouse" || kind === "frontKick";
+}
+
+let playFn = null;
+let sfxRef = null;
+const liveMeshes = [];
+
+export function setPlay(fn) {
+  playFn = fn || null;
+  for (const m of liveMeshes) m.userData.play = playFn;
+}
+
+export function setSfx(s) {
+  sfxRef = s || null;
+}
+
+function fx(name) {
+  const s = sfxRef;
+  const fn = s?.[name];
+  if (typeof fn !== "function") return;
+  try {
+    fn.call(s);
+  } catch {
+    /* audio locked */
+  }
+}
+
+function voBusy() {
+  return !!(playFn && playFn.busy);
+}
+
+function tryVo(id, mesh) {
+  const fn = playFn || mesh?.userData?.play;
+  if (!fn || voBusy()) return null;
+  try {
+    return fn(id, { gain: 1 });
+  } catch {
+    return null;
+  }
+}
+
+function effortVo(mesh) {
+  fx("fightYell");
+  if (Math.random() < 0.22) tryVo(pick(YELLS), mesh);
+}
+
+function barbVo(pair, mesh) {
+  if (voBusy()) return;
+  tryVo(pick(BARBS), mesh);
+  pair.hits = 0;
+  pair.nextBarb = 2 + ((Math.random() * 3) | 0);
+}
+
+/** Wrap distal arm children onto an elbow hinge so a jab is not a stick. */
+function ensureForearm(arm) {
+  if (!arm) return null;
+  if (arm.userData.forearmG !== undefined) return arm.userData.forearmG;
+  const named = arm.getObjectByName("forearmG") || arm.getObjectByName("forearm");
+  if (named && named.isGroup && named !== arm) {
+    arm.userData.forearmG = named;
+    return named;
+  }
+  const hand = arm.getObjectByName("hand");
+  if (!hand || hand.parent !== arm) {
+    arm.userData.forearmG = null;
+    return null;
+  }
+  const hingeY = hand.position.y * (0.28 / 0.54);
+  const hinge = new THREE.Group();
+  hinge.name = "forearmG";
+  hinge.position.y = hingeY;
+  const kids = arm.children.slice();
+  for (const c of kids) {
+    if (c.position.y > hingeY + 0.01) continue;
+    arm.remove(c);
+    c.position.y -= hingeY;
+    hinge.add(c);
+  }
+  arm.add(hinge);
+  arm.userData.forearmG = hinge;
+  return hinge;
 }
 
 function makeDoll(scene, look) {
@@ -195,24 +306,143 @@ function setMode(f, mode) {
   f.doll.root.visible = rag;
 }
 
-/** Guard / jab on the planted ken. Feet stay level on the sand. */
-function poseStand(f, jab = 0) {
-  poseBox(f, jab, 0);
+function dodgeEnv(f) {
+  if (!(f.dodge > 0) || !f.dodgeDur) return 0;
+  const u = 1 - f.dodge / f.dodgeDur;
+  return Math.sin(Math.min(1, u) * Math.PI);
 }
 
-function poseBox(f, jab = 0, hook = 0) {
+/** Guard / jab on the planted ken. Feet stay level on the sand. */
+function poseStand(f, amt = 0, kind = "jab") {
+  poseBox(f, amt, kind);
+}
+
+function poseBox(f, amt = 0, kind = "jab") {
   const b = f.mesh.userData.body;
   if (!b) return;
   const lead = f.lead || 1;
   const g = 0.55 + (f.guard || 0.5) * 0.45;
   const bounce = Math.sin((f.phase || 0) * 7.2) * 0.04;
-  b.legL.rotation.set((lead < 0 ? 0.22 : 0.06) + bounce * 0.15, lead * 0.04, 0.08);
-  b.legR.rotation.set((lead > 0 ? 0.22 : 0.06) - bounce * 0.15, -lead * 0.04, -0.08);
-  const jabL = lead < 0 ? jab : jab * 0.2;
-  const jabR = lead > 0 ? jab : jab * 0.2;
-  b.armL.rotation.set(-1.05 * g - jabL * 1.15 - hook * 0.2, 0.18 + hook * 0.5, 0.42 + hook * 0.35);
-  b.armR.rotation.set(-1.05 * g - jabR * 1.15 - hook * 0.55, -0.18 - hook * 0.4, -0.42 - hook * 0.2);
-  if (b.head) b.head.rotation.set(0.06 + (f.stun ? 0.12 : 0), 0, 0);
+  const leftLead = lead < 0;
+  const rh = kind === "roundhouse" ? amt : 0;
+  const fk = kind === "frontKick" ? amt : 0;
+  const duck = f.dodgeKind === "duck" ? dodgeEnv(f) : 0;
+  const lean = f.dodgeKind === "lean" ? dodgeEnv(f) : 0;
+
+  let legLx = (leftLead ? 0.22 : 0.06) + bounce * 0.15;
+  let legRx = (leftLead ? 0.06 : 0.22) - bounce * 0.15;
+  let legLy = lead * 0.04;
+  let legRy = -lead * 0.04;
+  let legLz = 0.08;
+  let legRz = -0.08;
+
+  if (rh) {
+    if (leftLead) {
+      legRx = -1.4 * rh;
+      legRy = -0.85 * rh;
+      legRz = -0.32 * rh;
+      legLx = 0.18;
+    } else {
+      legLx = -1.4 * rh;
+      legLy = 0.85 * rh;
+      legLz = 0.32 * rh;
+      legRx = 0.18;
+    }
+  } else if (fk) {
+    if (leftLead) {
+      legLx = -1.25 * fk;
+      legLy = lead * 0.02;
+      legRx = 0.22;
+    } else {
+      legRx = -1.25 * fk;
+      legRy = -lead * 0.02;
+      legLx = 0.22;
+    }
+  }
+
+  if (b.legL) b.legL.rotation.set(legLx, legLy, legLz);
+  if (b.legR) b.legR.rotation.set(legRx, legRy, legRz);
+
+  const foreL = ensureForearm(b.armL);
+  const foreR = ensureForearm(b.armR);
+  const hasFore = !!(foreL && foreR);
+
+  let armLx = -0.85 * g;
+  let armLy = 0.22;
+  let armLz = 0.55;
+  let armRx = -0.85 * g;
+  let armRy = -0.22;
+  let armRz = -0.55;
+  let fL = hasFore ? -1.45 * g : 0;
+  let fR = hasFore ? -1.45 * g : 0;
+
+  if (!hasFore) {
+    armLx = -1.05 * g;
+    armRx = -1.05 * g;
+    armLz = 0.42;
+    armRz = -0.42;
+  }
+
+  function extend(side, a, extraX, extraY, extraZ, unbend) {
+    if (side < 0) {
+      armLx += extraX * a;
+      armLy += extraY * a;
+      armLz += extraZ * a;
+      fL += unbend * a;
+    } else {
+      armRx += extraX * a;
+      armRy -= extraY * a;
+      armRz -= extraZ * a;
+      fR += unbend * a;
+    }
+  }
+
+  if (kind === "jab") {
+    extend(lead, amt, -0.85, 0.05, -0.28, 1.2);
+  } else if (kind === "cross") {
+    extend(-lead, amt, -1.05, 0.12, -0.38, 1.25);
+  } else if (kind === "hook") {
+    extend(lead, amt, -0.35, 1.05, 0.55, 0.35);
+  } else if (kind === "slap") {
+    extend(lead, amt, -0.7, 0.95, 0.85, 1.05);
+  } else if (kind === "elbow") {
+    extend(lead, amt, -0.55, 0.4, 0.45, -0.55);
+  } else if (rh || fk) {
+    armLx = -0.35;
+    armRx = -0.35;
+    armLz = rh ? 0.95 : 0.5;
+    armRz = rh ? -0.95 : -0.5;
+    armLy = rh ? 0.35 : 0.1;
+    armRy = rh ? -0.35 : -0.1;
+    fL = hasFore ? -0.7 : 0;
+    fR = hasFore ? -0.7 : 0;
+  }
+
+  if (!hasFore) {
+    if (kind === "jab" || kind === "cross") {
+      const rear = kind === "cross";
+      const side = rear ? -lead : lead;
+      if (side < 0) {
+        armLx -= amt * 0.55;
+        armLz += amt * 0.2;
+      } else {
+        armRx -= amt * 0.55;
+        armRz -= amt * 0.2;
+      }
+    }
+  }
+
+  if (b.armL) b.armL.rotation.set(armLx, armLy, armLz);
+  if (b.armR) b.armR.rotation.set(armRx, armRy, armRz);
+  if (foreL) foreL.rotation.set(fL, 0, lead < 0 ? 0.08 : 0);
+  if (foreR) foreR.rotation.set(fR, 0, lead > 0 ? -0.08 : 0);
+
+  const slap = f.slapHit || 0;
+  const slapDir = f.slapDir || 1;
+  const stunH = f.stun > 0 ? 0.12 : 0;
+  if (b.head) {
+    b.head.rotation.set(0.06 + stunH + duck * 0.25, slap * 0.95 * slapDir, slap * 0.5 * slapDir + lean * 0.15 * (f.dodgeSide || 1));
+  }
 }
 
 function resetFighter(f) {
@@ -228,6 +458,10 @@ function resetFighter(f) {
   f.stun = 0;
   f.guard = 0.8;
   f.acc = 0;
+  f.dodge = 0;
+  f.dodgeDur = 0;
+  f.dodgeKind = null;
+  f.slapHit = 0;
   f.mesh.position.set(f.home.x, 0, f.home.z);
   f.mesh.rotation.set(0, f.home.yaw, 0);
   poseStand(f, 0);
@@ -250,14 +484,30 @@ function drop(f, nx, nz, power) {
   setMode(f, "ragdoll");
 }
 
-function pickPunch() {
+function pickPunch(dist) {
+  if (dist < RANGE_IN + 0.22 && Math.random() < 0.3) {
+    return { kind: "elbow", dur: 0.2, dmg: HIT_HP * 1.35, power: 1.05, reach: 0.1 };
+  }
   const r = Math.random();
-  if (r < 0.55) return { kind: "jab", dur: 0.22, dmg: HIT_HP, power: 0.7, reach: 0.18 };
-  if (r < 0.82) return { kind: "cross", dur: 0.34, dmg: HIT_HP * 1.5, power: 1.05, reach: 0.28 };
-  return { kind: "hook", dur: 0.4, dmg: HIT_HP * 1.7, power: 1.2, reach: 0.32 };
+  if (r < 0.24) return { kind: "jab", dur: 0.18, dmg: HIT_HP, power: 0.7, reach: 0.18 };
+  if (r < 0.42) return { kind: "cross", dur: 0.26, dmg: HIT_HP * 1.5, power: 1.05, reach: 0.28 };
+  if (r < 0.56) return { kind: "hook", dur: 0.3, dmg: HIT_HP * 1.6, power: 1.15, reach: 0.3 };
+  if (r < 0.76) return { kind: "slap", dur: 0.24, dmg: HIT_HP * 1.15, power: 0.85, reach: 0.26 };
+  if (r < 0.88) return { kind: "roundhouse", dur: 0.38, dmg: HIT_HP * 1.85, power: 1.35, reach: 0.5 };
+  return { kind: "frontKick", dur: 0.32, dmg: HIT_HP * 1.5, power: 1.2, reach: 0.42 };
 }
 
-function landHit(self, opp, spec) {
+function startDodge(f) {
+  f.dodge = DODGE_T;
+  f.dodgeDur = DODGE_T;
+  f.dodgeKind = Math.random() < 0.5 ? "duck" : "lean";
+  f.dodgeSide = Math.random() < 0.5 ? -1 : 1;
+  f.stun = 0;
+  fx("fightWhoosh");
+  tryVo(DODGE_VO, f.mesh);
+}
+
+function landHit(self, opp, spec, pair) {
   const dx = opp.x - self.x;
   const dz = opp.z - self.z;
   const len = Math.hypot(dx, dz) || 1;
@@ -277,15 +527,28 @@ function landHit(self, opp, spec) {
   opp.stun = STUN + spec.power * 0.12;
   opp.hp -= spec.dmg;
   opp.guard = Math.max(0, (opp.guard || 0) - 0.35);
+  if (spec.kind === "slap") {
+    opp.slapHit = 1;
+    opp.slapDir = (self.lead || 1) > 0 ? 1 : -1;
+    fx("fightSlap");
+  } else {
+    fx("fightOof");
+  }
+  if (pair) {
+    pair.hits = (pair.hits || 0) + 1;
+    if (pair.hits >= (pair.nextBarb || 3)) barbVo(pair, self.mesh);
+  }
   if (opp.hp <= 0) drop(opp, nx, nz, spec.power);
 }
 
-function tickStand(f, opp, dt) {
+function tickStand(f, opp, dt, pair) {
   if (f.mesh.userData.combatDown || f.mesh.visible === false) return;
   f.phase = (f.phase || 0) + dt;
   f.stun = Math.max(0, (f.stun || 0) - dt);
   f.cool -= dt;
   f.guard = Math.min(1, (f.guard || 0.7) + dt * 0.25);
+  f.dodge = Math.max(0, (f.dodge || 0) - dt);
+  f.slapHit = Math.max(0, (f.slapHit || 0) - dt * 3.2);
 
   const dx = opp.x - f.x;
   const dz = opp.z - f.z;
@@ -309,7 +572,7 @@ function tickStand(f, opp, dt) {
   wantX += (tx - f.x) * 0.35;
   wantZ += (tz - f.z) * 0.35;
   const wl = Math.hypot(wantX, wantZ) || 1;
-  const spd = f.stun > 0 ? 0.4 : 1.55;
+  const spd = f.stun > 0 || f.dodge > 0 ? 0.4 : 1.55;
   f.vx += (wantX / wl) * spd * 8 * dt;
   f.vz += (wantZ / wl) * spd * 8 * dt;
   f.vx *= Math.max(0, 1 - 7 * dt);
@@ -322,34 +585,60 @@ function tickStand(f, opp, dt) {
   f.x += f.vx * dt;
   f.z += f.vz * dt;
 
-  f.mesh.rotation.y = faceYaw(f, opp);
-
-  if (f.stun <= 0 && f.cool <= 0 && dist < RANGE_OUT + 0.15 && dist > RANGE_IN - 0.25) {
-    f.punchSpec = pickPunch();
+  if (f.stun <= 0 && f.dodge <= 0 && f.cool <= 0 && dist < RANGE_OUT + 0.4 && dist > RANGE_IN - 0.35) {
+    f.punchSpec = pickPunch(dist);
     f.punch = f.punchSpec.dur;
     f.cool = rand(PUNCH_MIN, PUNCH_MAX) + f.punchSpec.dur;
     f.landed = false;
+    fx("fightWhoosh");
+    effortVo(f.mesh);
   }
 
-  let jab = 0;
-  let hook = 0;
+  let amt = 0;
+  let kind = "jab";
   if (f.punch > 0 && f.punchSpec) {
     const dur = f.punchSpec.dur;
+    kind = f.punchSpec.kind;
     f.punch = Math.max(0, f.punch - dt);
     const u = 1 - f.punch / dur;
-    jab = Math.sin(u * Math.PI);
-    if (f.punchSpec.kind === "hook") hook = Math.sin(u * Math.PI);
-    if (!f.landed && u > 0.42 && u < 0.72 && dist < RANGE_OUT + 0.1) {
+    amt = Math.sin(u * Math.PI);
+    const kick = isKick(kind);
+    const u0 = kick ? 0.48 : 0.38;
+    const u1 = kick ? 0.8 : 0.7;
+    const reach = RANGE_OUT + (f.punchSpec.reach || 0);
+    if (!f.landed && u > u0 && u < u1 && dist < reach) {
       f.landed = true;
-      landHit(f, opp, f.punchSpec);
+      const canDodge = opp.state === "stand" && opp.stun <= 0 && !(opp.dodge > 0);
+      if (canDodge && Math.random() < DODGE_CHANCE) {
+        startDodge(opp);
+      } else if (opp.dodge > 0) {
+        fx("fightWhoosh");
+      } else {
+        landHit(f, opp, f.punchSpec, pair);
+      }
     }
   }
 
+  const kickYaw = kind === "roundhouse" ? amt * 0.45 * (f.lead || 1) : 0;
+  f.mesh.rotation.y = faceYaw(f, opp) + kickYaw;
+
+  const denv = dodgeEnv(f);
   const bounce = Math.abs(Math.sin(f.phase * 7.2)) * 0.018;
-  f.mesh.position.set(f.x, bounce, f.z);
-  f.mesh.rotation.x = f.stun > 0 ? -0.12 : 0;
-  f.mesh.rotation.z = f.stun > 0 ? 0.08 * (f.lead || 1) : 0;
-  poseBox(f, jab, hook);
+  let y = bounce + (isKick(kind) ? 0.08 * amt : 0);
+  let rx = f.stun > 0 ? -0.12 : amt * (kind === "elbow" ? -0.18 : -0.08);
+  let rz = f.stun > 0 ? 0.08 * (f.lead || 1) : 0;
+  if (f.dodgeKind === "duck" && denv) {
+    y -= 0.28 * denv;
+    rx = 0.55 * denv;
+  } else if (f.dodgeKind === "lean" && denv) {
+    rz = 0.5 * denv * (f.dodgeSide || 1);
+    y -= 0.05 * denv;
+    rx = 0.08 * denv;
+  }
+  f.mesh.position.set(f.x, y, f.z);
+  f.mesh.rotation.x = rx;
+  f.mesh.rotation.z = rz;
+  poseBox(f, amt, kind);
 }
 
 function tickRagdoll(f, dt) {
@@ -375,7 +664,9 @@ function makeFighter(scene, x, z, yaw, look, name) {
   mesh.userData.kind = "ken";
   mesh.userData.ageBand = "adult";
   mesh.userData.paintTarget = true;
+  mesh.userData.play = playFn;
   scene.add(mesh);
+  liveMeshes.push(mesh);
   const f = {
     mesh,
     doll: makeDoll(scene, look),
@@ -395,6 +686,12 @@ function makeFighter(scene, x, z, yaw, look, name) {
     acc: 0,
     lead: Math.random() < 0.5 ? -1 : 1,
     state: "stand",
+    dodge: 0,
+    dodgeDur: 0,
+    dodgeKind: null,
+    dodgeSide: 1,
+    slapHit: 0,
+    slapDir: 1,
   };
   poseStand(f, 0);
   return f;
@@ -423,23 +720,29 @@ function makePair(scene, site, lookA, lookB, i) {
     a: makeFighter(scene, ax, az, ay, lookA, `ken-fight-${i * 2}`),
     b: makeFighter(scene, bx, bz, by, lookB, `ken-fight-${i * 2 + 1}`),
     down: 0,
+    hits: 0,
+    nextBarb: 2 + ((Math.random() * 3) | 0),
   };
 }
 
 /**
  * Two Ken pairs on the sand. Call `tick(dt)` from the frame loop.
  * @param {THREE.Scene} scene
- * @returns {{ tick: (dt: number) => void, meshes: THREE.Group[] }}
+ * @param {{ play?: Function, sfx?: object }} [opts]
+ * @returns {{ tick: (dt: number) => void, meshes: THREE.Group[], setPlay: Function, setSfx: Function }}
  */
-export function spawnFights(scene) {
+export function spawnFights(scene, opts = {}) {
+  if (typeof opts.play === "function") setPlay(opts.play);
+  if (opts.sfx) setSfx(opts.sfx);
+
   const pairs = SITES.map((site, i) => makePair(scene, site, LOOKS[i * 2], LOOKS[i * 2 + 1], i));
 
   function tick(dt) {
     if (!(dt > 0)) return;
     const h = Math.min(dt, 0.05);
     for (const pair of pairs) {
-      if (pair.a.state === "stand") tickStand(pair.a, pair.b, h);
-      if (pair.b.state === "stand") tickStand(pair.b, pair.a, h);
+      if (pair.a.state === "stand") tickStand(pair.a, pair.b, h, pair);
+      if (pair.b.state === "stand") tickStand(pair.b, pair.a, h, pair);
       if (pair.a.state === "ragdoll") tickRagdoll(pair.a, h);
       if (pair.b.state === "ragdoll") tickRagdoll(pair.b, h);
       if (pair.a.state === "ragdoll" || pair.b.state === "ragdoll") {
@@ -448,6 +751,8 @@ export function spawnFights(scene) {
           resetFighter(pair.a);
           resetFighter(pair.b);
           pair.down = 0;
+          pair.hits = 0;
+          pair.nextBarb = 2 + ((Math.random() * 3) | 0);
         }
       }
     }
@@ -456,5 +761,7 @@ export function spawnFights(scene) {
   return {
     tick,
     meshes: pairs.flatMap((p) => [p.a.mesh, p.b.mesh]),
+    setPlay,
+    setSfx,
   };
 }

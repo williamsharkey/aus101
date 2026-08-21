@@ -3,12 +3,26 @@ import { chooseAction, collectPatches } from "./policy.js";
 
 export const CANVAS = 192;
 
+/** Fraction of pixels still near linen (244, 239, 228). */
+export function linenFrac(pix, w, h) {
+  const n = w * h;
+  if (!n) return 0;
+  let c = 0;
+  for (let i = 0; i < n; i++) {
+    const o = i * 4;
+    const d = Math.abs(pix[o] - 244) + Math.abs(pix[o + 1] - 239) + Math.abs(pix[o + 2] - 228);
+    if (d <= 18) c += 1;
+  }
+  return c / n;
+}
+
 export function createPaintBrain() {
   const studio = createStudio();
   const canvas = typeof document !== "undefined" ? document.createElement("canvas") : null;
   let ctx = null;
   let paint = new Uint8ClampedArray(CANVAS * CANVAS * 4);
   let paints = 0;
+  let houseStrokes = 0;
   fillLinen();
   if (canvas) {
     canvas.width = CANVAS;
@@ -27,19 +41,22 @@ export function createPaintBrain() {
   function stamp(u, v, rgb, width, kind) {
     const cx = u * CANVAS;
     const cy = v * CANVAS;
-    const rx = (kind === "dash" ? width * 1.7 : width) * CANVAS;
-    const ry = (kind === "dash" ? width * 0.5 : width) * CANVAS;
+    const rx =
+      (kind === "wash" ? width * 1.2 : kind === "dash" ? width * 1.7 : width) * CANVAS;
+    const ry =
+      (kind === "wash" ? width * 0.95 : kind === "dash" ? width * 0.5 : width) * CANVAS;
     const x0 = Math.max(0, (cx - rx) | 0);
     const x1 = Math.min(CANVAS - 1, (cx + rx) | 0);
     const y0 = Math.max(0, (cy - ry) | 0);
     const y1 = Math.min(CANVAS - 1, (cy + ry) | 0);
+    const cover = kind === "wash" ? 0.92 : 0.78;
     for (let y = y0; y <= y1; y++) {
       for (let x = x0; x <= x1; x++) {
         const dx = (x + 0.5 - cx) / Math.max(0.5, rx);
         const dy = (y + 0.5 - cy) / Math.max(0.5, ry);
         const d2 = dx * dx + dy * dy;
         if (d2 > 1) continue;
-        const a = (1 - d2) * 0.78;
+        const a = (1 - d2) * cover;
         const i = (y * CANVAS + x) * 4;
         paint[i] = paint[i] * (1 - a) + rgb.r * a;
         paint[i + 1] = paint[i + 1] * (1 - a) + rgb.g * a;
@@ -79,6 +96,7 @@ export function createPaintBrain() {
   function resetLinen() {
     fillLinen();
     paints = 0;
+    houseStrokes = 0;
     flush();
   }
 
@@ -90,7 +108,8 @@ export function createPaintBrain() {
     let errSum = 0;
     for (const p of patches) errSum += p.err;
     const meanErr = patches.length ? errSum / patches.length : 0;
-    const act = chooseAction(studio, patches, paints);
+    const lf = linenFrac(paint, CANVAS, CANVAS);
+    const act = chooseAction(studio, patches, paints, { houseStrokes, linenFrac: lf });
     if (act.type === "switch") studio.switchBrush(act.id);
     else if (act.type === "clean") studio.clean();
     else if (act.type === "load") studio.load(act.well, act.n);
@@ -104,6 +123,7 @@ export function createPaintBrain() {
         if (rgb) {
           stamp(act.patch.u, act.patch.v, rgb, studio.spec.width, act.kind);
           paints += 1;
+          if (studio.active === "house") houseStrokes += 1;
         }
       }
     }
@@ -111,6 +131,8 @@ export function createPaintBrain() {
     act.paints = paints;
     act.meanErr = meanErr;
     act.nPatches = patches.length;
+    act.houseStrokes = houseStrokes;
+    act.linenFrac = lf;
     return act;
   }
 
@@ -121,8 +143,14 @@ export function createPaintBrain() {
     step,
     flush,
     resetLinen,
+    linenFrac() {
+      return linenFrac(paint, CANVAS, CANVAS);
+    },
     get paints() {
       return paints;
+    },
+    get houseStrokes() {
+      return houseStrokes;
     },
     CANVAS,
   };

@@ -17,6 +17,10 @@ export const WEIGHTS = {
   cluster: 6,
   /** Fat blocking-in for the first ~72 marks; the rest of a ~360 sitting is thin detail. */
   blockIn: 72,
+  /** Blank-linen house washes: at most this many, then never again this sitting. */
+  houseMax: 8,
+  /** Switch off house as soon as leftover linen drops below this (95% covered). */
+  linenOff: 0.05,
 };
 
 function meanTarget(patches) {
@@ -58,13 +62,38 @@ function clusterMeanErr(patches) {
   return s / (patches.length || 1);
 }
 
+/** Highest-error leftover-linen bin, stamped at the bin center so washes do not clip. */
+function pickHousePatch(patches) {
+  const bins = new Array(9).fill(null);
+  for (const p of patches) {
+    const tx = Math.min(2, (p.u * 3) | 0);
+    const ty = Math.min(2, (p.v * 3) | 0);
+    const i = ty * 3 + tx;
+    const score = p.err + (p.linen < 18 ? 50 : 0);
+    if (!bins[i] || score > bins[i]._s) {
+      bins[i] = { ...p, u: (tx + 0.5) / 3, v: (ty + 0.5) / 3, _s: score };
+    }
+  }
+  let best = null;
+  for (const b of bins) {
+    if (b && (!best || b._s > best._s)) best = b;
+  }
+  return best || patches[0];
+}
+
 /**
  * Pick the next action. Returns { type, ... }.
  * types: paint | load | squeeze | knife | clean | switch
  * `paints` is marks on the current sitting (not lifetime studio.stats.strokes).
  */
-export function chooseAction(studio, patches, paints = studio.stats.strokes) {
-  const next = patches.slice(0, WEIGHTS.cluster);
+export function chooseAction(studio, patches, paints = studio.stats.strokes, ctx = {}) {
+  if (!patches.length) return { type: "idle" };
+  const houseStrokes = ctx.houseStrokes ?? 0;
+  const linen = ctx.linenFrac;
+  // House only while linen is still showing and we have stamps left this sitting.
+  const housePhase =
+    linen != null && houseStrokes < WEIGHTS.houseMax && linen >= WEIGHTS.linenOff;
+  const next = housePhase ? [pickHousePatch(patches)] : patches.slice(0, WEIGHTS.cluster);
   if (!next.length) return { type: "idle" };
   const mean = meanTarget(next);
   const span = regionSize(next);
@@ -74,14 +103,21 @@ export function chooseAction(studio, patches, paints = studio.stats.strokes) {
   const wantFat = blocking
     ? span > 0.08 || next[0].err > 22
     : span > 0.28 && next[0].err > 50 && paints < 140;
-  const wantId = blocking ? "fat" : "thin";
-  const kind = blocking || wantFat ? "dash" : "dot";
+  const wantId = housePhase ? "house" : blocking ? "fat" : "thin";
+  const kind = housePhase ? "wash" : blocking || wantFat ? "dash" : "dot";
   const brush = studio.brush;
   const brushRgb = studio.rgbOfBrush();
   const curE = dEcol(brushRgb, mean);
 
-  if (studio.active !== wantId && brush.load < 0.5) {
-    return { type: "switch", id: wantId, why: blocking ? "block in" : "detail" };
+  if (studio.active !== wantId) {
+    const force = housePhase || studio.active === "house";
+    if (force || brush.load < 0.5) {
+      return {
+        type: "switch",
+        id: wantId,
+        why: housePhase ? "house wash" : studio.active === "house" ? "house done" : blocking ? "block in" : "detail",
+      };
+    }
   }
 
   if (brush.load >= studio.spec.use * 0.5 && curE < WEIGHTS.goodEnough) {
@@ -114,7 +150,9 @@ export function chooseAction(studio, patches, paints = studio.stats.strokes) {
     }
   }
   if (bestWell >= 0 && bestE < 34 && studio.wells[bestWell].vol >= 1) {
-    const n = Math.min(6, Math.max(1, Math.ceil(studio.wells[bestWell].vol > 6 ? 6 : studio.wells[bestWell].vol)));
+    const n = wantId === "house"
+      ? 6
+      : Math.min(6, Math.max(1, Math.ceil(studio.wells[bestWell].vol > 6 ? 6 : studio.wells[bestWell].vol)));
     return { type: "load", well: bestWell, n, why: `dip well ${bestWell} dE=${bestE.toFixed(1)}` };
   }
 
@@ -135,7 +173,7 @@ export function chooseAction(studio, patches, paints = studio.stats.strokes) {
     };
   }
 
-  return { type: "paint", patch: next[0], kind: "dot", why: "fallback dab" };
+  return { type: "paint", patch: next[0], kind, why: "fallback dab" };
 }
 
 function patchAt(view, paint, w, h, x, y) {

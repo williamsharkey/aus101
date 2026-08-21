@@ -32,10 +32,12 @@ import { createRecall } from "./game/recall.js";
 import { createPanic } from "./game/panic.js";
 import { createArrest } from "./game/arrest.js";
 import { spawnLaserGun } from "./world/laserGun.js";
+import { spawnDropships } from "./world/dropships.js";
 import { createCombat } from "./game/combat.js";
 import { createPropPhysics } from "./phys/props.js";
 import { createReticuleBay } from "./hud/reticule.js";
 import { createRadioHud } from "./hud/radio.js";
+import { createActionPrompt } from "./hud/actionPrompt.js";
 
 import { createArtist, pickArtistPose } from "./chars/artist.js";
 import { spawnParty } from "./world/party.js";
@@ -46,6 +48,8 @@ import { createBoomBed, createGuitarBed, createDjBed } from "./audio/localBeds.j
 import { attachGadgets } from "./world/gadgets.js";
 import { spawnSynthRig } from "./world/synthRig.js";
 import { spawnShitaGuy } from "./world/shitaGuy.js";
+import { spawnConspiracyJock } from "./world/conspiracyJock.js";
+import { spawnInfluencers } from "./world/influencers.js";
 import { spawnInteriors } from "./world/interiors.js";
 import { createTapeSystem } from "./audio/tapeDeck.js";
 import { midiBus } from "./audio/midiBus.js";
@@ -71,7 +75,7 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 const scene = new THREE.Scene();
 setupGoldCoastLights(scene);
 
-const camera = new THREE.PerspectiveCamera(62, 1, 0.08, 220);
+const camera = new THREE.PerspectiveCamera(62, 1, 0.08, 280);
 const follow = createFollowCam();
 
 const colliders = createColliders();
@@ -79,6 +83,7 @@ const level = buildGoldCoast(scene, colliders);
 // Enterable buildings register their own wall AABBs, with a gap at each doorway.
 const interiors = spawnInteriors(scene, colliders);
 const wisdom = interiors.buildings.find((b) => b.id === "wisdom") || null;
+const library = interiors.buildings.find((b) => b.id === "library") || null;
 
 const props = createPropPhysics({
   scene,
@@ -125,6 +130,8 @@ const synth = spawnSynthRig(scene, {
   onSave: (p) => tapes.saveFromSynth(p),
 });
 const shita = spawnShitaGuy(scene);
+const conspiracy = spawnConspiracyJock(scene);
+const influencers = spawnInfluencers(scene, renderer);
 const roach = spawnRoachIncel(scene, {
   play: (id, o) => voice.play(id, o),
 });
@@ -145,6 +152,8 @@ for (const mesh of fights.meshes || []) enroll(mesh, "ken", "adult");
 if (artist.painter) enroll(artist.painter, "artist", "adult");
 if (synth.lad) enroll(synth.lad, "ken", "adult");
 if (shita.mesh) enroll(shita.mesh, "shita", "adult");
+if (conspiracy.mesh) enroll(conspiracy.mesh, "ken", "adult");
+for (const mesh of influencers?.meshes || []) enroll(mesh);
 for (const name of [
   "ken-guitar-a",
   "ken-guitar-b",
@@ -154,6 +163,7 @@ for (const name of [
   "dj-ken",
   "synth-lad",
   "shita-lad",
+  "ken-conspiracy",
   "artist-painter",
 ]) {
   enroll(scene.getObjectByName(name));
@@ -165,6 +175,10 @@ for (let i = 0; i < 5; i++) {
 for (let i = 0; i < 4; i++) enroll(scene.getObjectByName(`ken-fight-${i}`), "ken", "adult");
 
 const sfx = new SfxBank();
+const fightPlay = (id, o) => voice.play(id, o);
+Object.defineProperty(fightPlay, "busy", { get: () => voice.busy });
+fights.setPlay(fightPlay);
+fights.setSfx(sfx);
 const lotionFoley = installLotionFoley(sfx, null);
 const steps = createFootstepPlayer(sfx);
 const walkby = createWalkbyDirector(voice, cast);
@@ -178,8 +192,13 @@ const panic = createPanic({
   cast,
   play: (id) => voice.play(id),
   colliders,
+  onSpawn: (mesh, kind) => enroll(mesh, kind || mesh.userData.kind || "cop", "adult"),
 });
 for (const bot of panic.house?.robots || []) enroll(bot, "t101", "adult");
+const ships = spawnDropships(scene);
+ships.panic = panic;
+ships.sfx = sfx;
+panic.onNeedDropships = (w) => ships.deliver(w);
 const recall = createRecall({
   scene,
   play: (id) => voice.play(id),
@@ -201,6 +220,7 @@ const arrest = createArrest({
   },
   hideGun: (pos) => gun.hide(pos),
 });
+panic.onDelivered = () => arrest.beginJack();
 let radio = null;
 
 // Violence is a physical act, not a keypress: `combat` swings and raycasts, and
@@ -215,7 +235,6 @@ const combat = createCombat({
     panic.onHarm(info);
     sfx.copWhoop();
     sfx.radioChatter();
-    arrest.begin();
   },
 });
 
@@ -288,6 +307,145 @@ Object.assign(hint.style, {
   whiteSpace: "nowrap",
 });
 document.body.appendChild(hint);
+
+const actionPrompt = createActionPrompt();
+const SEQ_RANGE = 2.6;
+const LOUNGE_R = 1.55;
+const PUNCH_REACH = 1.55;
+const PUNCH_COS = Math.cos(0.95);
+const loungers = [];
+scene.traverse((o) => {
+  if (o.userData?.kind === "lounger" && o.userData.seat) loungers.push(o);
+});
+
+/** @type {{ group: object, seat: { x: number, z: number, yaw: number } } | null} */
+let loungeSit = null;
+let currentAction = null;
+let prevAct = false;
+let actionClick = false;
+const _npcWp = new THREE.Vector3();
+
+function distXZ(ax, az, bx, bz) {
+  return Math.hypot((ax ?? 0) - (bx ?? 0), (az ?? 0) - (bz ?? 0));
+}
+
+function personInPunchArc(pos, yaw) {
+  if (!pos || loungeSit || wisdom?.strapped) return false;
+  const fx = -Math.sin(yaw);
+  const fz = -Math.cos(yaw);
+  for (const npc of cast) {
+    const m = npc.mesh;
+    if (!m || m.visible === false || npc.down || m.userData?.combatDown) continue;
+    if (typeof m.getWorldPosition === "function") m.getWorldPosition(_npcWp);
+    else _npcWp.set(m.position.x, 0, m.position.z);
+    const dx = _npcWp.x - pos.x;
+    const dz = _npcWp.z - pos.z;
+    const d = Math.hypot(dx, dz);
+    if (d > PUNCH_REACH || d < 1e-4) continue;
+    if ((dx / d) * fx + (dz / d) * fz >= PUNCH_COS) return true;
+  }
+  return false;
+}
+
+function actHeld() {
+  const k = input.keys;
+  if (k.KeyE || k.Enter || k.NumpadEnter) return true;
+  if (k.KeyF && !combat.hasLaser) return true;
+  return false;
+}
+
+function pollAction(pos) {
+  if (!pos || arrest.active) return null;
+  if (wisdom?.strapped) {
+    return { id: "chair-leave", label: "leave chair · any action", dist: 0 };
+  }
+  if (loungeSit) {
+    return { id: "lounge-leave", label: "get up · any action", dist: 0 };
+  }
+  let best = null;
+  const consider = (id, label, dist, target) => {
+    if (!best || dist < best.dist) best = { id, label, dist, target };
+  };
+  if (wisdom?.inChairRange?.(pos) && wisdom.center) {
+    consider("chair-sit", "sit · any action", distXZ(pos.x, pos.z, wisdom.center.x, wisdom.center.z));
+  }
+  for (const g of loungers) {
+    const seat = g.userData.seat;
+    if (!seat) continue;
+    const d = distXZ(pos.x, pos.z, seat.x, seat.z);
+    if (d <= LOUNGE_R) consider("lounge-sit", "lie down · any action", d, g);
+  }
+  const hung = artist.nearestHung?.(pos);
+  if (hung) consider("painting", "save painting · any action", hung.dist, hung.item);
+  if (synth?.position) {
+    const d = distXZ(pos.x, pos.z, synth.position.x, synth.position.z);
+    if (d <= (synth.range || SEQ_RANGE)) {
+      const open = synth.isOpen?.() === true;
+      consider(
+        open ? "seq-save" : "seq-open",
+        open ? "save tape · any action" : "open sequencer · any action",
+        d
+      );
+    }
+  }
+  return best;
+}
+
+function sitLounger(g) {
+  const seat = g?.userData?.seat;
+  if (!seat) return;
+  loungeSit = { group: g, seat };
+  player.loungeSit = true;
+  player.pos.x = seat.x;
+  player.pos.z = seat.z;
+  player.pos.y = 0;
+  player.vel.set(0, 0, 0);
+  player.yaw = seat.yaw;
+  player.pitch = -0.12;
+  follow.snap();
+}
+
+function leaveLounger() {
+  if (!loungeSit) return;
+  const g = loungeSit.group;
+  const yaw = g?.rotation?.y || 0;
+  player.pos.x = (g?.position?.x ?? player.pos.x) + Math.cos(yaw) * 0.9;
+  player.pos.z = (g?.position?.z ?? player.pos.z) - Math.sin(yaw) * 0.9;
+  player.pos.y = 0;
+  player.pitch = -0.05;
+  player.vel.set(0, 0, 0);
+  player.loungeSit = false;
+  loungeSit = null;
+  follow.snap();
+}
+
+function applyLoungeCam(cam, p) {
+  const sy = Math.sin(p.yaw);
+  const cy = Math.cos(p.yaw);
+  cam.position.set(p.pos.x + 2.4 * sy, p.pos.y + 1.08, p.pos.z + 2.4 * cy);
+  cam.lookAt(p.pos.x - 3.5 * sy, 0.35, p.pos.z - 3.5 * cy);
+}
+
+function activate(a) {
+  if (!a || arrest.active) return;
+  switch (a.id) {
+    case "chair-sit":
+    case "chair-leave":
+      wisdom?.toggle?.(player, camera, follow);
+      break;
+    case "lounge-sit":
+      sitLounger(a.target);
+      break;
+    case "lounge-leave":
+      leaveLounger();
+      break;
+    case "painting":
+      artist.pickupNearest?.(player.pos);
+      break;
+    default:
+      break;
+  }
+}
 
 // midi-playalong
 const PLAY_WIN = 800;
@@ -407,6 +565,7 @@ window.addEventListener("keydown", (e) => {
   if (!playing || arrest.active || e.repeat) return;
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   if (synth.isOpen?.()) return;
+  if (currentAction) return;
   const slot = playAlongSlot(e.code);
   if (slot < 0) return;
   if (!nearMusicSpot()) return;
@@ -427,21 +586,23 @@ window.addEventListener("keydown", (e) => {
 });
 // midi-playalong
 
-let wisdomClick = false;
 canvas.addEventListener("mousedown", (e) => {
   if (!playing || arrest.active) return;
-  if (synth.isOpen?.()) return;
   voice.unlock().catch(() => {});
   sfx.unlock().catch(() => {});
-  if (wisdom && (wisdom.strapped || wisdom.inChairRange?.(player.pos))) {
-    wisdomClick = true;
-    return;
-  }
-  if (e.button === 0) combat.punch(player.pos, player.yaw, player.pitch);
   if (e.button === 2 && combat.hasLaser) {
+    if (synth.isOpen?.()) return;
     sfx.laser();
     combat.laser(player.pos, player.yaw, player.pitch);
+    return;
   }
+  if (e.button !== 0) return;
+  if (currentAction && !combat.swinging && !personInPunchArc(player.pos, player.yaw)) {
+    actionClick = true;
+    return;
+  }
+  if (synth.isOpen?.()) return;
+  combat.punch(player.pos, player.yaw, player.pitch);
 });
 canvas.addEventListener("contextmenu", (e) => e.preventDefault());
 
@@ -556,6 +717,16 @@ function frame() {
     if (playing && !arrest.active) {
       if (wisdom?.strapped) {
         wisdom.tickChair(TICK, player);
+      } else if (loungeSit) {
+        player.pos.x = loungeSit.seat.x;
+        player.pos.z = loungeSit.seat.z;
+        player.vel.set(0, 0, 0);
+        const lk = getLookStick();
+        if (lk.mag > 0.04) {
+          player.yaw -= lk.x * 2.35 * TICK;
+          player.pitch -= lk.y * 1.55 * TICK;
+          player.pitch = Math.max(-1.45, Math.min(1.45, player.pitch));
+        }
       } else {
         const lk = getLookStick();
         if (lk.mag > 0.04) {
@@ -564,6 +735,8 @@ function frame() {
           player.pitch = Math.max(-1.45, Math.min(1.45, player.pitch));
         }
         fixedUpdate(player, input.keys, colliders.COL, BOUNDS, TICK);
+        panic.shove(player, TICK);
+        library?.tickPlayer?.(player, TICK);
       }
     }
     if (playing) arrest.tick(TICK);
@@ -573,20 +746,37 @@ function frame() {
   if (playing) {
     const t = performance.now() * 0.001;
     if (arrest.active && wisdom?.strapped) wisdom.toggle(player, camera, follow);
+    if (arrest.active && loungeSit) leaveLounger();
     level.update(t);
     interiors.tick(t, player.pos);
-    wisdom?.tick?.(t, player.pos, audioOn);
-    wisdom?.tryChair?.(player, input.keys, camera, follow, wisdomClick);
-    wisdomClick = false;
+    wisdom?.tick?.(t, player.pos, audioOn && !arrest.active);
+    const nearest = pollAction(player.pos);
+    currentAction = nearest;
+    actionPrompt.set(nearest && playing ? nearest.label : "");
+    const held = actHeld();
+    const wantAct = ((held && !prevAct) || actionClick) && !!nearest && !arrest.active;
+    prevAct = held;
+    actionClick = false;
+    let seqForce = false;
+    if (wantAct) {
+      if (nearest.id === "seq-open" || nearest.id === "seq-save") seqForce = true;
+      else activate(nearest);
+    }
     party.tick(t);
     fights.tick(raw || TICK);
-    psa.tick(player.pos, audioOn);
+    psa.tick(player.pos, audioOn && !arrest.active);
     gadgets.tick(t, player.pos);
     synth.tick(t);
     shita.tick(t, player.pos, cast, (id, o) => voice.play(id, o));
+    influencers?.tick?.(renderer, scene, t, player.pos, {
+      play: (id, o) => voice.play(id, o),
+      fights,
+    });
+    conspiracy?.tick?.(raw || TICK, player.pos, (id, o) => voice.play(id, o));
     roach?.tick?.(raw || TICK, performance.now());
     {
-      const act = synth.tryInteract(player.pos, input.keys);
+      const force = seqForce ? true : wantAct ? "skip" : false;
+      const act = synth.tryInteract(player.pos, input.keys, force);
       if (act === "save" || act === "take") tapes.saveFromSynth(synth.snapshot());
     }
     tapes.tick(player.pos);
@@ -596,6 +786,7 @@ function frame() {
     panic.tick(raw || TICK, player.pos);
     // After recall/panic: recall.onHarm reads the lastPos its own tick stores.
     combat.tick(raw || TICK, player.pos);
+    ships.tick(raw || TICK, player.pos);
     props.tick(raw || TICK, player.pos, player.vel);
     const speed = Math.hypot(player.vel.x, player.vel.z);
     aus101.position.set(player.pos.x, player.pos.y, player.pos.z);
@@ -612,6 +803,9 @@ function frame() {
     if (wisdom?.strapped) {
       aus101.visible = false;
       wisdom.applyCamera(camera);
+    } else if (loungeSit) {
+      if (!aus101.visible) aus101.visible = true;
+      applyLoungeCam(camera, player);
     } else {
       if (!aus101.visible) aus101.visible = true;
       updateFollowCam(camera, player, raw || 0.016);
@@ -620,7 +814,7 @@ function frame() {
     }
     lotionFoley.tick(performance.now(), speed > 0.4);
     steps.tick({
-      speed: arrest.active ? arrest.stepSpeed || 0 : speed,
+      speed: arrest.active ? 0 : speed,
       onWood: level.isWood(player.pos.x, player.pos.z),
       dt: raw || TICK,
     });

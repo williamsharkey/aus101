@@ -1,9 +1,10 @@
 /**
  * Beach synth lad — physical synth + drum machine, 16-step overlay.
- * KeyE (or the unlabeled pad) opens the sequencer; preview bed plays while
+ * KeyE / Enter / the unlabeled pad / any in-range action opens the sequencer; preview bed plays while
  * open (createPatternBed start + setMix 0.4) and mutes when closed.
- * SAVE/TAKE write a tape clip immediately (onSave callback); grid edits mutate
- * the live pattern the preview bed reads each step.
+ * SAVE/TAKE write a tape clip immediately (onSave callback); SAVE also starts
+ * a >=30s WAV download (`aus101-tape.wav`). Grid edits mutate the live pattern
+ * the preview bed reads each step.
  */
 import * as THREE from "three";
 import { ken } from "../chars/npcs.js";
@@ -14,6 +15,7 @@ import {
   clonePattern,
   acquireCtx,
   createPatternBed,
+  downloadLoopWav,
 } from "../audio/tapeDeck.js";
 
 const RANGE = 2.6;
@@ -419,6 +421,7 @@ export function spawnSynthRig(scene, opts = {}) {
     const snap = clonePattern(pattern);
     if (onSaveTape) onSaveTape(snap);
     else if (latch) pending = kind;
+    if (kind === "save") downloadLoopWav(snap).catch(() => {});
     return kind;
   }
 
@@ -481,7 +484,13 @@ export function spawnSynthRig(scene, opts = {}) {
     });
   }
 
-  function tryInteract(playerPos, keys) {
+  /**
+   * @param {{x?:number,z?:number}|null} playerPos
+   * @param {Record<string, boolean>|null} [keys]
+   * @param {boolean|"skip"} [force] true: open if closed, save tape if open.
+   *   "skip": another prompt consumed this action edge; still track key state.
+   */
+  function tryInteract(playerPos, keys, force) {
     const inRange = distXZ(playerPos, root.position) <= RANGE;
     const eDown = !!keys?.KeyE;
     const enterDown = !!(keys?.Enter || keys?.NumpadEnter);
@@ -509,6 +518,21 @@ export function spawnSynthRig(scene, opts = {}) {
 
     showPad(!open);
 
+    if (force === true) {
+      if (!open) {
+        setOpen(true);
+        return "open";
+      }
+      const kind = commitTape("save", false);
+      return onSaveTape ? null : kind;
+    }
+    if (force === "skip") {
+      if (act === "open") {
+        setOpen(true);
+        return "open";
+      }
+      return null;
+    }
     if (eEdge) {
       if (!open) {
         setOpen(true);
@@ -567,6 +591,10 @@ export function spawnSynthRig(scene, opts = {}) {
     lad,
     position: root.position,
     tryInteract,
+    inRange(pos) {
+      return distXZ(pos, root.position) <= RANGE;
+    },
+    range: RANGE,
     get pattern() {
       return pattern;
     },

@@ -17,6 +17,7 @@ export const WELL_COUNT = 10;
 export const BRUSH_MAX = 6;
 
 export const BRUSHES = {
+  house: { id: "house", width: 0.34, use: 4, clean: 0.4 },
   fat: { id: "fat", width: 1 / 10, use: 2, clean: 1.2 },
   thin: { id: "thin", width: 1 / 20, use: 0.45, clean: 0.55 },
 };
@@ -28,6 +29,7 @@ function emptyWell() {
 export function createStudio() {
   const wells = Array.from({ length: WELL_COUNT }, emptyWell);
   const brushes = {
+    house: { id: "house", lin: null, load: 0, dirty: 0 },
     fat: { id: "fat", lin: null, load: 0, dirty: 0 },
     thin: { id: "thin", lin: null, load: 0, dirty: 0 },
   };

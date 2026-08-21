@@ -347,8 +347,30 @@ function makeBrush(skinM) {
   const bristle = part(GEO.cone, std(0x3a2a18, { roughness: 0.9 }), 0.016, 0.055, 0.016);
   bristle.rotation.x = Math.PI / 2;
   bristle.position.z = BRUSH_LEN - 0.028;
-  g.add(stick, ferrule, bristle);
+  const houseFerrule = part(GEO.box, std(0xb0a070, { metalness: 0.45, roughness: 0.4 }), 0.078, 0.01, 0.026);
+  houseFerrule.position.z = 0.242;
+  houseFerrule.visible = false;
+  const houseBristle = part(GEO.box, std(0x4a3820, { roughness: 0.92 }), 0.1, 0.014, 0.072);
+  houseBristle.position.z = BRUSH_LEN - 0.022;
+  houseBristle.visible = false;
+  g.add(stick, ferrule, bristle, houseFerrule, houseBristle);
+  g.userData.oil = { ferrule, bristle };
+  g.userData.house = { ferrule: houseFerrule, bristle: houseBristle };
   return g;
+}
+
+function showBrushKind(brush, id) {
+  const house = id === "house";
+  const oil = brush.userData.oil;
+  const h = brush.userData.house;
+  if (oil) {
+    oil.ferrule.visible = !house;
+    oil.bristle.visible = !house;
+  }
+  if (h) {
+    h.ferrule.visible = house;
+    h.bristle.visible = house;
+  }
 }
 
 function makePainter() {
@@ -787,6 +809,8 @@ export function createArtist(scene, pose = pickArtistPose(), opts = {}) {
     painter.rotation.z = leanZ;
     painter.updateMatrixWorld(true);
 
+    showBrushKind(brush, brain.studio.active);
+
     prevQuat.copy(arm.quaternion);
     arm.lookAt(strokeWorld);
     aimQuat.copy(arm.quaternion);
@@ -914,6 +938,39 @@ export function createArtist(scene, pose = pickArtistPose(), opts = {}) {
     return true;
   }
 
+  /**
+   * Closest hung painting within `maxDist` metres (XZ). Null if none.
+   */
+  function nearestHung(playerPos, maxDist = 1.6) {
+    if (!hung.length || !playerPos) return null;
+    const px = playerPos.x ?? 0;
+    const pz = playerPos.z ?? 0;
+    let best = null;
+    let bestD = maxDist;
+    for (const h of hung) {
+      const g = h.group;
+      if (!g) continue;
+      const d = Math.hypot(px - g.position.x, pz - g.position.z);
+      if (d <= bestD) {
+        bestD = d;
+        best = h;
+      }
+    }
+    return best ? { item: best, dist: bestD } : null;
+  }
+
+  /**
+   * Proximity pickup: download the closest hung painting within ~1.6 m (XZ).
+   * Parent calls this from the action prompt. Does not remove the mesh.
+   */
+  function pickupNearest(playerPos) {
+    const n = nearestHung(playerPos);
+    const canvas = n?.item?.canvas || n?.item?.group?.userData?.canvas;
+    if (!canvas) return false;
+    downloadPainting(canvas);
+    return true;
+  }
+
   let swallowMouse = false;
   function onPickPointer(e) {
     if (!pickCam || !hung.length) return;
@@ -943,6 +1000,8 @@ export function createArtist(scene, pose = pickArtistPose(), opts = {}) {
     painter,
     pose,
     tryPickup,
+    nearestHung,
+    pickupNearest,
     tick(renderer, scene3, nowMs) {
       hookPickCamera(renderer);
       if (!renderer.domElement.__artistPick) {

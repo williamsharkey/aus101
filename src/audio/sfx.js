@@ -149,63 +149,130 @@ export class SfxBank {
     o.stop(t + 0.14);
   }
 
-  /** Short radio squelch — randomized, never a held tone. */
+  /**
+   * Handheld radio: key-up hiss, a couple of mid formants like clipped talk,
+   * then squelch tail. Quiet enough to sit under spoken mantras.
+   */
   radioChatter() {
     const now = typeof performance !== "undefined" ? performance.now() : 0;
-    if (now && now - this._chatAt < 420) return;
+    if (now && now - this._chatAt < 900) return;
     this._chatAt = now;
-    const hiss = 1600 + Math.random() * 1100;
-    const click = 420 + Math.random() * 260;
     this._noiseBurst({
-      dur: 0.045 + Math.random() * 0.03,
-      gain: 0.032,
-      freq: hiss,
+      dur: 0.035,
+      gain: 0.014,
+      freq: 2800,
       type: "highpass",
-      Q: 0.65,
-      rate: 0.9 + Math.random() * 0.3,
+      Q: 0.5,
     });
+    const t0 = 40;
+    for (let i = 0; i < 3; i++) {
+      const f = 380 + Math.random() * 520;
+      setTimeout(() => {
+        this._beep({
+          freq: f,
+          dur: 0.05 + Math.random() * 0.05,
+          type: "square",
+          gain: 0.018,
+          slide: (Math.random() - 0.5) * 180,
+        });
+      }, t0 + i * (55 + Math.random() * 40));
+    }
     setTimeout(() => {
       this._noiseBurst({
-        dur: 0.06 + Math.random() * 0.04,
-        gain: 0.024,
-        freq: click,
-        type: "bandpass",
-        Q: 2.8 + Math.random(),
+        dur: 0.04,
+        gain: 0.01,
+        freq: 2400,
+        type: "highpass",
+        Q: 0.4,
       });
-    }, 30 + Math.random() * 55);
+    }, 280);
   }
 
-  /** Filtered-noise whoop. One chirp pair, then silence. */
+  /** One short whoop, ~0.1 of the old rattle. */
   copWhoop() {
     const now = typeof performance !== "undefined" ? performance.now() : 0;
-    if (now && now - this._whoopAt < 480) return;
+    if (now && now - this._whoopAt < 1200) return;
     this._whoopAt = now;
-    const base = 480 + Math.random() * 220;
-    const rate = 0.85 + Math.random() * 0.35;
-    this._noiseBurst({
-      dur: 0.16,
-      gain: 0.038,
-      freq: base,
-      type: "bandpass",
-      Q: 3.6,
-      rate,
+    this._beep({
+      freq: 620 + Math.random() * 80,
+      dur: 0.11,
+      type: "sine",
+      gain: 0.012,
+      slide: 140,
     });
-    setTimeout(() => {
-      this._noiseBurst({
-        dur: 0.12,
-        gain: 0.028,
-        freq: base * (1.2 + Math.random() * 0.25),
-        type: "bandpass",
-        Q: 3.1,
-        rate: rate * 1.05,
-      });
-    }, 140 + Math.random() * 80);
   }
 
   /** Palm-to-face. Lotion slap mp3s, quieter, pitched; osc thump if the file misses. */
   slapFace() {
     const rate = 0.82 + Math.random() * 0.38;
     return this.play(LOTION.slap, { gain: 0.42, rate }).catch(() => this._thump());
+  }
+
+  /** Fist/kick air. One burst, never a loop. */
+  fightWhoosh() {
+    const air = 1500 + Math.random() * 1200;
+    this._noiseBurst({
+      dur: 0.06 + Math.random() * 0.05,
+      gain: 0.042,
+      freq: air,
+      type: "highpass",
+      Q: 0.55 + Math.random() * 0.4,
+      rate: 1.05 + Math.random() * 0.45,
+    });
+  }
+
+  /** Open-hand crack. Synth only — not the lotion slap files. */
+  fightSlap() {
+    this._noiseBurst({
+      dur: 0.05,
+      gain: 0.07,
+      freq: 2100 + Math.random() * 700,
+      type: "bandpass",
+      Q: 3.4,
+      rate: 1.2 + Math.random() * 0.35,
+    });
+    this._beep({
+      freq: 820 + Math.random() * 180,
+      dur: 0.045,
+      type: "square",
+      gain: 0.055,
+      slide: -420,
+    });
+  }
+
+  /** Body hit. Short sine drop + thud. */
+  fightOof() {
+    this._beep({
+      freq: 170 + Math.random() * 50,
+      dur: 0.11,
+      type: "sine",
+      gain: 0.13,
+      slide: -110,
+    });
+    this._noiseBurst({
+      dur: 0.07,
+      gain: 0.036,
+      freq: 260 + Math.random() * 80,
+      type: "lowpass",
+      Q: 0.7,
+    });
+  }
+
+  /** Effort grunt so punches still yell before VO bakes. */
+  fightYell() {
+    const r = Math.random();
+    if (r < 0.3) {
+      this._beep({ freq: 500 + Math.random() * 90, dur: 0.11, type: "sawtooth", gain: 0.085, slide: -160 });
+    } else if (r < 0.58) {
+      this._beep({ freq: 330 + Math.random() * 40, dur: 0.13, type: "sine", gain: 0.1, slide: -70 });
+    } else if (r < 0.8) {
+      this._beep({ freq: 460 + Math.random() * 50, dur: 0.07, type: "square", gain: 0.07, slide: -50 });
+    } else {
+      this._beep({ freq: 390, dur: 0.055, type: "sawtooth", gain: 0.08, slide: -40 });
+      setTimeout(() => {
+        this._beep({ freq: 260, dur: 0.08, type: "sawtooth", gain: 0.065, slide: -45 });
+      }, 65);
+    }
   }
 }
 

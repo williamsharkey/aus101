@@ -38,11 +38,13 @@ export const GC = {
   oceanZ: -22,
 };
 
+// Match the sand plane (width+30 × 66 at z=15 → x ±60, z −18..48) and the
+// ocean lip so the playable wall sits on the visible edge, not 15 m inland.
 export const BOUNDS = {
-  minX: -GC.width / 2 + 1,
-  maxX: GC.width / 2 - 1,
-  minZ: -GC.depth / 2 + 1,
-  maxZ: GC.depth / 2 - 1,
+  minX: -(GC.width + 30) / 2 + 0.35,
+  maxX: (GC.width + 30) / 2 - 0.35,
+  minZ: GC.oceanZ - 16,
+  maxZ: 15 + 33 - 0.35,
 };
 
 /** Canvas y=0 is zenith on SphereGeometry (flipY + uv v = 1−row). */

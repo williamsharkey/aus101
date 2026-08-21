@@ -36,7 +36,7 @@ const COOL = [
 ];
 const LAD = ["shita_lad_01", "shita_lad_02", "shita_lad_03"];
 
-const SAND = { minX: -32, maxX: 32, minZ: -8, maxZ: 13.5 };
+const SAND = { minX: -58, maxX: 58, minZ: -16, maxZ: 46 };
 const SPAWN = { x: 20.5, z: -3.2, yaw: -1.1 };
 
 const UP = new THREE.Vector3(0, 1, 0);

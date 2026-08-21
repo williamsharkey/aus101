@@ -1,0 +1,265 @@
+{
+  "version": 1,
+  "lines": [
+    {
+      "id": "inf_f_01",
+      "text": "Okay this is my entire sand to serum routine, I do not skip steps, I do not skip angles, and if the light misses my cheekbones the algorithm will think I just woke up like this.",
+      "voice": "en_female_emotional",
+      "category": "influencer",
+      "priority": "monologue",
+      "ageBand": "adult",
+      "tags": ["influencer"],
+      "cooldownMs": 18000
+    },
+    {
+      "id": "inf_f_02",
+      "text": "I just checked and I am three followers away from a number that will change my life, so if you are watching this and you have not hit follow, this is not content, this is a relationship.",
+      "voice": "en_au_001",
+      "category": "influencer",
+      "priority": "monologue",
+      "ageBand": "adult",
+      "tags": ["influencer"],
+      "cooldownMs": 18000
+    },
+    {
+      "id": "inf_f_03",
+      "text": "Is this even real? Like, is the ocean even real, or did the app just generate a beach behind me because my engagement was dipping and now I have to pretend the tide is a metaphor.",
+      "voice": "en_female_emotional",
+      "category": "influencer",
+      "priority": "monologue",
+      "ageBand": "adult",
+      "tags": ["influencer"],
+      "cooldownMs": 18000
+    },
+    {
+      "id": "inf_f_04",
+      "text": "This whole shot is link in bio energy. I am not even selling anything, I am selling the idea that I might be selling something, and that is honestly more intimate than a product.",
+      "voice": "en_au_001",
+      "category": "influencer",
+      "priority": "monologue",
+      "ageBand": "adult",
+      "tags": ["influencer"],
+      "cooldownMs": 18000
+    },
+    {
+      "id": "inf_f_05",
+      "text": "I am literally shaking. Not from the sun, from the thought that this take might be the one that finally makes people understand my cheekbones as a brand.",
+      "voice": "en_female_emotional",
+      "category": "influencer",
+      "priority": "monologue",
+      "ageBand": "adult",
+      "tags": ["influencer"],
+      "cooldownMs": 18000
+    },
+    {
+      "id": "inf_f_06",
+      "text": "The algorithm needs to see my angles. Left three quarter, right three quarter, then the one where I look surprised that I have a face. If I do not feed it, it forgets I exist.",
+      "voice": "en_au_001",
+      "category": "influencer",
+      "priority": "monologue",
+      "ageBand": "adult",
+      "tags": ["influencer"],
+      "cooldownMs": 18000
+    },
+    {
+      "id": "inf_f_07",
+      "text": "Do not talk to me about SPF, I am wearing twelve products and a personality. This is not a tan, this is a rollout, and the rollout is me standing here until the sand agrees.",
+      "voice": "en_female_emotional",
+      "category": "influencer",
+      "priority": "monologue",
+      "ageBand": "adult",
+      "tags": ["influencer"],
+      "cooldownMs": 18000
+    },
+    {
+      "id": "inf_f_08",
+      "text": "I have been standing here for like a spiritual amount of time. If you can hear seagulls that is diegetic. If you can hear my thoughts that is a brand deal I have not signed yet.",
+      "voice": "en_au_001",
+      "category": "influencer",
+      "priority": "monologue",
+      "ageBand": "adult",
+      "tags": ["influencer"],
+      "cooldownMs": 18000
+    },
+    {
+      "id": "inf_f_09",
+      "text": "My manager is the little number on the screen and it is not going up fast enough. I am going to recast this whole beach until my jawline and the horizon are in a committed relationship.",
+      "voice": "en_female_emotional",
+      "category": "influencer",
+      "priority": "monologue",
+      "ageBand": "adult",
+      "tags": ["influencer"],
+      "cooldownMs": 18000
+    },
+    {
+      "id": "inf_f_10",
+      "text": "People say just be present and I am like I am present, I am so present I have a tripod, I have a second tripod in my bag, I have a third tripod in my personality.",
+      "voice": "en_au_001",
+      "category": "influencer",
+      "priority": "monologue",
+      "ageBand": "adult",
+      "tags": ["influencer"],
+      "cooldownMs": 18000
+    },
+    {
+      "id": "inf_f_fight_01",
+      "text": "Here are two guys fighting in front of me, I'm not even supposed to be here, this is not the vibe I storyboarded, but the lighting on the chaos is honestly incredible.",
+      "voice": "en_female_emotional",
+      "category": "influencer",
+      "priority": "monologue",
+      "ageBand": "adult",
+      "tags": ["influencer", "fight"],
+      "cooldownMs": 14000
+    },
+    {
+      "id": "inf_f_fight_02",
+      "text": "Should I film this or is that like, violence content. I do not want a strike, I just want the algorithm to see that I am adjacent to chaos in a cute way.",
+      "voice": "en_au_001",
+      "category": "influencer",
+      "priority": "monologue",
+      "ageBand": "adult",
+      "tags": ["influencer", "fight"],
+      "cooldownMs": 14000
+    },
+    {
+      "id": "inf_f_fight_03",
+      "text": "Okay so two Kens are actually fighting in my shot and I need everyone to know I was here first, this is my mark, they can take the punching off camera.",
+      "voice": "en_female_emotional",
+      "category": "influencer",
+      "priority": "monologue",
+      "ageBand": "adult",
+      "tags": ["influencer", "fight"],
+      "cooldownMs": 14000
+    },
+    {
+      "id": "inf_m_01",
+      "text": "Bro I have been layering this zinc like it is a lifestyle, not a lotion. If you can still see my pores the camera is lying and I need a new beach and a new lighting plot.",
+      "voice": "en_au_002",
+      "category": "influencer",
+      "priority": "monologue",
+      "ageBand": "adult",
+      "tags": ["influencer"],
+      "cooldownMs": 18000
+    },
+    {
+      "id": "inf_m_02",
+      "text": "I told the algorithm I would give it my best side and it still wants a story. Followers are not numbers, they are people who have not yet seen my abs from this exact height.",
+      "voice": "en_au_002",
+      "category": "influencer",
+      "priority": "monologue",
+      "ageBand": "adult",
+      "tags": ["influencer"],
+      "cooldownMs": 18000
+    },
+    {
+      "id": "inf_m_03",
+      "text": "Is this even real or am I in a filter. I keep checking my own screen and the guy in there looks more employed than me, which is honestly the whole point of the phone.",
+      "voice": "en_au_002",
+      "category": "influencer",
+      "priority": "monologue",
+      "ageBand": "adult",
+      "tags": ["influencer"],
+      "cooldownMs": 18000
+    },
+    {
+      "id": "inf_m_04",
+      "text": "This is link in bio energy but the link is just me. No product, no discount code, just the implication that if you tap it I might notice you from behind the tripod.",
+      "voice": "en_au_002",
+      "category": "influencer",
+      "priority": "monologue",
+      "ageBand": "adult",
+      "tags": ["influencer"],
+      "cooldownMs": 18000
+    },
+    {
+      "id": "inf_m_05",
+      "text": "I am literally shaking. The pump is not even on. This is just what happens when you realise your collarbones are a content vertical and the beach is a studio.",
+      "voice": "en_au_002",
+      "category": "influencer",
+      "priority": "monologue",
+      "ageBand": "adult",
+      "tags": ["influencer"],
+      "cooldownMs": 18000
+    },
+    {
+      "id": "inf_m_06",
+      "text": "The algorithm needs to see my angles. If I stand here long enough it will think I invented shoulders. Do not come into frame, this is a closed set, it is a public beach.",
+      "voice": "en_au_002",
+      "category": "influencer",
+      "priority": "monologue",
+      "ageBand": "adult",
+      "tags": ["influencer"],
+      "cooldownMs": 18000
+    },
+    {
+      "id": "inf_m_07",
+      "text": "People keep walking through my shot like this sand is a thoroughfare. Mate this is a set. I brought a tripod. That is a permit in my heart and a boundary in my caption.",
+      "voice": "en_au_002",
+      "category": "influencer",
+      "priority": "monologue",
+      "ageBand": "adult",
+      "tags": ["influencer"],
+      "cooldownMs": 18000
+    },
+    {
+      "id": "inf_m_08",
+      "text": "I have a skincare fridge at home and a skincare philosophy on the sand. The philosophy is, if the light is good, I am the news, and the news is this exact three quarter.",
+      "voice": "en_au_002",
+      "category": "influencer",
+      "priority": "monologue",
+      "ageBand": "adult",
+      "tags": ["influencer"],
+      "cooldownMs": 18000
+    },
+    {
+      "id": "inf_m_09",
+      "text": "Three takes ago I said something true and I deleted it because truth does not loop. This take is going to loop. Watch me breathe like I have a podcast and a protein plan.",
+      "voice": "en_au_002",
+      "category": "influencer",
+      "priority": "monologue",
+      "ageBand": "adult",
+      "tags": ["influencer"],
+      "cooldownMs": 18000
+    },
+    {
+      "id": "inf_m_10",
+      "text": "My whole personality is this rectangle. If I pack up, do I still exist. That is not a joke, that is the caption, that is the hook, that is why the tripod stays planted.",
+      "voice": "en_au_002",
+      "category": "influencer",
+      "priority": "monologue",
+      "ageBand": "adult",
+      "tags": ["influencer"],
+      "cooldownMs": 18000
+    },
+    {
+      "id": "inf_m_fight_01",
+      "text": "Here are two guys fighting in front of me, I'm not even supposed to be here. I came to talk about my jawline and now the B-roll is a felony with great backlighting.",
+      "voice": "en_au_002",
+      "category": "influencer",
+      "priority": "monologue",
+      "ageBand": "adult",
+      "tags": ["influencer", "fight"],
+      "cooldownMs": 14000
+    },
+    {
+      "id": "inf_m_fight_02",
+      "text": "Should I film this or is that like, violence content. I feel like if I do not pan to it the story is incomplete, but if I do pan I become the story, which is the dream.",
+      "voice": "en_au_002",
+      "category": "influencer",
+      "priority": "monologue",
+      "ageBand": "adult",
+      "tags": ["influencer", "fight"],
+      "cooldownMs": 14000
+    },
+    {
+      "id": "inf_m_fight_03",
+      "text": "These two are going at it and I am still in frame. That is main character behaviour. I did not start it, I just look good next to it, which is honestly a skill.",
+      "voice": "en_au_002",
+      "category": "influencer",
+      "priority": "monologue",
+      "ageBand": "adult",
+      "tags": ["influencer", "fight"],
+      "cooldownMs": 14000
+    }
+  ]
+}

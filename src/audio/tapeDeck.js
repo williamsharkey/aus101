@@ -173,6 +173,152 @@ function tone(ctx, dest, t, midi) {
   o2.stop(t + 0.4);
 }
 
+function hitStep(ctx, dest, nbuf, p, t, i) {
+  const e = i & 15;
+  if (!p) return;
+  if (p.kick && p.kick[e]) kick(ctx, dest.kick, t);
+  if (p.hat && p.hat[e]) hat(ctx, dest.hat, nbuf, t, e === 6 || e === 14);
+  if (p.snare && p.snare[e]) snare(ctx, dest.snare, nbuf, t);
+  if (p.n0 && p.n0[e]) tone(ctx, dest.syn, t, NOTES[0]);
+  if (p.n1 && p.n1[e]) tone(ctx, dest.syn, t, NOTES[1]);
+  if (p.n2 && p.n2[e]) tone(ctx, dest.syn, t, NOTES[2]);
+  if (p.n3 && p.n3[e]) tone(ctx, dest.syn, t, NOTES[3]);
+}
+
+/**
+ * 4 bars of 4/4, repeated until the file is at least 30s.
+ * bar = 4*60/bpm; fourBar = 4*bar; loops = ceil(30/fourBar);
+ * duration = max(30, fourBar*loops). At 118 bpm: bar≈2.034s, 4 bars≈8.136s, 4 loops≈32.54s.
+ */
+export function loopFileSpec(bpm = 118) {
+  const b = bpm || 118;
+  const bar = (4 * 60) / b;
+  const fourBar = 4 * bar;
+  const loops = Math.max(1, Math.ceil(30 / fourBar));
+  const duration = Math.max(30, fourBar * loops);
+  return { bpm: b, bar, fourBar, loops, duration, step: 15 / b, totalSteps: loops * 4 * 16 };
+}
+
+export function loopFileDuration(bpm = 118) {
+  return loopFileSpec(bpm).duration;
+}
+
+function writeStr(view, offset, s) {
+  for (let i = 0; i < s.length; i++) view.setUint8(offset + i, s.charCodeAt(i));
+}
+
+/** PCM 16-bit WAV (RIFF). */
+export function encodeWavPcm16(audioBuffer) {
+  const ch = audioBuffer.numberOfChannels;
+  const sr = audioBuffer.sampleRate;
+  const n = audioBuffer.length;
+  const dataBytes = n * ch * 2;
+  const buf = new ArrayBuffer(44 + dataBytes);
+  const view = new DataView(buf);
+  writeStr(view, 0, "RIFF");
+  view.setUint32(4, 36 + dataBytes, true);
+  writeStr(view, 8, "WAVE");
+  writeStr(view, 12, "fmt ");
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, ch, true);
+  view.setUint32(24, sr, true);
+  view.setUint32(28, sr * ch * 2, true);
+  view.setUint16(32, ch * 2, true);
+  view.setUint16(34, 16, true);
+  writeStr(view, 36, "data");
+  view.setUint32(40, dataBytes, true);
+  const channels = [];
+  for (let c = 0; c < ch; c++) channels.push(audioBuffer.getChannelData(c));
+  let o = 44;
+  for (let i = 0; i < n; i++) {
+    for (let c = 0; c < ch; c++) {
+      let s = channels[c][i];
+      if (s > 1) s = 1;
+      else if (s < -1) s = -1;
+      view.setInt16(o, s < 0 ? (s * 0x8000) | 0 : (s * 0x7fff) | 0, true);
+      o += 2;
+    }
+  }
+  return buf;
+}
+
+function renderOffline(ctx) {
+  return new Promise((resolve, reject) => {
+    let done = false;
+    const finish = (buf) => {
+      if (done || !buf) return;
+      done = true;
+      resolve(buf);
+    };
+    ctx.oncomplete = (ev) => finish(ev.renderedBuffer);
+    let p;
+    try {
+      p = ctx.startRendering();
+    } catch (err) {
+      reject(err);
+      return;
+    }
+    if (p && typeof p.then === "function") p.then(finish, reject);
+  });
+}
+
+function triggerDownload(buf, filename, mime) {
+  if (!buf || typeof document === "undefined") return false;
+  const blob = new Blob([buf], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.rel = "noopener";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+  return true;
+}
+
+/**
+ * Offline render of the 16-step bed, looped to >=30s. Returns a PCM 16-bit WAV ArrayBuffer.
+ * No live AudioContext; does not touch the preview bed.
+ */
+export async function renderLoopWav(pattern) {
+  const p = clonePattern(pattern);
+  const spec = loopFileSpec(p.bpm);
+  const { duration, step, totalSteps } = spec;
+  const tail = 0.45;
+  const sr = 44100;
+  const length = Math.max(1, Math.ceil((duration + tail) * sr));
+  const OAC =
+    (typeof window !== "undefined" && (window.OfflineAudioContext || window.webkitOfflineAudioContext)) ||
+    (typeof OfflineAudioContext !== "undefined" ? OfflineAudioContext : null);
+  if (!OAC) return null;
+  const ctx = new OAC(1, length, sr);
+  const PEAK = 0.46;
+  const out = gn(ctx, PEAK);
+  out.connect(ctx.destination);
+  const dest = {
+    kick: gn(ctx, 1),
+    hat: gn(ctx, 0.72),
+    snare: gn(ctx, 0.85),
+    syn: gn(ctx, 0.7),
+  };
+  dest.kick.connect(out);
+  dest.hat.connect(out);
+  dest.snare.connect(out);
+  dest.syn.connect(out);
+  const nbuf = noiseBuf(ctx, 0.08);
+  for (let i = 0; i < totalSteps; i++) hitStep(ctx, dest, nbuf, p, i * step, i);
+  const rendered = await renderOffline(ctx);
+  return encodeWavPcm16(rendered);
+}
+
+/** Browser download of `aus101-tape.wav` (>=30s loop). */
+export async function downloadLoopWav(pattern, filename = "aus101-tape.wav") {
+  const wav = await renderLoopWav(pattern);
+  return triggerDownload(wav, filename, "audio/wav");
+}
+
 /**
  * Live-reading 16-step bed. Holds the caller's pattern object (no row clone);
  * each pulse reads the same arrays, so sequencer toggles hit on the next 16th.
@@ -198,17 +344,9 @@ export function createPatternBed(ctx, dest, pattern, opts = {}) {
   let mix = 0;
   let live = pattern;
 
+  const buses = { kick: kickBus, hat: hatBus, snare: snareBus, syn: synBus };
   function pulse(t, i) {
-    const e = i & 15;
-    const p = live;
-    if (!p) return;
-    if (p.kick && p.kick[e]) kick(ctx, kickBus, t);
-    if (p.hat && p.hat[e]) hat(ctx, hatBus, nbuf, t, e === 6 || e === 14);
-    if (p.snare && p.snare[e]) snare(ctx, snareBus, nbuf, t);
-    if (p.n0 && p.n0[e]) tone(ctx, synBus, t, NOTES[0]);
-    if (p.n1 && p.n1[e]) tone(ctx, synBus, t, NOTES[1]);
-    if (p.n2 && p.n2[e]) tone(ctx, synBus, t, NOTES[2]);
-    if (p.n3 && p.n3[e]) tone(ctx, synBus, t, NOTES[3]);
+    hitStep(ctx, buses, nbuf, live, t, i);
   }
 
   function clock() {

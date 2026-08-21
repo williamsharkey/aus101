@@ -28,6 +28,7 @@ import {
   makeSignPlane,
 } from "./coconutsHelpers.js";
 import { buildWisdomHouse } from "./wisdomHouse.js";
+import { buildLibrary } from "./library.js";
 
 /** Player radius from `createPlayer`. Doors are sized against this. */
 const PLAYER_R = 0.34;
@@ -893,7 +894,13 @@ export function spawnInteriors(scene, colliders) {
     if (!softCam) blockers.push({ minX, maxX, minZ, maxZ, y0: y0 ?? 0, y1: y1 ?? 3.2 });
   };
 
-  const buildings = [buildSurfClub(reg), buildShadeShack(reg), buildChangeRooms(reg), buildWisdomHouse(reg)];
+  const buildings = [
+    buildSurfClub(reg),
+    buildShadeShack(reg),
+    buildChangeRooms(reg),
+    buildWisdomHouse(reg),
+    buildLibrary(reg),
+  ];
   for (const b of buildings) scene.add(b.group);
 
   // Roofs occlude the camera from above too — one flat blocker per building.
@@ -914,6 +921,7 @@ export function spawnInteriors(scene, colliders) {
 
   /** Shell box grown by the player radius, so a body in a doorway counts. */
   function inside(b, x, z) {
+    if (typeof b.contains === "function") return b.contains(x, z);
     return (
       x > b.B.x0 - PLAYER_R &&
       x < b.B.x1 + PLAYER_R &&
@@ -1039,7 +1047,7 @@ export function spawnInteriors(scene, colliders) {
       const t = Math.max(tMin, hit - 0.02 / d2);
       camera.position.set(_chest.x + _v.x * t, _chest.y + _v.y * t, _chest.z + _v.z * t);
     }
-    if (here) {
+    if (here && !(here.pit && player.pos.y < -0.4)) {
       const capY = here.ceilingY - 0.28;
       if (camera.position.y > capY) camera.position.y = capY;
       const fl = here.B.floorY + 0.55;
@@ -1052,6 +1060,7 @@ export function spawnInteriors(scene, colliders) {
   function tick(t, playerPos) {
     for (const b of buildings) {
       if (b.fan) b.fan.rotation.y = t * 2.6;
+      b.tick?.(t, playerPos, 1 / 60);
     }
     if (!playerPos) return;
     occupied = isIndoors(playerPos);

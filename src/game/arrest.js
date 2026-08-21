@@ -1,15 +1,13 @@
 /**
- * Live arrest: cops grab AUS101, drag him into the surf club jail, play
- * re-education mantras, take the laser, and stash it. Camera stays in follow
- * — no cutscene, no freeze-cam, no teleport.
+ * Live arrest: slap/propaganda starts only after cops shove AUS101 into the
+ * re-ed chair (JACK). No grab, no path lerp. Camera stays in follow.
  */
 import { HIDES } from "../world/laserGun.js";
 import { PATROL_HOME } from "../world/patrolHouse.js";
 
 const JAIL = { x: -18.2, z: 15.2 };
 const JACK = { x: -18.2, y: 0, z: 14.4 };
-const DOOR = { x: -15.9, z: 17.6 };
-const INSIDE = { x: -15.9, z: 15.5 };
+const NEAR_JACK = 1.6;
 
 const MANTRAS = ["mantra_01", "mantra_02", "mantra_03", "mantra_04", "mantra_05", "mantra_06"];
 const BROTHA = ["cop_brotha_01", "cop_brotha_02", "cop_brotha_03"];
@@ -29,43 +27,9 @@ function listCops(cops) {
   return [];
 }
 
-function smooth(u) {
-  const x = Math.min(1, Math.max(0, u));
-  return x * x * (3 - 2 * x);
-}
-
-function buildPath(from) {
-  return [
-    { x: from.x, z: from.z },
-    { x: DOOR.x, z: DOOR.z },
-    { x: INSIDE.x, z: INSIDE.z },
-    { x: JAIL.x, z: JAIL.z },
-    { x: JACK.x, z: JACK.z },
-  ];
-}
-
-function polyLen(pts) {
-  let s = 0;
-  for (let i = 1; i < pts.length; i++) {
-    s += Math.hypot(pts[i].x - pts[i - 1].x, pts[i].z - pts[i - 1].z);
-  }
-  return s;
-}
-
-function along(pts, dist) {
-  let left = dist;
-  for (let i = 1; i < pts.length; i++) {
-    const dx = pts[i].x - pts[i - 1].x;
-    const dz = pts[i].z - pts[i - 1].z;
-    const L = Math.hypot(dx, dz) || 1e-6;
-    if (left <= L) {
-      const u = left / L;
-      return { x: pts[i - 1].x + dx * u, z: pts[i - 1].z + dz * u };
-    }
-    left -= L;
-  }
-  const last = pts[pts.length - 1];
-  return { x: last.x, z: last.z };
+function atJack(pos) {
+  if (!pos) return false;
+  return Math.hypot((pos.x ?? 0) - JACK.x, (pos.z ?? 0) - JACK.z) <= NEAR_JACK;
 }
 
 /**
@@ -80,10 +44,8 @@ function along(pts, dist) {
  * }} opts
  */
 export function createArrest({ player, play, sfx, onReprogram, onTakeGun, hideGun, cops } = {}) {
-  let phase = "idle"; // idle | grab | drag | jack | done
+  let phase = "idle"; // idle | jack
   let t = 0;
-  let path = null;
-  let pathLen = 1;
   let mantraI = 0;
   let brothaI = 0;
   let senseiI = 0;
@@ -167,20 +129,36 @@ export function createArrest({ player, play, sfx, onReprogram, onTakeGun, hideGu
     slapped = false;
   }
 
-  function begin() {
-    if (phase !== "idle" && phase !== "done") return;
-    phase = "grab";
+  function beginJack() {
+    if (phase !== "idle") return;
+    phase = "jack";
     t = 0;
     resetBeats();
-    path = null;
-    setDuty("escort", { offR: 0.9 });
+    player.pos.x = JACK.x;
+    player.pos.z = JACK.z;
+    player.yaw = 0;
+    player.vel.set(0, 0, 0);
+    setDuty("hold", { tx: JACK.x, tz: JACK.z, offR: RING });
+    startJackBeats();
     try {
-      play?.("panic_01");
       sfx?.radioChatter?.();
-      sfx?.copWhoop?.();
     } catch {
       /* optional */
     }
+  }
+
+  function begin() {
+    if (phase !== "idle") return;
+    if (!atJack(player?.pos)) return;
+    beginJack();
+  }
+
+  function copsDelivering() {
+    for (const c of squad()) {
+      const d = c.duty;
+      if (d === "chase" || d === "escort" || d === "shove") return true;
+    }
+    return false;
   }
 
   function finishClean() {
@@ -238,7 +216,7 @@ export function createArrest({ player, play, sfx, onReprogram, onTakeGun, hideGu
       }
     }
 
-    phase = "done";
+    phase = "idle";
     t = 0;
   }
 
@@ -310,113 +288,83 @@ export function createArrest({ player, play, sfx, onReprogram, onTakeGun, hideGu
   }
 
   function tick(dt) {
-    if (phase === "idle" || phase === "done" || !(dt > 0)) return;
+    if (!(dt > 0)) return;
+    if (phase === "idle") {
+      if (atJack(player?.pos) && copsDelivering()) beginJack();
+      return;
+    }
+    if (phase !== "jack") return;
     t += dt;
-    if (phase === "grab") {
-      player.vel.set(0, 0, 0);
-      if (t > 1.1) {
-        phase = "drag";
-        t = 0;
-        path = buildPath(player.pos);
-        pathLen = Math.max(1, polyLen(path));
-        sfx?.radioChatter?.();
-      }
-      return;
-    }
-    if (phase === "drag") {
-      const dur = Math.min(7.5, Math.max(3.6, pathLen / 6.2));
-      const u = smooth(Math.min(1, t / dur));
-      const p = along(path, u * pathLen);
-      player.pos.x = p.x;
-      player.pos.z = p.z;
-      player.vel.set(0, 0, 0);
-      const look = along(path, Math.min(pathLen, u * pathLen + 0.8));
-      player.yaw = Math.atan2(look.x - player.pos.x, look.z - player.pos.z);
-      if (u >= 1) {
-        phase = "jack";
-        t = 0;
-        player.pos.x = JACK.x;
-        player.pos.z = JACK.z;
-        player.yaw = 0;
-        setDuty("hold", { tx: JACK.x, tz: JACK.z, offR: RING });
-        startJackBeats();
-        sfx?.radioChatter?.();
-      }
-      return;
-    }
-    if (phase === "jack") {
-      player.pos.x = JACK.x;
-      player.pos.z = JACK.z;
-      player.vel.set(0, 0, 0);
-      player.pitch += (-0.05 - player.pitch) * Math.min(1, dt * 2.6);
+    player.pos.x = JACK.x;
+    player.pos.z = JACK.z;
+    player.vel.set(0, 0, 0);
+    player.pitch += (-0.05 - player.pitch) * Math.min(1, dt * 2.6);
 
-      if (beatPhase === "legacy") {
-        mantraWait -= dt;
-        if (mantraWait <= 0 && !mantraBusy) kickMantra();
-        return;
+    if (beatPhase === "legacy") {
+      mantraWait -= dt;
+      if (mantraWait <= 0 && !mantraBusy) kickMantra();
+      return;
+    }
+    if (beatPhase === "form") {
+      beatT += dt;
+      if ((ringReady() && beatT > 0.18) || beatT > 1.6) kickBeat();
+      return;
+    }
+    if (beatPhase === "stepin") {
+      beatT += dt;
+      const cop = roster[beatI];
+      const d = Math.hypot((cop.tx ?? 0) - cop.x, (cop.tz ?? 0) - cop.z);
+      if (d < 0.28 || beatT > 1.1) {
+        beatPhase = "slap";
+        beatT = 0;
+        slapped = false;
       }
-      if (beatPhase === "form") {
-        beatT += dt;
-        if ((ringReady() && beatT > 0.18) || beatT > 1.6) kickBeat();
-        return;
+      return;
+    }
+    if (beatPhase === "slap") {
+      beatT += dt;
+      const cop = roster[beatI];
+      const u = Math.min(1, beatT / SLAP_DUR);
+      cop.slapT = u;
+      if (!slapped && u >= SLAP_HIT) {
+        slapped = true;
+        try {
+          sfx?.slapFace?.();
+        } catch {
+          /* optional */
+        }
+        player.pitch = Math.min(0.55, player.pitch + 0.26);
       }
-      if (beatPhase === "stepin") {
-        beatT += dt;
-        const cop = roster[beatI];
-        const d = Math.hypot((cop.tx ?? 0) - cop.x, (cop.tz ?? 0) - cop.z);
-        if (d < 0.28 || beatT > 1.1) {
-          beatPhase = "slap";
-          beatT = 0;
-          slapped = false;
-        }
-        return;
+      if (u >= 1) {
+        cop.slapT = 0;
+        placeCop(cop, RING);
+        beatPhase = "talk";
+        mantraWait = 0;
+        speakLine(pickLine(cop));
       }
-      if (beatPhase === "slap") {
-        beatT += dt;
-        const cop = roster[beatI];
-        const u = Math.min(1, beatT / SLAP_DUR);
-        cop.slapT = u;
-        if (!slapped && u >= SLAP_HIT) {
-          slapped = true;
-          try {
-            sfx?.slapFace?.();
-          } catch {
-            /* optional */
-          }
-          player.pitch = Math.min(0.55, player.pitch + 0.26);
-        }
-        if (u >= 1) {
-          cop.slapT = 0;
-          placeCop(cop, RING);
-          beatPhase = "talk";
-          mantraWait = 0;
-          speakLine(pickLine(cop));
-        }
-        return;
-      }
-      if (beatPhase === "talk") {
-        mantraWait -= dt;
-        if (mantraWait <= 0 && !mantraBusy) {
-          beatI += 1;
-          beatPhase = "form";
-          beatT = 0.08;
-        }
+      return;
+    }
+    if (beatPhase === "talk") {
+      mantraWait -= dt;
+      if (mantraWait <= 0 && !mantraBusy) {
+        beatI += 1;
+        beatPhase = "form";
+        beatT = 0.08;
       }
     }
   }
 
   return {
     begin,
+    beginJack,
     tick,
     get active() {
-      return phase !== "idle" && phase !== "done";
+      return phase === "jack";
     },
     get phase() {
       return phase;
     },
     get stepSpeed() {
-      if (phase === "drag") return 1.15;
-      if (phase === "grab") return 0.55;
       return 0;
     },
   };
