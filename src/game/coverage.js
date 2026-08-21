@@ -243,7 +243,7 @@ export function sampleThickness(npc, u, v, radius = 0.08) {
   return n ? sum / (n * 255) : 0;
 }
 
-/** Belly / shoulder / cheek / shin plus a few wrap-around lobes. v=0 feet. */
+/** Belly / shoulder / cheek / shin, legs (v<0.38), lower back (u≈0). v=0 feet. */
 const BARE_SITES = [
   [0.5, 0.48],
   [0.22, 0.7],
@@ -261,6 +261,22 @@ const BARE_SITES = [
   [0.0, 0.28],
   [0.18, 0.56],
   [0.82, 0.56],
+  [0.42, 0.1],
+  [0.58, 0.1],
+  [0.32, 0.16],
+  [0.68, 0.16],
+  [0.5, 0.12],
+  [0.22, 0.14],
+  [0.78, 0.14],
+  [0.0, 0.14],
+  [0.42, 0.37],
+  [0.58, 0.37],
+  [0.35, 0.12],
+  [0.65, 0.12],
+  [0.0, 0.32],
+  [0.0, 0.36],
+  [0.08, 0.3],
+  [0.92, 0.3],
 ];
 
 function wrapDistU(a, b) {
@@ -270,8 +286,8 @@ function wrapDistU(a, b) {
 }
 
 /**
- * Least-covered skin UV on the fake atlas. Landmarks first, then a coarse
- * scan, then a dart among the barest few so the hand does not freeze.
+ * Least-covered skin UV on the fake atlas. Prefers the last chase UV until
+ * that patch is coated, then a dart among the barest few.
  * @param {{ mesh?: object } | object} npc
  * @param {{ salt?: number, avoidU?: number, avoidV?: number, faceU?: number }} [opts]
  * @returns {{ u: number, v: number, thick: number } | null}
@@ -293,7 +309,8 @@ export function findUnpaintedSample(npc, opts = {}) {
     if (avoidU != null) {
       const du = wrapDistU(u, avoidU);
       const dv = Math.abs(v - (avoidV || 0));
-      if (du + dv < 0.08) score += 0.35;
+      const near = du + dv;
+      score += near * 0.7;
     }
     hits.push({ u, v, thick, score });
   };

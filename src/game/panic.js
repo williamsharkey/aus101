@@ -1035,8 +1035,8 @@ export function createPanic({
       if (c.duty === "stash") c.onArrive?.();
       c.duty = c.ranged ? "snipe" : "shove";
       c.onArrive = null;
+      c.path = null;
     }
-    spawnWave(WAVE_BASE, from);
   }
 
   /**
@@ -1075,7 +1075,7 @@ export function createPanic({
    * on a stash walk. Downed stay down.
    * @param {{ clearFlee?: boolean }} [opts]
    */
-  function standDown({ clearFlee = true } = {}) {
+  function standDown({ clearFlee = false } = {}) {
     hunt = false;
     screamed = false;
     delivered = false;
@@ -1096,12 +1096,20 @@ export function createPanic({
       c.tz = HOME.z + ((i / 3) | 0) * 0.55;
       c.reach = 0;
       c.onArrive = null;
+      c.path = null;
     }
     if (clearFlee) {
       for (const m of fleeing) delete m.userData.flee;
       fleeing.length = 0;
       on = false;
+      return;
     }
+    for (const m of fleeing) {
+      if (!m.userData.home) continue;
+      m.userData.returnHome = true;
+      m.userData.homePath = null;
+    }
+    if (!fleeing.length) on = false;
   }
 
   function showBolt(ax, ay, az, bx, by, bz, life = 0.12, color = 0xff3a2a) {
@@ -1410,12 +1418,49 @@ export function createPanic({
     }
 
     if (on) {
-      for (const m of fleeing) {
+      for (let fi = fleeing.length - 1; fi >= 0; fi--) {
+        const m = fleeing[fi];
         const f = m.userData.flee;
+        const home = m.userData.home;
+        const body = m.userData.fleeRoot || m;
+        const goHome = !hunt && home && (m.userData.returnHome || m.name === "piano-ken");
+        if (goHome) {
+          let hp = m.userData.homePath;
+          if (!hp) {
+            hp = { x: body.position.x, z: body.position.z, path: null, pathI: 0, pathAt: 0, gx: 0, gz: 0, slot: fi };
+            m.userData.homePath = hp;
+          }
+          hp.x = body.position.x;
+          hp.z = body.position.z;
+          const stepTo = nextStep(hp, home.x, home.z, performance.now() / 1000);
+          const hx = stepTo.x - body.position.x;
+          const hz = stepTo.z - body.position.z;
+          const hd = Math.hypot(hx, hz);
+          const homeD = Math.hypot(home.x - body.position.x, home.z - body.position.z);
+          if (homeD < 0.45) {
+            body.position.set(home.x, home.y || 0, home.z);
+            body.rotation.y = home.yaw || 0;
+            m.userData.flee = null;
+            m.userData.returnHome = false;
+            m.userData.homePath = null;
+            fleeing.splice(fi, 1);
+            poseCivilian(m, 0, 0);
+            continue;
+          }
+          if (hd > 1e-4) {
+            const sp = 2.45;
+            body.position.x += (hx / hd) * sp * h;
+            body.position.z += (hz / hd) * sp * h;
+            body.rotation.y = Math.atan2(hx, hz);
+          }
+          m.userData.fleePhase += h * 5;
+          body.position.y = (home.y || 0) + Math.abs(Math.sin(m.userData.fleePhase)) * 0.04;
+          poseCivilian(m, m.userData.fleePhase, 1);
+          continue;
+        }
         if (!f) continue;
         const gone = Math.hypot(m.position.x - _from.x, m.position.z - _from.z);
         const slow = gone > FLEE_MAX ? 0 : 1;
-        const body = m.userData.fleeRoot || m;
         if (slow) {
           body.position.x += f.x * f.spd * h;
           body.position.z += f.z * f.spd * h;
@@ -1425,32 +1470,12 @@ export function createPanic({
           m.userData.fleePhase += h * (5.2 + f.spd * 0.9);
           body.position.y = (m.userData.home?.y || 0) + Math.abs(Math.sin(m.userData.fleePhase)) * 0.055;
         } else {
-          const home = m.userData.home;
-          const goHome = home && (m.name === "piano-ken" || m.userData.returnHome);
-          if (goHome) {
-            const hx = home.x - body.position.x;
-            const hz = home.z - body.position.z;
-            const hd = Math.hypot(hx, hz);
-            if (hd > 0.5) {
-              const sp = 2.35;
-              body.position.x += (hx / hd) * sp * h;
-              body.position.z += (hz / hd) * sp * h;
-              body.rotation.y = Math.atan2(hx, hz);
-              m.userData.fleePhase += h * 5;
-              body.position.y = (home.y || 0) + Math.abs(Math.sin(m.userData.fleePhase)) * 0.04;
-              poseCivilian(m, m.userData.fleePhase, 1);
-              continue;
-            }
-            body.position.set(home.x, home.y || 0, home.z);
-            body.rotation.y = home.yaw || 0;
-            m.userData.flee = null;
-            continue;
-          }
           m.userData.fleePhase += h * 1.4;
           body.position.y = m.userData.home?.y || 0;
         }
         poseCivilian(m, m.userData.fleePhase, slow ? 1 : 0.12);
       }
+      if (!hunt && fleeing.length === 0) on = false;
     }
 
     for (const c of cops) driveCop(c, playerPos, h);
@@ -1647,6 +1672,51 @@ export function createPanic({
     lastSx = 0;
     lastSz = 0;
   }
+
+  if (house?.robots) {
+    for (const bot of house.robots) {
+      if (!bot || cops.some((c) => c.root === bot)) continue;
+      addHitHull(bot);
+      const rec = {
+        root: bot,
+        x: bot.position.x,
+        z: bot.position.z,
+        phase: Math.random() * Math.PI * 2,
+        speed: COP_SPEED * 0.92,
+        reach: 0,
+        slapT: 0,
+        voiceSet: bot.userData.voiceSet || "default",
+        duty: "home",
+        tx: HOME.x,
+        tz: HOME.z,
+        offX: 0,
+        offZ: 0,
+        onArrive: null,
+        kind: "t101",
+        wave: 0,
+        slot: slotSeq++,
+        scale: 0.92,
+        ranged: Math.random() < SNIPER_FRAC,
+        laserT: 0,
+        nextShot: 0,
+        elite: false,
+        vx: 0,
+        vz: 0,
+        yaw: bot.rotation.y || 0,
+        path: null,
+        pathI: 0,
+        pathAt: 0,
+      };
+      cops.push(rec);
+      try {
+        onSpawn?.(bot, "t101");
+      } catch {
+        /* enroll optional */
+      }
+    }
+  }
+  addUnit("cop", HOME.x + 0.85, HOME.z + 0.55, 0);
+  addUnit("cop", DOOR.x + 1.35, DOOR.z + 1.7, 0);
 
   const fn = (v) => (typeof v === "function" ? v : null);
 

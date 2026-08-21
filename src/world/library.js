@@ -599,11 +599,33 @@ export function buildLibrary(reg) {
     climbFrom = null;
   }
 
+  /** South of the rotunda door, on the sand. */
+  function ejectOutside(player) {
+    player.pos.x = CX;
+    player.pos.y = 0;
+    player.pos.z = (CZ - R) - 1.25;
+    player.vel.x = 0;
+    player.vel.y = 0;
+    player.vel.z = 0;
+    climbT = -1;
+    climbFrom = null;
+  }
+
   function tickPlayer(player, dt) {
     if (!player?.pos) return false;
     const h = dt > 0 ? dt : 0;
     const x = player.pos.x;
     const z = player.pos.z;
+    // Clipped through the pit wall (or fell under the mat): dump them on the
+    // sand in front of the library door, not in the underground void.
+    if (player.pos.y < -0.3 && !inCylinder(x, z, -0.05)) {
+      ejectOutside(player);
+      return true;
+    }
+    if (player.pos.y < PIT - 0.6) {
+      ejectOutside(player);
+      return true;
+    }
     // Other pits (void cave) also use negative Y. Never run library physics
     // — or snap Y — unless the body is actually in this cylinder.
     if (!contains(x, z)) {
@@ -646,12 +668,17 @@ export function buildLibrary(reg) {
     const dx = player.pos.x - CX;
     const dz = player.pos.z - CZ;
     const d = Math.hypot(dx, dz);
-    const maxR = R - 0.55 - PLAYER_R;
+    const maxR = R - 0.72 - PLAYER_R;
     if (d > maxR) {
       const nx = dx / (d || 1);
       const nz = dz / (d || 1);
       player.pos.x = CX + nx * maxR;
       player.pos.z = CZ + nz * maxR;
+      const vn = (player.vel.x || 0) * nx + (player.vel.z || 0) * nz;
+      if (vn > 0) {
+        player.vel.x -= nx * vn;
+        player.vel.z -= nz * vn;
+      }
     }
     const stand = TRAMP_Y + 0.92;
     if (player.pos.y < stand) {

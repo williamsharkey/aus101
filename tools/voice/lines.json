@@ -4396,7 +4396,7 @@
     {
       "id": "fight_barb_02",
       "text": "YOU ARE SUCH A BETA CUCK BOY YOUR GONNA SIT IN A CHAIR IN THE CORNER WHILE I BEAT YA GIRLS KITTY UP",
-      "voice": "en_au_001",
+      "voice": "en_us_006",
       "category": "fight",
       "priority": "walkby",
       "ageBand": "adult",
@@ -4424,7 +4424,7 @@
     {
       "id": "fight_barb_04",
       "text": "OH NOW IM GONNA GIVE IT TO YA",
-      "voice": "en_au_001",
+      "voice": "en_us_006",
       "category": "fight",
       "priority": "walkby",
       "ageBand": "adult",
@@ -4452,7 +4452,7 @@
     {
       "id": "fight_barb_06",
       "text": "THATS NOT EVEN A PUNCH MATE",
-      "voice": "en_au_001",
+      "voice": "en_us_006",
       "category": "fight",
       "priority": "walkby",
       "ageBand": "adult",
@@ -4480,7 +4480,7 @@
     {
       "id": "fight_barb_08",
       "text": "COME HAVE A GO YA MUG",
-      "voice": "en_au_001",
+      "voice": "en_us_006",
       "category": "fight",
       "priority": "walkby",
       "ageBand": "adult",
@@ -4508,7 +4508,7 @@
     {
       "id": "fight_barb_10",
       "text": "COP THIS YA FLAT WHITE",
-      "voice": "en_au_001",
+      "voice": "en_us_006",
       "category": "fight",
       "priority": "walkby",
       "ageBand": "adult",
@@ -4536,7 +4536,7 @@
     {
       "id": "fight_barb_12",
       "text": "YA PUNCH LIKE WET SAND",
-      "voice": "en_au_001",
+      "voice": "en_us_006",
       "category": "fight",
       "priority": "walkby",
       "ageBand": "adult",
@@ -4564,7 +4564,7 @@
     {
       "id": "fight_barb_14",
       "text": "HAVE A SQUIZ AT THIS LEFT",
-      "voice": "en_au_001",
+      "voice": "en_us_006",
       "category": "fight",
       "priority": "walkby",
       "ageBand": "adult",
@@ -4592,7 +4592,7 @@
     {
       "id": "fight_barb_16",
       "text": "ILL BELT YA INTO THE SURF",
-      "voice": "en_au_001",
+      "voice": "en_us_006",
       "category": "fight",
       "priority": "walkby",
       "ageBand": "adult",
@@ -4620,7 +4620,7 @@
     {
       "id": "fight_yell_02",
       "text": "OOOH BUDDY",
-      "voice": "en_au_001",
+      "voice": "en_us_006",
       "category": "fight",
       "priority": "walkby",
       "ageBand": "adult",
@@ -4648,7 +4648,7 @@
     {
       "id": "fight_yell_04",
       "text": "HAVE THAT",
-      "voice": "en_au_001",
+      "voice": "en_us_006",
       "category": "fight",
       "priority": "walkby",
       "ageBand": "adult",

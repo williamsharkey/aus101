@@ -17,6 +17,7 @@ import {
   createColliders,
   installInput,
   fixedUpdate,
+  applyCamera,
   TICK,
 } from "./input/player.js";
 import { createFollowCam, updateFollowCam } from "./input/thirdPerson.js";
@@ -38,6 +39,9 @@ import { spawnDropships } from "./world/dropships.js";
 import { createCombat } from "./game/combat.js";
 import { createPropPhysics } from "./phys/props.js";
 import { createReticuleBay } from "./hud/reticule.js";
+import { createBurnWarn } from "./hud/burnWarn.js";
+import { seedSpf, tickSun } from "./game/sun.js";
+import { resolveCrowd, tickCrowdDrift } from "./phys/crowd.js";
 import { createRadioHud } from "./hud/radio.js";
 import { createActionPrompt, ACTION_DESCEND, ACTION_SURFACE } from "./hud/actionPrompt.js";
 import { VOID_STAIRS, VOID_EXITS } from "./world/voidCave.js";
@@ -82,7 +86,9 @@ const scene = new THREE.Scene();
 setupGoldCoastLights(scene);
 
 const camera = new THREE.PerspectiveCamera(62, 1, 0.08, 280);
+scene.add(camera);
 const follow = createFollowCam();
+let fpsAim = false;
 
 const colliders = createColliders();
 const level = buildGoldCoast(scene, colliders);
@@ -175,6 +181,7 @@ function enroll(mesh, kind, ageBand) {
   if (k !== "gull" && a !== "gull") mesh.userData.paintTarget = true;
   if (cast.some((c) => c.mesh === mesh)) return;
   cast.push({ mesh, kind: k, ageBand: a });
+  seedSpf({ mesh, kind: k, ageBand: a });
 }
 
 for (const mesh of party.people || []) enroll(mesh);
@@ -222,7 +229,7 @@ const walkby = createWalkbyDirector(voice, cast);
 const lotion = createLotion();
 bindBottle(aus101);
 const bay = createReticuleBay();
-document.body.appendChild(bay.html);
+const burnWarn = createBurnWarn(scene);
 
 const panic = createPanic({
   scene,
@@ -243,6 +250,40 @@ const recall = createRecall({
   onGameOver: () => {},
 });
 const gun = spawnLaserGun(scene);
+if (gun.view) {
+  gun.view.position.set(0.22, -0.2, -0.42);
+  gun.view.rotation.set(0.06, 0.18, 0.04);
+  camera.add(gun.view);
+}
+
+function enterFps() {
+  if (fpsAim || !combat.hasLaser) return false;
+  if (loungeSit) leaveLounger();
+  fpsAim = true;
+  player.pitch = 0;
+  if (gun.view) gun.view.visible = true;
+  aus101.visible = false;
+  follow.snap();
+  input.tryLock?.();
+  return true;
+}
+function exitFps() {
+  if (!fpsAim) return false;
+  fpsAim = false;
+  if (gun.view) gun.view.visible = false;
+  aus101.visible = true;
+  follow.snap();
+  return true;
+}
+function tryLaser() {
+  if (!combat.hasLaser || arrest.active) return;
+  if (!fpsAim) {
+    enterFps();
+    return;
+  }
+  sfx.laser();
+  combat.laser(player.pos, player.yaw, player.pitch, { fromCamera: true, eyeY: player.eye, muzzle: 0.42 });
+}
 const arrest = createArrest({
   player,
   play: (id) => voice.play(id),
@@ -254,6 +295,7 @@ const arrest = createArrest({
   },
   onTakeGun: () => {
     combat.hasLaser = false;
+    exitFps();
     gun.conceal();
   },
   hideGun: (pos) => gun.hide(pos),
@@ -280,11 +322,15 @@ window.addEventListener("keydown", (e) => {
   if (!playing || arrest.active || e.repeat) return;
   if (e.code === "KeyF") {
     e.preventDefault();
-    if (combat.hasLaser) sfx.laser();
-    combat.laser(player.pos, player.yaw, player.pitch);
+    tryLaser();
+    return;
+  }
+  if (e.code === "Space" && fpsAim) {
+    exitFps();
   }
   if (e.code === "KeyG") {
     e.preventDefault();
+    if (fpsAim) exitFps();
     combat.punch(player.pos, player.yaw, player.pitch);
   }
 });
@@ -313,11 +359,11 @@ input.bindPlayer(player);
 installTouchControls({
   keys: input.keys,
   isPlaying: () => playing && !arrest.active,
-  onPunch: () => combat.punch(player.pos, player.yaw, player.pitch),
-  onLaser: () => {
-    if (combat.hasLaser) sfx.laser();
-    combat.laser(player.pos, player.yaw, player.pitch);
+  onPunch: () => {
+    if (fpsAim) exitFps();
+    combat.punch(player.pos, player.yaw, player.pitch);
   },
+  onLaser: () => tryLaser(),
 });
 
 function resize() {
@@ -505,13 +551,14 @@ function pollAction(pos) {
 function sitLounger(g) {
   const seat = g?.userData?.seat;
   if (!seat) return;
-  loungeSit = { group: g, seat };
+  const yaw = g.rotation?.y ?? seat.yaw ?? 0;
+  loungeSit = { group: g, seat, camYaw: yaw + 0.95, camPitch: 0.28 };
   player.loungeSit = true;
   player.pos.x = seat.x;
   player.pos.z = seat.z;
   player.pos.y = 0;
   player.vel.set(0, 0, 0);
-  player.yaw = seat.yaw;
+  player.yaw = yaw;
   player.pitch = -0.12;
   follow.snap();
 }
@@ -527,14 +574,34 @@ function leaveLounger() {
   player.vel.set(0, 0, 0);
   player.loungeSit = false;
   loungeSit = null;
+  aus101.rotation.order = "XYZ";
+  aus101.rotation.x = 0;
+  aus101.rotation.z = 0;
   follow.snap();
 }
 
 function applyLoungeCam(cam, p) {
-  const sy = Math.sin(p.yaw);
-  const cy = Math.cos(p.yaw);
-  cam.position.set(p.pos.x + 2.4 * sy, p.pos.y + 1.08, p.pos.z + 2.4 * cy);
-  cam.lookAt(p.pos.x - 3.5 * sy, 0.35, p.pos.z - 3.5 * cy);
+  const g = loungeSit?.group;
+  const yaw = loungeSit?.camYaw ?? (g?.rotation?.y || 0) + 0.95;
+  const pitch = loungeSit?.camPitch ?? 0.28;
+  const hx = g?.position?.x ?? p.pos.x;
+  const hz = g?.position?.z ?? p.pos.z;
+  const cp = Math.cos(pitch);
+  const dist = 2.7;
+  cam.position.set(hx + Math.sin(yaw) * dist * cp, 1.35 + Math.sin(pitch) * 1.2, hz + Math.cos(yaw) * dist * cp);
+  cam.lookAt(hx, 0.55, hz);
+}
+
+function placeLoungeRig(mesh, sit) {
+  const g = sit.group;
+  const yaw = g.rotation.y || 0;
+  const lz = sit.seat.footZ ?? 0.62;
+  const ly = sit.seat.y ?? 0.48;
+  const s = Math.sin(yaw);
+  const c = Math.cos(yaw);
+  mesh.position.set(g.position.x - lz * s, ly, g.position.z + lz * c);
+  mesh.rotation.order = "YXZ";
+  mesh.rotation.set(-Math.PI / 2 + 0.08, yaw + Math.PI, 0);
 }
 
 function activate(a) {
@@ -669,11 +736,14 @@ canvas.addEventListener("mousedown", (e) => {
   sfx.unlock().catch(() => {});
   if (e.button === 2 && combat.hasLaser) {
     if (synth.isOpen?.() || voidDeck.isOpen?.()) return;
-    sfx.laser();
-    combat.laser(player.pos, player.yaw, player.pitch);
+    tryLaser();
     return;
   }
   if (e.button !== 0) return;
+  if (fpsAim) {
+    exitFps();
+    return;
+  }
   if (currentAction && !combat.swinging && !personInPunchArc(player.pos, player.yaw)) {
     actionClick = true;
     return;
@@ -817,9 +887,9 @@ function frame() {
         player.vel.set(0, 0, 0);
         const lk = getLookStick();
         if (lk.mag > 0.04) {
-          player.yaw -= lk.x * 2.35 * TICK;
-          player.pitch -= lk.y * 1.55 * TICK;
-          player.pitch = Math.max(-1.45, Math.min(1.45, player.pitch));
+          loungeSit.camYaw -= lk.x * 2.35 * TICK;
+          loungeSit.camPitch -= lk.y * 1.55 * TICK;
+          loungeSit.camPitch = Math.max(-0.45, Math.min(0.85, loungeSit.camPitch));
         }
       } else {
         const lk = getLookStick();
@@ -829,6 +899,7 @@ function frame() {
           player.pitch = Math.max(-1.45, Math.min(1.45, player.pitch));
         }
         fixedUpdate(player, input.keys, colliders.COL, BOUNDS, TICK);
+        if (resolveCrowd(player, cast, TICK)) sfx.bump?.();
         panic.shove(player, TICK);
         library?.tickPlayer?.(player, TICK);
         voidCave?.tickPlayer?.(player, TICK);
@@ -854,6 +925,7 @@ function frame() {
     actionClick = false;
     let seqForce = false;
     if (wantAct) {
+      if (fpsAim) exitFps();
       if (nearest.id === "seq-open" || nearest.id === "seq-save") seqForce = true;
       else activate(nearest);
     }
@@ -881,21 +953,33 @@ function frame() {
     voice.tick?.(player.pos, player.yaw);
     recall.tick(raw || TICK, player.pos);
     panic.tick(raw || TICK, player.pos);
+    tickCrowdDrift(cast, raw || TICK);
     // After recall/panic: recall.onHarm reads the lastPos its own tick stores.
     combat.tick(raw || TICK, player.pos);
     ships.tick(raw || TICK, player.pos);
     props.tick(raw || TICK, player.pos, player.vel);
     const speed = Math.hypot(player.vel.x, player.vel.z);
-    aus101.position.set(player.pos.x, player.pos.y, player.pos.z);
-    // Rig face is +Z; locomotion forward is −Z at yaw=0 (Coconuts convention).
-    aus101.rotation.y = player.yaw + Math.PI;
+    if (loungeSit) {
+      placeLoungeRig(aus101, loungeSit);
+    } else {
+      if (aus101.rotation.order !== "XYZ") {
+        aus101.rotation.order = "XYZ";
+        aus101.rotation.x = 0;
+        aus101.rotation.z = 0;
+      }
+      aus101.position.set(player.pos.x, player.pos.y, player.pos.z);
+      // Rig face is +Z; locomotion forward is −Z at yaw=0 (Coconuts convention).
+      aus101.rotation.y = player.yaw + Math.PI;
+    }
     poseAus101(aus101, {
       walkPhase: player.step,
-      speed,
-      punchT: combat.punchT,
-      laserT: combat.laserT,
-      lotionAim,
-      applyT,
+      speed: loungeSit ? 0 : speed,
+      punchT: loungeSit ? 0 : combat.punchT,
+      laserT: loungeSit ? 0 : combat.laserT,
+      lotionAim: loungeSit ? null : lotionAim,
+      applyT: loungeSit ? 0 : applyT,
+      lounge: loungeSit ? 1 : 0,
+      loungeT: t,
     });
     if (wisdom?.strapped) {
       aus101.visible = false;
@@ -903,8 +987,17 @@ function frame() {
     } else if (loungeSit) {
       if (!aus101.visible) aus101.visible = true;
       applyLoungeCam(camera, player);
+    } else if (fpsAim) {
+      aus101.visible = false;
+      if (gun.view) {
+        gun.view.visible = true;
+        const bob = Math.sin((player.step || 0) * 2) * 0.012;
+        gun.view.position.set(0.22, -0.2 + bob, -0.42);
+      }
+      applyCamera(camera, player);
     } else {
       if (!aus101.visible) aus101.visible = true;
+      if (gun.view) gun.view.visible = false;
       updateFollowCam(camera, player, raw || 0.016);
       // Pull the boom in and off the walls once the player is inside a building.
       if (!inCave(player.pos)) interiors.adjustCamera(camera, player);
@@ -921,8 +1014,10 @@ function frame() {
       });
     }
     for (const npc of cast) {
+      const kind = npc.kind || npc.mesh?.userData?.kind;
+      if (kind === "cop" || kind === "t101") continue;
       const f = npc.mesh?.userData?.flee;
-      if (f) steps.tickOne(npc.mesh.id || npc.kind, f.spd || 5, false, raw || TICK);
+      if (f) steps.tickOne(npc.mesh.id || npc.kind, f.spd || 5, false, raw || TICK, kind);
     }
     const squeezing = !!input.keys.Space;
     if (squeezing) carpenter?.setState("apply");
@@ -941,6 +1036,8 @@ function frame() {
       bounds: BOUNDS,
     });
     const dtFrame = raw || TICK;
+    tickSun(cast, dtFrame, painted?.npc ?? null);
+    burnWarn.tick(dtFrame, cast, player, fpsAim);
     if (painted?.aim) {
       lotionAim = painted.aim;
       applyT += dtFrame;

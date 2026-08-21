@@ -330,6 +330,9 @@ export function createCombat({ scene, cast, onHarm, play } = {}) {
   let punchYaw = 0;
   let laserYaw = 0;
   let laserPitch = 0;
+  let laserFromCam = false;
+  let laserEyeY = EYE_Y;
+  let laserMuzzle = MUZZLE;
   let beamT = 0;
   let flashT = 0;
   let beamLen = 0;
@@ -582,7 +585,7 @@ export function createCombat({ scene, cast, onHarm, play } = {}) {
     hits.length = 0;
     ray.intersectObjects(world, false, hits);
     for (const h of hits) {
-      if (h.distance < 0.9) continue; // inside the player's own rig
+      if (h.distance < (laserFromCam ? 0.12 : 0.9)) continue; // inside the player's own rig
       let o = h.object;
       while (o && !meshToNpc.has(o)) o = o.parent;
       if (o && meshToNpc.has(o)) continue; // standing cast — resolved via castMeshes
@@ -594,7 +597,9 @@ export function createCombat({ scene, cast, onHarm, play } = {}) {
   /** Discharge. Raycasts the cast first, then the world for the beam's end. */
   function resolveLaser() {
     aim(laserYaw, laserPitch, _dir).normalize();
-    _origin.set(_player.x, _player.y + EYE_Y, _player.z).addScaledVector(_dir, MUZZLE);
+    const eyeY = laserFromCam ? laserEyeY : EYE_Y;
+    const muz = laserFromCam ? laserMuzzle : MUZZLE;
+    _origin.set(_player.x, _player.y + eyeY, _player.z).addScaledVector(_dir, muz);
 
     castMeshes.length = 0;
     meshToNpc.clear();
@@ -672,12 +677,15 @@ export function createCombat({ scene, cast, onHarm, play } = {}) {
    * @param {number} pitch
    * @returns {boolean} true if the charge started
    */
-  function laser(playerPos, yaw = 0, pitch = 0) {
+  function laser(playerPos, yaw = 0, pitch = 0, opts = {}) {
     if (!hasLaser) return false;
     if (punchTime >= 0 || laserTime >= 0) return false;
     if (playerPos) _player.set(playerPos.x, playerPos.y || 0, playerPos.z);
     laserYaw = yaw;
     laserPitch = pitch;
+    laserFromCam = !!opts.fromCamera;
+    laserEyeY = Number.isFinite(opts.eyeY) ? opts.eyeY : EYE_Y;
+    laserMuzzle = Number.isFinite(opts.muzzle) ? opts.muzzle : MUZZLE;
     laserTime = 0;
     laserT = 0;
     laserResolved = false;
@@ -713,7 +721,7 @@ export function createCombat({ scene, cast, onHarm, play } = {}) {
       laserT = Math.min(1, laserTime / LASER_DUR);
       const k = Math.min(1, laserTime / LASER_FIRE);
       if (!laserResolved) {
-        charge.position.set(_player.x, _player.y + EYE_Y, _player.z);
+        charge.position.set(_player.x, _player.y + (laserFromCam ? laserEyeY : EYE_Y), _player.z);
         aim(laserYaw, laserPitch, _tmp);
         charge.position.addScaledVector(_tmp, 0.2);
         charge.scale.setScalar(0.03 + k * 0.075);

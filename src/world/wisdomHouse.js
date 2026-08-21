@@ -362,42 +362,47 @@ function makeChair(M, floorY) {
   yawG.add(pivot);
 
   const vinyl = M.vinyl;
-  const seat = fx(0.52, 0.09, 0.58, vinyl);
-  seat.position.set(0, floorY + 0.78, 0.04);
-  seat.rotation.x = -0.38;
-  rockG.add(seat);
-  const back = fx(0.52, 0.78, 0.09, vinyl);
-  back.position.set(0, floorY + 1.12, -0.32);
-  back.rotation.x = 0.52;
-  rockG.add(back);
-  const head = fx(0.3, 0.2, 0.09, vinyl);
-  head.position.set(0, floorY + 1.48, -0.48);
-  head.rotation.x = 0.58;
-  rockG.add(head);
-  const foot = fx(0.38, 0.06, 0.26, vinyl);
-  foot.position.set(0, floorY + 0.58, 0.4);
-  foot.rotation.x = 0.2;
-  rockG.add(foot);
+  const seatG = new THREE.Group();
+  seatG.position.set(0, floorY + 0.78, 0.02);
+  seatG.rotation.x = -0.16;
+  rockG.add(seatG);
+  const SEAT_L = 0.56;
+  const seat = fx(0.52, 0.08, SEAT_L, vinyl);
+  seat.position.set(0, 0, SEAT_L * 0.5 - 0.02);
+  seatG.add(seat);
+  const backHinge = new THREE.Group();
+  backHinge.position.set(0, 0.04, -0.02);
+  backHinge.rotation.x = 1.12;
+  seatG.add(backHinge);
+  const BACK_L = 0.76;
+  const back = fx(0.52, 0.08, BACK_L, vinyl);
+  back.position.set(0, 0, -BACK_L * 0.5);
+  backHinge.add(back);
+  const head = fx(0.3, 0.07, 0.18, vinyl);
+  head.position.set(0, 0.05, -BACK_L + 0.02);
+  backHinge.add(head);
+  const foot = fx(0.38, 0.06, 0.24, vinyl);
+  foot.position.set(0, 0, SEAT_L - 0.08);
+  seatG.add(foot);
   for (const s of [-1, 1]) {
     const arm = fx(0.08, 0.06, 0.42, vinyl);
-    arm.position.set(s * 0.3, floorY + 0.96, -0.02);
-    rockG.add(arm);
+    arm.position.set(s * 0.3, 0.16, 0.08);
+    seatG.add(arm);
     const post = fx(0.05, 0.28, 0.05, M.chrome);
-    post.position.set(s * 0.3, floorY + 0.84, 0.12);
-    rockG.add(post);
+    post.position.set(s * 0.3, 0.06, 0.16);
+    seatG.add(post);
     const strap = fx(0.07, 0.03, 0.22, M.strap);
-    strap.position.set(s * 0.3, floorY + 0.99, -0.02);
-    rockG.add(strap);
+    strap.position.set(s * 0.3, 0.2, 0.08);
+    seatG.add(strap);
   }
   const lap = fx(0.44, 0.025, 0.07, M.strap);
-  lap.position.set(0, floorY + 0.84, 0.06);
-  rockG.add(lap);
+  lap.position.set(0, 0.08, 0.12);
+  seatG.add(lap);
 
   const camMount = new THREE.Object3D();
-  camMount.position.set(0, floorY + 1.42, -0.4);
-  // Camera looks down -Z; +X rotation aims it at the ceiling, a little toward the feet.
-  camMount.rotation.set(1.92, 0, 0);
-  rockG.add(camMount);
+  camMount.position.set(0, 0.12, -0.55);
+  camMount.rotation.set(1.15, 0, 0);
+  backHinge.add(camMount);
 
   return { root, yawG, rockG, camMount };
 }

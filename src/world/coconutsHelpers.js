@@ -1239,7 +1239,7 @@ export function makeLounger(scene, x, z, rotY, col) {
   g.rotation.y = rotY;
   g.name = "lounger";
   g.userData.kind = "lounger";
-  g.userData.seat = { x, z, yaw: rotY };
+  g.userData.seat = { x, z, yaw: rotY, y: 0.48, footZ: 0.62 };
   scene.add(g);
   return g;
 }

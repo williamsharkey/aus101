@@ -30,7 +30,7 @@ const ARM_HORIZ = 0.95;
 const STAND_R = 0.84;
 const STEP_SPEED = 2.35;
 const YAW_RATE = 5.8;
-const RETARGET = 0.14;
+const RETARGET = 0.2;
 
 function dist2(a, b) {
   const dx = a.x - b.x;
@@ -337,20 +337,23 @@ export function stepApplyOrbit(player, keys, npc, aim, dt, COL, bounds) {
   }
   if (!steer) return;
 
-  const hx = aim.x - player.pos.x;
-  const hz = aim.z - player.pos.z;
-  if (Math.hypot(hx, hz) < ARM_HORIZ) return;
-
   const px = player.pos.x - p.x;
   const pz = player.pos.z - p.z;
   const curR = Math.hypot(px, pz) || 0.01;
   const curA = Math.atan2(px, pz);
   const wantA = Math.atan2(aim.x - p.x, aim.z - p.z);
+  let standR = STAND_R;
+  if (aim.v < 0.38) standR = STAND_R + (0.5 - STAND_R) * (1 - aim.v / 0.38);
+
+  const hx = aim.x - player.pos.x;
+  const hz = aim.z - player.pos.z;
+  if (Math.hypot(hx, hz) < ARM_HORIZ && curR <= standR + 0.08) return;
+
   let nx;
   let nz;
   if (curR > 1.55) {
-    const standX = p.x + Math.sin(wantA) * STAND_R;
-    const standZ = p.z + Math.cos(wantA) * STAND_R;
+    const standX = p.x + Math.sin(wantA) * standR;
+    const standZ = p.z + Math.cos(wantA) * standR;
     const vx = standX - player.pos.x;
     const vz = standZ - player.pos.z;
     const len = Math.hypot(vx, vz) || 1;
@@ -363,7 +366,7 @@ export function stepApplyOrbit(player, keys, npc, aim, dt, COL, bounds) {
     if (dA > maxA) dA = maxA;
     else if (dA < -maxA) dA = -maxA;
     const newA = curA + dA;
-    const newR = curR + (STAND_R - curR) * Math.min(1, 3.6 * t);
+    const newR = curR + (standR - curR) * Math.min(1, 3.6 * t);
     nx = p.x + Math.sin(newA) * newR;
     nz = p.z + Math.cos(newA) * newR;
   }

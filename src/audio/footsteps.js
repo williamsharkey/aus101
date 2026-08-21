@@ -172,13 +172,16 @@ export function createFootstepPlayer(sfxOrCtx) {
       phase += hs * Math.max(0, dt) * STEP_RATE;
       if (crossed(prev, phase)) fire(!!onWood, hs);
     },
-    tickOne(id, speed, onWood, dt) {
+    tickOne(id, speed, onWood, dt, kind) {
+      const k = kind || "";
+      if (k === "cop" || k === "t101") return;
       load();
       const hs = Math.max(0, speed);
       if (hs < SPEED_GATE) {
         crowd.delete(id);
         return;
       }
+      if (crowd.size > 4) return;
       let ph = crowd.get(id) || 0;
       const prev = ph;
       ph += hs * Math.max(0, dt) * STEP_RATE;

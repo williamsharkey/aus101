@@ -213,6 +213,14 @@ export class SfxBank {
     });
   }
 
+  bump() {
+    const now = typeof performance !== "undefined" ? performance.now() : 0;
+    if (!this._bumpAt) this._bumpAt = 0;
+    if (now && now - this._bumpAt < 180) return;
+    this._bumpAt = now;
+    return this._thump();
+  }
+
   /** Palm-to-face. Lotion slap mp3s, quieter, pitched; osc thump if the file misses. */
   slapFace() {
     const rate = 0.82 + Math.random() * 0.38;

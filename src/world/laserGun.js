@@ -11,22 +11,59 @@ export const HIDES = [
   { x: -22.5, z: 4.2, y: 0.12 }, // behind DJ crate
 ];
 
-export function spawnLaserGun(scene) {
-  const mat = new THREE.MeshStandardMaterial({ color: 0x1a1a1e, metalness: 0.55, roughness: 0.4 });
+function makeLaserPistol() {
+  const mat = new THREE.MeshStandardMaterial({ color: 0x1a1a1e, metalness: 0.62, roughness: 0.38 });
+  const slideM = new THREE.MeshStandardMaterial({ color: 0x2a2a32, metalness: 0.7, roughness: 0.32 });
+  const gold = new THREE.MeshStandardMaterial({ color: 0xb08a2a, metalness: 0.8, roughness: 0.28 });
   const glow = new THREE.MeshBasicMaterial({ color: 0xff2020 });
   const g = new THREE.Group();
   g.name = "laser-gun";
-  const body = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.07, 0.34), mat);
-  body.position.y = 0.04;
-  g.add(body);
-  const grip = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.14, 0.07), mat);
-  grip.position.set(0, -0.04, 0.08);
+  const shadow = (m) => {
+    m.castShadow = true;
+    m.receiveShadow = true;
+    return m;
+  };
+  const slide = shadow(new THREE.Mesh(new THREE.BoxGeometry(0.055, 0.055, 0.22), slideM));
+  slide.position.set(0, 0.055, -0.02);
+  g.add(slide);
+  const rec = shadow(new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.04, 0.16), mat));
+  rec.position.set(0, 0.02, 0.02);
+  g.add(rec);
+  const barrel = shadow(new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.014, 0.16, 8), mat));
+  barrel.rotation.x = Math.PI / 2;
+  barrel.position.set(0, 0.052, -0.18);
+  g.add(barrel);
+  const muzzle = shadow(new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.018, 0.04, 8), glow));
+  muzzle.rotation.x = Math.PI / 2;
+  muzzle.position.set(0, 0.052, -0.27);
+  g.add(muzzle);
+  const grip = shadow(new THREE.Mesh(new THREE.BoxGeometry(0.042, 0.13, 0.055), mat));
+  grip.position.set(0, -0.05, 0.07);
+  grip.rotation.x = 0.32;
   g.add(grip);
-  const tip = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.025, 0.08, 8), glow);
-  tip.rotation.x = Math.PI / 2;
-  tip.position.set(0, 0.04, -0.2);
-  g.add(tip);
+  const guard = shadow(new THREE.Mesh(new THREE.BoxGeometry(0.018, 0.045, 0.06), gold));
+  guard.position.set(0, -0.01, 0.02);
+  g.add(guard);
+  const mag = shadow(new THREE.Mesh(new THREE.BoxGeometry(0.032, 0.08, 0.04), mat));
+  mag.position.set(0, -0.09, 0.055);
+  g.add(mag);
+  const rear = shadow(new THREE.Mesh(new THREE.BoxGeometry(0.028, 0.022, 0.012), gold));
+  rear.position.set(0, 0.088, 0.08);
+  g.add(rear);
+  const front = shadow(new THREE.Mesh(new THREE.BoxGeometry(0.01, 0.02, 0.01), gold));
+  front.position.set(0, 0.088, -0.12);
+  g.add(front);
+  return g;
+}
+
+export function spawnLaserGun(scene) {
+  const g = makeLaserPistol();
   scene.add(g);
+  const view = makeLaserPistol();
+  view.visible = false;
+  view.traverse((o) => {
+    if (o.isMesh) o.raycast = () => {};
+  });
 
   let hid = true;
   let spot = HIDES[0];
@@ -70,5 +107,5 @@ export function spawnLaserGun(scene) {
     }
   }
 
-  return { group: g, hide, stashAway, conceal, reveal, tick, get hidden() { return hid; } };
+  return { group: g, view, hide, stashAway, conceal, reveal, tick, get hidden() { return hid; } };
 }

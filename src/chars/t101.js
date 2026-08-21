@@ -486,11 +486,13 @@ function poseLotion(root, r, state) {
 
   const crouch = clamp((0.78 - ly) / 0.72, 0, 1) * w;
   const reachUp = clamp((ly - 1.52) / 0.42, 0, 1) * w;
-  r.hips.position.y -= crouch * 0.22 - reachUp * 0.025;
-  r.hipL.rotation.x += crouch * 0.52 + reachUp * 0.08;
-  r.hipR.rotation.x += crouch * 0.6 + reachUp * 0.1;
-  r.kneeL.rotation.x += crouch * 0.86;
-  r.kneeR.rotation.x += crouch * 0.94;
+  r.hips.position.y -= crouch * 0.36 - reachUp * 0.025;
+  r.hipL.rotation.x += crouch * 0.72 + reachUp * 0.08;
+  r.hipR.rotation.x += crouch * 0.78 + reachUp * 0.1;
+  r.hipL.rotation.z += crouch * 0.28;
+  r.hipR.rotation.z -= crouch * 0.28;
+  r.kneeL.rotation.x -= crouch * 1.15;
+  r.kneeR.rotation.x -= crouch * 1.22;
   r.spine.rotation.x += (ly < 0.95 ? 0.24 : ly > 1.58 ? -0.2 : 0.05) * w;
   r.chest.rotation.x += (ly > 1.48 ? -0.14 : 0.07) * w;
 
@@ -548,10 +550,33 @@ function punchCurve(p) {
   return 0;
 }
 
+function poseLounge(r, t) {
+  const breath = Math.sin((t || 0) * 1.4) * 0.012;
+  r.hips.position.y = -HIP_OFFSET_Y + breath;
+  r.hips.position.z = 0;
+  r.hips.rotation.set(-0.06, 0, 0);
+  r.spine.rotation.set(0.42 + breath, 0, 0);
+  r.chest.rotation.set(0.22, 0, 0);
+  r.neck.rotation.set(0.16, 0, 0);
+  r.head.rotation.set(-0.1, 0, 0);
+  r.hipL.rotation.set(0.04, 0, -0.05);
+  r.hipR.rotation.set(0.04, 0, 0.05);
+  r.kneeL.rotation.set(-0.1, 0, 0);
+  r.kneeR.rotation.set(-0.1, 0, 0);
+  r.footL.rotation.set(0.08, 0, 0);
+  r.footR.rotation.set(0.08, 0, 0);
+  r.shoulderL.rotation.set(0.18, 0.12, -0.82);
+  r.shoulderR.rotation.set(0.18, -0.12, 0.82);
+  r.elbowL.rotation.set(-0.42, 0, 0);
+  r.elbowR.rotation.set(-0.42, 0, 0);
+  r.handL.rotation.set(0.12, 0, -0.18);
+  r.handR.rotation.set(0.12, 0, 0.18);
+}
+
 /**
  * @param {THREE.Group} rig
  * @param {{ walkPhase?: number, speed?: number, punchT?: number, laserT?: number,
- *           aimYaw?: number, aimPitch?: number,
+ *           aimYaw?: number, aimPitch?: number, lounge?: number, loungeT?: number,
  *           lotionAim?: { x: number, y: number, z: number }, applyT?: number }} [state]
  */
 export function poseT101(rig, state = {}) {
@@ -567,6 +592,12 @@ export function poseT101(rig, state = {}) {
   } = state;
 
   const base = rig.userData.t101 || { hipY: HIP_Y, eyeBase: 1.6 };
+  if ((state.lounge || 0) > 0.5) {
+    poseLounge(r, state.loungeT || 0);
+    if (r.eyeMat) r.eyeMat.emissiveIntensity = base.eyeBase + 0.12 * Math.sin((state.loungeT || 0) * 2);
+    return;
+  }
+
   const g = clamp(speed / 2.6, 0, 1);
   const rest = 1 - g;
   const ph = walkPhase;
