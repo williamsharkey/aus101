@@ -13,8 +13,10 @@ import * as THREE from "three";
 import { spawnPatrolHouse, PATROL_HOME } from "../world/patrolHouse.js";
 import { BOUNDS } from "../world/goldCoast.js";
 import { buildT101, poseT101 } from "../chars/t101.js";
+import { seagull } from "../chars/npcs.js";
 import { JACK } from "./arrest.js";
 import { blocked } from "../input/player.js";
+import { FACTORY_DOOR, FACTORY_DOCK } from "../world/aureliaFactory.js";
 
 const FLEE = 6.2;
 const COP_SPEED = 7.4;
@@ -509,6 +511,8 @@ export function createPanic({
   let awaitingDrop = false;
   let lastSx = 0;
   let shoveFoleyAt = 0;
+  let pileT = 0;
+  let dragLock = false;
   let zapSx = 0;
   let zapSz = 0;
   let lastSz = 0;
@@ -536,6 +540,9 @@ export function createPanic({
       const dist = Math.hypot(m.position.x - from.x, m.position.z - from.z);
       if (dist > 34) continue;
       away(from, m.position, _d);
+      if (!m.userData.home) {
+        m.userData.home = { x: m.position.x, y: m.position.y, z: m.position.z, yaw: m.rotation.y };
+      }
       m.userData.flee = { x: _d.x, z: _d.z, spd: FLEE * (0.85 + Math.random() * 0.35) };
       m.userData.fleePhase = Math.random() * Math.PI * 2;
       if (!fleeing.includes(m)) fleeing.push(m);
@@ -574,9 +581,8 @@ export function createPanic({
     return null;
   }
 
-  function pickKind(i) {
-    const r = i % 5;
-    return r === 1 || r === 3 ? "t101" : "cop";
+  function pickKind() {
+    return "cop";
   }
 
   function makeUnit(kind, scale) {
@@ -638,13 +644,7 @@ export function createPanic({
   }
 
   function pruneDowned() {
-    if (cops.length <= LIVE_CAP) return;
-    for (let i = 0; i < cops.length && cops.length > LIVE_CAP; i++) {
-      if (cops[i].duty !== "down") continue;
-      scene?.remove(cops[i].root);
-      cops.splice(i, 1);
-      i--;
-    }
+    /* Cop corpses stay for the gulls. T-101 hulks wait for the smelter. */
   }
 
   function addUnit(kind, x, z, wave, extra = {}) {
@@ -782,13 +782,60 @@ export function createPanic({
     }
   }
 
-  function maybeReplace() {
-    if (!hunt || living().length >= LIVE_CAP) return;
-    const t = Math.min(1, killCount / 40);
-    const scale = 1.2 + 0.8 * t;
-    const pos = placeClear(lastPlayer, killCount, 6, living());
-    addUnit("t101", pos.x, pos.z, waveIndex, { scale, elite: true, ranged: Math.random() < 0.45 });
+  function maybeReplace() {}
+
+  const BONE = new THREE.MeshStandardMaterial({ color: 0xe4d4bc, roughness: 0.92 });
+  function toSkeleton(mesh) {
+    mesh.traverse((o) => {
+      if (!o.isMesh) return;
+      o.material = BONE;
+      o.scale.multiplyScalar(0.86);
+    });
   }
+
+  const scavGulls = [];
+  if (scene) {
+    for (let i = 0; i < 3; i++) {
+      const g = seagull();
+      g.name = "scav-gull";
+      g.position.set(-8 + i * 4, 3.2, 2);
+      scene.add(g);
+      scavGulls.push({ mesh: g, tx: 0, tz: 0, phase: i });
+    }
+  }
+
+  const smelter = (() => {
+    if (!scene) return null;
+    const g = new THREE.Group();
+    g.name = "t101-smelter";
+    const hull = new THREE.Mesh(
+      new THREE.BoxGeometry(1.6, 0.55, 0.9),
+      new THREE.MeshStandardMaterial({ color: 0x9aa8b4, metalness: 0.55, roughness: 0.4 })
+    );
+    hull.position.y = 0.42;
+    const vat = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.22, 0.22, 0.38, 10),
+      new THREE.MeshStandardMaterial({
+        color: 0x88c8e8,
+        transparent: true,
+        opacity: 0.35,
+        metalness: 0.3,
+        roughness: 0.15,
+      })
+    );
+    vat.position.set(0.35, 0.72, 0);
+    const melt = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.14, 0.14, 0.08, 8),
+      new THREE.MeshStandardMaterial({ color: 0xff5010, emissive: 0xff3000, emissiveIntensity: 0.8 })
+    );
+    melt.position.set(0.35, 0.55, 0);
+    melt.visible = false;
+    g.add(hull, vat, melt);
+    scene.add(g);
+    return { g, vat, melt, x: FACTORY_DOCK.x, z: FACTORY_DOCK.z, duty: "idle", target: null, hold: 0 };
+  })();
+
+  let pourAcc = 0;
 
   function walkable(i, j, r) {
     const p = fromCell(i, j);
@@ -953,8 +1000,13 @@ export function createPanic({
       /* sfx optional */
     }
     killCount += 1;
+    if (c.kind === "cop") {
+      c.eat = 0;
+      c.skeleton = false;
+    } else {
+      c.smelt = 0;
+    }
     maybeWipe();
-    maybeReplace();
     return true;
   }
 
@@ -968,6 +1020,8 @@ export function createPanic({
     waveSpawned = 0;
     waveWanted = WAVE_BASE;
     awaitingDrop = false;
+    pileT = 0;
+    dragLock = false;
     _from.set(from?.x || 0, 0, from?.z || 0);
     scream();
     try {
@@ -1032,6 +1086,8 @@ export function createPanic({
     awaitingDrop = false;
     lastSx = 0;
     lastSz = 0;
+    pileT = 0;
+    dragLock = false;
     for (let i = 0; i < cops.length; i++) {
       const c = cops[i];
       if (c.duty === "stash" || c.duty === "down" || c.root?.userData?.combatDown) continue;
@@ -1257,8 +1313,101 @@ export function createPanic({
   function tick(dt, playerPos) {
     if (!(dt > 0)) return;
     rememberPlayer(playerPos);
-    if (!on && cops.length === 0) return;
     const h = Math.min(dt, 0.05);
+    const anyDown = cops.some((c) => c.duty === "down");
+    if (!on && cops.length === 0) return;
+
+    pourAcc += h;
+    const t101Live = living().filter((c) => c.kind === "t101").length;
+    const wantPour = hunt ? t101Live < 40 : t101Live < 6;
+    if (pourAcc > 7.4 && living().length < LIVE_CAP && wantPour) {
+      pourAcc = 0;
+      const t = Math.min(1, killCount / 40);
+      const rec = addUnit("t101", FACTORY_DOOR.x + 0.4, FACTORY_DOOR.z, waveIndex, {
+        scale: 1.2 + 0.8 * t,
+        elite: true,
+        ranged: Math.random() < 0.4,
+      });
+      if (rec) rec.duty = hunt ? "shove" : "home";
+    }
+
+    for (const c of cops) {
+      if (c.duty !== "down" || c.kind !== "cop" || c.skeleton) continue;
+      c.eat = (c.eat || 0) + h * 0.045;
+      if (c.eat >= 1) {
+        c.skeleton = true;
+        if (c.root) toSkeleton(c.root);
+      }
+    }
+
+    const corpses = cops.filter((c) => c.duty === "down" && c.kind === "cop" && !c.skeleton);
+    for (let i = 0; i < scavGulls.length; i++) {
+      const g = scavGulls[i];
+      const prey = corpses[i % Math.max(1, corpses.length)];
+      if (prey && prey.root) {
+        const tx = prey.x;
+        const tz = prey.z;
+        const dx = tx - g.mesh.position.x;
+        const dz = tz - g.mesh.position.z;
+        const d = Math.hypot(dx, dz) || 1;
+        if (d > 0.5) {
+          g.mesh.position.x += (dx / d) * 4.2 * h;
+          g.mesh.position.z += (dz / d) * 4.2 * h;
+          g.mesh.position.y = 0.4 + Math.abs(Math.sin(performance.now() * 0.008 + i)) * 0.35;
+          g.mesh.rotation.y = Math.atan2(dx, dz);
+        } else {
+          g.mesh.position.y = 0.35 + Math.abs(Math.sin(performance.now() * 0.02)) * 0.12;
+        }
+      } else {
+        g.mesh.position.y = 2.4 + Math.sin(performance.now() * 0.001 + i) * 0.4;
+      }
+    }
+
+    if (smelter) {
+      const hulks = cops.filter((c) => c.duty === "down" && c.kind === "t101" && !c.smelted);
+      if (smelter.duty === "idle" && hulks.length) {
+        smelter.target = hulks[0];
+        smelter.duty = "go";
+      }
+      const dest =
+        smelter.duty === "dock"
+          ? FACTORY_DOCK
+          : smelter.target
+            ? { x: smelter.target.x, z: smelter.target.z }
+            : FACTORY_DOCK;
+      const dx = dest.x - smelter.x;
+      const dz = dest.z - smelter.z;
+      const d = Math.hypot(dx, dz) || 1;
+      if (d > 0.6 && smelter.duty !== "melt") {
+        smelter.x += (dx / d) * 4.8 * h;
+        smelter.z += (dz / d) * 4.8 * h;
+      } else if (smelter.duty === "go" && smelter.target) {
+        smelter.duty = "melt";
+        smelter.hold = 2.4;
+        smelter.melt.visible = true;
+      } else if (smelter.duty === "melt") {
+        smelter.hold -= h;
+        const t = smelter.target;
+        if (t?.root) {
+          t.root.scale.multiplyScalar(0.985);
+          t.root.traverse((o) => {
+            if (o.material?.emissive) o.material.emissive.setHex(0xff3300);
+          });
+        }
+        if (smelter.hold <= 0) {
+          if (t?.root) scene.remove(t.root);
+          t.smelted = true;
+          t.root = null;
+          smelter.duty = "dock";
+          smelter.target = null;
+          smelter.melt.visible = false;
+        }
+      } else if (smelter.duty === "dock" && d < 0.7) {
+        smelter.duty = "idle";
+      }
+      smelter.g.position.set(smelter.x, 0, smelter.z);
+      smelter.g.rotation.y = Math.atan2(dx, dz);
+    }
 
     if (on) {
       for (const m of fleeing) {
@@ -1266,17 +1415,39 @@ export function createPanic({
         if (!f) continue;
         const gone = Math.hypot(m.position.x - _from.x, m.position.z - _from.z);
         const slow = gone > FLEE_MAX ? 0 : 1;
+        const body = m.userData.fleeRoot || m;
         if (slow) {
-          m.position.x += f.x * f.spd * h;
-          m.position.z += f.z * f.spd * h;
-          m.position.x = Math.max(BOUNDS.minX, Math.min(BOUNDS.maxX, m.position.x));
-          m.position.z = Math.max(BOUNDS.minZ, Math.min(BOUNDS.maxZ, m.position.z));
-          m.rotation.y = Math.atan2(f.x, f.z); // npc bodies face +Z — face the way they bolt
+          body.position.x += f.x * f.spd * h;
+          body.position.z += f.z * f.spd * h;
+          body.position.x = Math.max(BOUNDS.minX, Math.min(BOUNDS.maxX, body.position.x));
+          body.position.z = Math.max(BOUNDS.minZ, Math.min(BOUNDS.maxZ, body.position.z));
+          body.rotation.y = Math.atan2(f.x, f.z);
           m.userData.fleePhase += h * (5.2 + f.spd * 0.9);
-          m.position.y = Math.abs(Math.sin(m.userData.fleePhase)) * 0.055;
+          body.position.y = (m.userData.home?.y || 0) + Math.abs(Math.sin(m.userData.fleePhase)) * 0.055;
         } else {
+          const home = m.userData.home;
+          const goHome = home && (m.name === "piano-ken" || m.userData.returnHome);
+          if (goHome) {
+            const hx = home.x - body.position.x;
+            const hz = home.z - body.position.z;
+            const hd = Math.hypot(hx, hz);
+            if (hd > 0.5) {
+              const sp = 2.35;
+              body.position.x += (hx / hd) * sp * h;
+              body.position.z += (hz / hd) * sp * h;
+              body.rotation.y = Math.atan2(hx, hz);
+              m.userData.fleePhase += h * 5;
+              body.position.y = (home.y || 0) + Math.abs(Math.sin(m.userData.fleePhase)) * 0.04;
+              poseCivilian(m, m.userData.fleePhase, 1);
+              continue;
+            }
+            body.position.set(home.x, home.y || 0, home.z);
+            body.rotation.y = home.yaw || 0;
+            m.userData.flee = null;
+            continue;
+          }
           m.userData.fleePhase += h * 1.4;
-          m.position.y = 0;
+          body.position.y = m.userData.home?.y || 0;
         }
         poseCivilian(m, m.userData.fleePhase, slow ? 1 : 0.12);
       }
@@ -1341,7 +1512,43 @@ export function createPanic({
       if (!isLiving(c)) continue;
       if (Math.hypot(c.x - px, c.z - pz) <= SHOVE_R) n += 1;
     }
-    if (n <= 0) return 0;
+    if (n <= 0) {
+      pileT = 0;
+      return 0;
+    }
+
+    if (n >= 12) pileT += h;
+    else if (!dragLock) pileT = Math.max(0, pileT - h * 0.6);
+    if (pileT >= 30) dragLock = true;
+    if (dragLock) {
+      player.vel.x = 0;
+      player.vel.z = 0;
+      const pd0 = pathDir(px, pz);
+      let nx0 = player.pos.x + pd0.x * 2.6 * h;
+      let nz0 = player.pos.z + pd0.z * 2.6 * h;
+      const col0 = colliders?.COL;
+      const r0 = player.radius || 0.34;
+      if (col0 && blocked(col0, nx0, player.pos.z, r0)) nx0 = player.pos.x + (pd0.x >= 0 ? 1 : -1) * 2.4 * h;
+      if (col0 && blocked(col0, nx0, nz0, r0)) nz0 = player.pos.z + (pd0.z >= 0 ? 1 : -1) * 2.4 * h;
+      if (col0 && blocked(col0, nx0, nz0, r0)) {
+        nx0 = player.pos.x + pd0.z * 2.4 * h;
+        nz0 = player.pos.z - pd0.x * 2.4 * h;
+      }
+      player.pos.x = Math.max(BOUNDS.minX, Math.min(BOUNDS.maxX, nx0));
+      player.pos.z = Math.max(BOUNDS.minZ, Math.min(BOUNDS.maxZ, nz0));
+      const escort = cops.find((c) => isLiving(c) && c.kind === "cop") || cops.find((c) => isLiving(c));
+      if (escort) {
+        escort.duty = "escort";
+        escort.offX = -0.4;
+        escort.offZ = -0.5;
+      }
+      if (Math.hypot(player.pos.x - JACK.x, player.pos.z - JACK.z) <= JACK_R) {
+        dragLock = false;
+        pileT = 0;
+        fireDelivered();
+      }
+      return n;
+    }
 
     const distJack = Math.hypot(px - JACK.x, pz - JACK.z);
     if (distJack <= JACK_R && n >= DELIVER_N) {

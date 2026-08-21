@@ -30,6 +30,7 @@ import {
 import { buildWisdomHouse } from "./wisdomHouse.js";
 import { buildLibrary } from "./library.js";
 import { buildVoidCave } from "./voidCave.js";
+import { buildAureliaFactory } from "./aureliaFactory.js";
 
 /** Player radius from `createPlayer`. Doors are sized against this. */
 const PLAYER_R = 0.34;
@@ -1077,6 +1078,7 @@ export function spawnInteriors(scene, colliders) {
     buildWisdomHouse(reg),
     buildLibrary(reg),
     buildVoidCave(reg),
+    buildAureliaFactory(reg),
   ];
   for (const b of buildings) scene.add(b.group);
 

@@ -148,6 +148,8 @@ export function createBoomBed(ctx, dest) {
   };
 }
 
+export const guitarPulse = { at: 0, midi: 52, onVowel: null };
+
 /** Pentatonic plucked sines, slow. */
 export function createGuitarBed(ctx, dest) {
   const PEAK = 0.42;
@@ -174,6 +176,13 @@ export function createGuitarBed(ctx, dest) {
     o.connect(g); o2.connect(g); g.connect(body);
     o.start(t); o.stop(t + 1.9);
     o2.start(t); o2.stop(t + 1.9);
+    guitarPulse.at = performance.now();
+    guitarPulse.midi = midi;
+    try {
+      guitarPulse.onVowel?.(midi);
+    } catch {
+      /* */
+    }
     if (shell.mix > 0.08) midiBus.emit({ midi, vel: 0.7, src: "guitar", dur: 1.8 });
     if (midi >= 55 && (midi & 1)) {
       const fifth = osc(ctx, "sine", hz(midi + 7));

@@ -1,0 +1,13 @@
+{
+  "lines": [
+    {"id": "guitar_ooh_low", "text": "oooooh yeah", "voice": "en_us_010", "category": "guitar", "tags": ["guitar", "vowel"], "ageBand": "adult"},
+    {"id": "guitar_ooh_mid", "text": "ooooh", "voice": "en_us_010", "category": "guitar", "tags": ["guitar", "vowel"], "ageBand": "adult"},
+    {"id": "guitar_ooh_hi", "text": "oooh", "voice": "en_male_funny", "category": "guitar", "tags": ["guitar", "vowel"], "ageBand": "adult"},
+    {"id": "guitar_aah_low", "text": "aaaaaah", "voice": "en_us_006", "category": "guitar", "tags": ["guitar", "vowel"], "ageBand": "adult"},
+    {"id": "guitar_aah_mid", "text": "aaaah", "voice": "en_us_006", "category": "guitar", "tags": ["guitar", "vowel"], "ageBand": "adult"},
+    {"id": "guitar_aah_hi", "text": "aaah", "voice": "en_us_002", "category": "guitar", "tags": ["guitar", "vowel"], "ageBand": "adult"},
+    {"id": "guitar_yoyo_low", "text": "yoyoyoyo", "voice": "en_us_010", "category": "guitar", "tags": ["guitar", "vowel"], "ageBand": "adult"},
+    {"id": "guitar_yoyo_mid", "text": "yo yo yo", "voice": "en_us_010", "category": "guitar", "tags": ["guitar", "vowel"], "ageBand": "adult"},
+    {"id": "guitar_yoyo_hi", "text": "yooo", "voice": "en_male_funny", "category": "guitar", "tags": ["guitar", "vowel"], "ageBand": "adult"}
+  ]
+}

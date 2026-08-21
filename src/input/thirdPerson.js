@@ -39,10 +39,12 @@ export function updateFollowCam(camera, player, dt) {
   const sy = Math.sin(player.yaw);
   const cy = Math.cos(player.yaw);
 
-  // Local offset (0, 2.1, 4.2) in yaw space, then tilt with pitch.
-  // yaw=0 faces −Z, so +Z is behind the player.
-  const back = BACK * cp;
-  const height = Math.max(0.88, HEIGHT - BACK * sp);
+  // Pit trampoline: y ≈ −7.5 on the mat, 0 at the door. Rise pulls a sky view.
+  const lift = player.pos.y < -0.12 ? Math.max(0, player.pos.y + 8.5) : Math.max(0, player.pos.y);
+  const zoom = 1 + lift * 0.62;
+
+  const back = BACK * cp * zoom;
+  const height = Math.max(0.88, HEIGHT - BACK * sp) + lift * 0.95;
 
   _desired.set(
     player.pos.x + back * sy,

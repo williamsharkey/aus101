@@ -29,6 +29,9 @@ const SP_A0 = 0.22;
 
 const HX = SP_CX;
 const HZ = SP_CZ;
+const PIANO_HX = 7;
+const PIANO_HZ = -29;
+const PIANO_HR = 1.45;
 
 const NEST_X = 3.15;
 const NEST_Z = -33.05;
@@ -180,6 +183,10 @@ function overHatch(x, z) {
   return polar(x, z, SP_CX, SP_CZ).d < SP_OUTER + 0.55;
 }
 
+function overPianoWell(x, z) {
+  return polar(x, z, PIANO_HX, PIANO_HZ).d < PIANO_HR;
+}
+
 function wrapPi(a) {
   while (a > Math.PI) a -= Math.PI * 2;
   while (a < -Math.PI) a += Math.PI * 2;
@@ -218,7 +225,7 @@ function standYAt(x, z, y) {
 }
 
 function inVolume(x, z, y) {
-  if (overHatch(x, z) || overSpiral(x, z, 0.2)) return true;
+  if (overHatch(x, z) || overSpiral(x, z, 0.2) || overPianoWell(x, z)) return true;
   if (y < -0.18 && inEllipse(x, z, -0.25)) return true;
   return false;
 }
@@ -365,6 +372,18 @@ export function buildVoidCave(_reg) {
     else hole.lineTo(px, -pz);
   }
   ceilShape.holes.push(hole);
+  const pianoHole = new THREE.Path();
+  const phr = PIANO_HR * 0.55;
+  const phx = PIANO_HX - CX;
+  const phz = PIANO_HZ - CZ;
+  for (let i = 12; i >= 0; i--) {
+    const a = (i / 12) * Math.PI * 2;
+    const px = phx + Math.sin(a) * phr;
+    const pz = phz + Math.cos(a) * phr;
+    if (i === 12) pianoHole.moveTo(px, -pz);
+    else pianoHole.lineTo(px, -pz);
+  }
+  ceilShape.holes.push(pianoHole);
   const ceilGeo = new THREE.ShapeGeometry(ceilShape, 8);
   ceilGeo.rotateX(-Math.PI / 2);
   const ceil = new THREE.Mesh(ceilGeo, rockM);
@@ -872,7 +891,7 @@ export function buildVoidCave(_reg) {
     if (!inVolume(x, z, y)) {
       return false;
     }
-    if (y >= -0.05 && !overHatch(x, z) && !overSpiral(x, z, 0.08)) {
+    if (y >= -0.05 && !overHatch(x, z) && !overSpiral(x, z, 0.08) && !overPianoWell(x, z)) {
       player.pos.y = 0;
       player.vel.y = 0;
       return false;
@@ -945,15 +964,14 @@ export const VOID_CX = CX;
 export const VOID_CZ = CZ;
 export const VOID_FLOOR_Y = FLOOR_Y;
 export const VOID_HATCH = { x: HX, z: HZ, y: 0 };
+/** Descend dest (cave floor under the piano well). Omit stairsTop — callers prefer it and y must not be 0. */
 export const VOID_STAIRS = {
-  stairsTop: { x: HX, z: HZ, y: 0 },
-  nest: { x: NEST_X, y: FLOOR_Y + 0.32, z: NEST_Z },
-  x: HX,
-  y: 0,
-  z: HZ,
+  x: PIANO_HX,
+  y: FLOOR_Y,
+  z: PIANO_HZ,
 };
-export const VOID_EXITS = [
-  { id: "piano", x: HX, z: HZ, y: 0 },
-  { id: "stall", x: -26.2, z: 24.6, y: 0 },
-];
+export const VOID_EXITS = {
+  piano: { x: PIANO_HX, y: FLOOR_Y, z: PIANO_HZ, radius: 1.85 },
+  stall: { x: CX + 1.1, y: FLOOR_Y, z: CZ + RZ - 1.35, radius: 1.85 },
+};
 export { contains as voidContains };

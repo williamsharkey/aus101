@@ -432,7 +432,9 @@ function poseLeg(hip, knee, foot, th, g, rest, side) {
   hip.rotation.x = hipRot;
   hip.rotation.z = -side * (0.022 + 0.03 * g * Math.max(0, Math.cos(th)));
   hip.rotation.y = side * 0.03 * g * Math.cos(th);
-  knee.rotation.x = kneeRot;
+  // Capsule hangs down −Y; +X rotation swings the shin toward +Z (forward).
+  // Knees flex the other way — negate so the joint folds behind the thigh.
+  knee.rotation.x = -kneeRot;
   foot.rotation.x = footRot;
   foot.rotation.z = side * 0.04 * g * Math.sin(th);
   return soleDrop(hipRot, kneeRot, footRot);
@@ -518,13 +520,13 @@ function poseLotion(root, r, state) {
   r.shoulderR.rotation.x = mix(r.shoulderR.rotation.x, _eul.x, w);
   r.shoulderR.rotation.y = mix(r.shoulderR.rotation.y, _eul.y, w);
   r.shoulderR.rotation.z = mix(r.shoulderR.rotation.z, _eul.z, w);
-  r.elbowR.rotation.x = mix(r.elbowR.rotation.x, clamp(elbow, 0.12, 2.45), w);
+  r.elbowR.rotation.x = mix(r.elbowR.rotation.x, clamp(-elbow, -2.45, -0.12), w);
   r.elbowR.rotation.y = mix(r.elbowR.rotation.y, 0, w);
   r.handR.rotation.set(-0.18 + Math.sin(rub) * 0.14, 0.12, 0.22);
 
   r.shoulderL.rotation.x = mix(r.shoulderL.rotation.x, -0.48 - reachUp * 0.45 + crouch * 0.28, w);
   r.shoulderL.rotation.z = mix(r.shoulderL.rotation.z, -0.44, w);
-  r.elbowL.rotation.x = mix(r.elbowL.rotation.x, 0.82 + crouch * 0.38, w);
+  r.elbowL.rotation.x = mix(r.elbowL.rotation.x, -(0.82 + crouch * 0.38), w);
   r.handL.rotation.set(0.08, 0, -0.12);
 }
 
@@ -604,8 +606,8 @@ export function poseT101(rig, state = {}) {
   r.shoulderR.rotation.z = 0.115 + 0.05 * g;
   r.shoulderL.rotation.y = -0.05 * g * cph;
   r.shoulderR.rotation.y = 0.05 * g * cph;
-  r.elbowL.rotation.x = 0.22 + 0.55 * g * Math.max(0, cph) + rest * 0.06;
-  r.elbowR.rotation.x = 0.22 + 0.55 * g * Math.max(0, -cph) + rest * 0.06;
+  r.elbowL.rotation.x = -(0.22 + 0.55 * g * Math.max(0, cph) + rest * 0.06);
+  r.elbowR.rotation.x = -(0.22 + 0.55 * g * Math.max(0, -cph) + rest * 0.06);
   r.elbowL.rotation.y = 0;
   r.elbowR.rotation.y = 0;
   r.handL.rotation.set(0.12 * g * cph, 0, -0.06);
@@ -631,13 +633,13 @@ export function poseT101(rig, state = {}) {
     r.shoulderR.rotation.x = r.shoulderR.rotation.x * (1 - w) + (-1.48 * fwd + 0.62 * back) * w;
     r.shoulderR.rotation.z = r.shoulderR.rotation.z * (1 - w) + (0.1 + 0.12 * back) * w;
     r.shoulderR.rotation.y = r.shoulderR.rotation.y * (1 - w) + -0.22 * fwd * w;
-    const elbowPunch = e >= 0 ? 1.5 * (1 - e) + 0.14 : 1.5 + 0.55 * back;
+    const elbowPunch = e >= 0 ? -(1.5 * (1 - e) + 0.14) : -(1.5 + 0.55 * back);
     r.elbowR.rotation.x = r.elbowR.rotation.x * (1 - w) + elbowPunch * w;
     r.handR.rotation.set(-0.1 + 0.25 * fwd, 0, 0.06);
 
     // guard arm and whole-body torque
     r.shoulderL.rotation.x = r.shoulderL.rotation.x * (1 - w) + (-0.45 * fwd - 0.15 * back) * w;
-    r.elbowL.rotation.x = r.elbowL.rotation.x * (1 - w) + (1.35 + 0.2 * back) * w;
+    r.elbowL.rotation.x = r.elbowL.rotation.x * (1 - w) + -(1.35 + 0.2 * back) * w;
     r.chest.rotation.y -= 0.4 * e;
     r.hips.rotation.y -= 0.2 * e;
     r.spine.rotation.x -= 0.13 * fwd - 0.05 * back;

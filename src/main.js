@@ -22,6 +22,7 @@ import {
 import { createFollowCam, updateFollowCam } from "./input/thirdPerson.js";
 import { installTouchControls, getLookStick } from "./input/touchControls.js";
 import { createShadesBed, pianoPulse } from "./audio/shades.js";
+import { guitarPulse } from "./audio/localBeds.js";
 import { buildGoldCoast, setupGoldCoastLights, BOUNDS, GC } from "./world/goldCoast.js";
 import { createAus101, poseAus101 } from "./chars/aus101.js";
 import { spawnBeachCast, spawnRoachIncel } from "./chars/npcs.js";
@@ -705,6 +706,13 @@ async function beginPlay() {
         const band = midi < 58 ? "low" : midi < 70 ? "mid" : "hi";
         const kind = ["la", "ooh", "aah"][(Math.random() * 3) | 0];
         voice.play(`piano_${kind}_${band}`, { gain: 0.55, pos: level.piano });
+      };
+      guitarPulse.onVowel = (midi) => {
+        const band = midi < 54 ? "low" : midi < 60 ? "mid" : "hi";
+        const kind = ["ooh", "aah", "yoyo"][(Math.random() * 3) | 0];
+        const spots = level.party?.musicSpots;
+        const gspot = spots?.find((s) => s.id === "guitar") || { x: 12, z: 8 };
+        voice.play(`guitar_${kind}_${band}`, { gain: 0.62, pos: gspot });
       };
       trackerBed = createTracker(ctx);
       oceanBed = initOcean(ctx);

@@ -638,6 +638,17 @@ export function buildGoldCoast(scene, colliders) {
   pianoRig.position.set(pianoPos.x, 0.15, pianoPos.z);
   pianoRig.rotation.y = 1.92; // treble side + open lid toward the beach
   scene.add(pianoRig);
+  const pianoKen = pianoRig.getObjectByName("piano-ken");
+  if (pianoKen) {
+    pianoKen.userData.returnHome = true;
+    pianoKen.userData.fleeRoot = pianoRig;
+    pianoKen.userData.home = {
+      x: pianoRig.position.x,
+      y: pianoRig.position.y,
+      z: pianoRig.position.z,
+      yaw: pianoRig.rotation.y,
+    };
+  }
 
   // Crawlspace under the raft: dark well + ladder + fairy lights going down.
   const pianoHatch = buildPianoHatch();
@@ -923,6 +934,7 @@ function buildPianoMan() {
   // ── the man ───────────────────────────────────────────────────────────────
   const man = ken({ hair: 0x1a1410, shorts: 0x141418, skin: 0xbb8f66 });
   man.name = "piano-ken";
+  man.userData.returnHome = true;
   man.userData.kind = "ken";
   man.userData.ageBand = "adult";
   man.userData.paintTarget = true;
@@ -1086,7 +1098,7 @@ function buildPianoMan() {
 
   let lastLocal = 0;
   g.userData.tick = (t) => {
-    if (man.userData.combatDown || man.visible === false) return;
+    if (man.userData.combatDown || man.visible === false || man.userData.flee) return;
     const age = pianoPulse.at ? (performance.now() - pianoPulse.at) / 1000 : 99;
     const hit = age < 0.22 ? 1 - age / 0.22 : 0;
     const damp = pianoPulse.mix > 0.08 ? 0.35 : 1;

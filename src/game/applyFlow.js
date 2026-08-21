@@ -50,6 +50,14 @@ export function runApplyFrame({
     }
   }
 
+  if (bay?.track) {
+    for (const npc of cast) {
+      const m = npc?.mesh || npc;
+      if (!m?.position) continue;
+      const d = Math.hypot(m.position.x - playerPos.x, m.position.z - playerPos.z);
+      if (d < 14) bay.track(npc);
+    }
+  }
   bay?.tick?.(t, painted?.npc ?? null);
   return painted;
 }

@@ -5,7 +5,7 @@
 import { coveragePercent } from "../game/coverage.js";
 
 const MAX = 12;
-const DOSE_RATE = 0.02;
+const DOSE_RATE = 0.09;
 const FREEZE_AT = 0.85;
 const CSS_ID = "aus101-reticule-css";
 
@@ -256,8 +256,9 @@ export function createReticuleBay(opts = {}) {
       const painting = paintedMesh === slot.mesh || rose;
       slot.applying = painting;
       slot._prevCov = cov;
-      if (cov < FREEZE_AT && !painting) {
-        slot.dose += (1 - cov) * step * DOSE_RATE;
+      if (cov < FREEZE_AT) {
+        const sun = painting ? 0.22 : 1;
+        slot.dose += Math.max(0.15, 1 - cov) * step * DOSE_RATE * sun;
       }
       if (slot.dose > 1) slot.burn = true;
       const ud = slot.mesh.userData || (slot.mesh.userData = {});

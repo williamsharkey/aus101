@@ -474,7 +474,7 @@ export function buildLibrary(reg) {
       }
       if (j.y < TRAMP_Y + 0.02) {
         j.y = TRAMP_Y + 0.02;
-        j.vy = j.hop + Math.sin(t * 3 + j.phase) * 1.4;
+        j.vy = j.hop * 0.22 + Math.sin(t * 3 + j.phase) * 0.28;
         j.woo = 1;
         shoveBalls(j.x, j.z, 0.85);
         trampBoost = Math.max(trampBoost, 0.7);
@@ -657,9 +657,15 @@ export function buildLibrary(reg) {
     if (player.pos.y < stand) {
       player.pos.y = stand;
       const incoming = player.vel.y || 0;
-      player.vel.y = Math.max(8.5, -incoming * 1.35);
-      trampBoost = 1;
-      shoveBalls(player.pos.x, player.pos.z, 1.15);
+      player.vel.y = Math.max(1.65, -incoming * 0.27);
+      trampBoost = 0.35;
+      shoveBalls(player.pos.x, player.pos.z, 0.35);
+    }
+    const ceilY = -0.22;
+    if (player.pos.y > ceilY && !overHole(player.pos.x, player.pos.z)) {
+      player.pos.y = ceilY;
+      if ((player.vel.y || 0) > 0) player.vel.y = -0.55;
+      trampBoost = 0.15;
     }
     collideCapsuleBalls(
       player.pos.x,
@@ -671,13 +677,9 @@ export function buildLibrary(reg) {
       player.vel.z || 0,
       1.25
     );
-    if (player.vel.y > 12 && player.pos.z < CZ - R + 1.5 && player.pos.y > -2) {
-      landOnDoor(player);
-      return true;
-    }
     if (player.pos.y > 2.8 && overHole(player.pos.x, player.pos.z) === false) {
-      player.pos.y = 0;
-      player.vel.y = 0;
+      player.pos.y = ceilY;
+      player.vel.y = -0.4;
     }
     trampBoost *= 0.92;
     return true;
