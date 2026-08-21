@@ -1,9 +1,9 @@
 /**
- * About-to-burn: a spinning red marker over the head, plus a compass tick
- * that points at the nearest one so you can find them off-screen.
+ * FPS crosshair for Doom view. Burn compass and world markers stay off —
+ * tan on skin is the UV read, not a BURN pointer.
  */
 import * as THREE from "three";
-import { isAboutToBurn, WARN_AT } from "../game/sun.js";
+import { WARN_AT } from "../game/sun.js";
 
 const POOL = 16;
 const CSS_ID = "aus101-burn-css";
@@ -99,23 +99,6 @@ function makeMarker() {
   return g;
 }
 
-function worldXZ(mesh, out) {
-  if (typeof mesh.updateWorldMatrix === "function") mesh.updateWorldMatrix(true, false);
-  const e = mesh.matrixWorld?.elements;
-  if (e) {
-    out.x = e[12];
-    out.y = e[13];
-    out.z = e[14];
-    return out;
-  }
-  out.x = mesh.position.x;
-  out.y = mesh.position.y || 0;
-  out.z = mesh.position.z;
-  return out;
-}
-
-const _wp = { x: 0, y: 0, z: 0 };
-
 export function createBurnWarn(scene) {
   installCss();
   const group = new THREE.Group();
@@ -131,7 +114,7 @@ export function createBurnWarn(scene) {
   const compass = el("div");
   compass.id = "aus101-burn-compass";
   el("div", "ring", compass);
-  const needle = el("div", "needle", compass);
+  el("div", "needle", compass);
   const lab = el("div", "lab", compass);
   lab.textContent = "BURN";
   document.body.appendChild(compass);
@@ -143,53 +126,9 @@ export function createBurnWarn(scene) {
   el("div", "dot", cross);
   document.body.appendChild(cross);
 
-  let spin = 0;
-
-  function tick(dt, cast, player, fpsOn) {
-    spin += (dt > 0 ? dt : 0) * 2.6;
-    let used = 0;
-    let nearest = null;
-    let nearestD = Infinity;
-    const px = player?.pos?.x || 0;
-    const pz = player?.pos?.z || 0;
-    const pyaw = player?.yaw || 0;
-
-    if (cast) {
-      for (const npc of cast) {
-        if (!isAboutToBurn(npc)) continue;
-        const mesh = npc.mesh || npc;
-        if (!mesh || mesh.visible === false) continue;
-        worldXZ(mesh, _wp);
-        const h = mesh.userData?.height || 1.75;
-        if (used < POOL) {
-          const m = pool[used++];
-          m.visible = true;
-          m.position.set(_wp.x, _wp.y + h + 0.28, _wp.z);
-          m.rotation.y = spin;
-          const pulse = 0.85 + Math.sin(spin * 3.2) * 0.15;
-          m.scale.setScalar(pulse);
-        }
-        const d = Math.hypot(_wp.x - px, _wp.z - pz);
-        if (d < nearestD) {
-          nearestD = d;
-          nearest = { x: _wp.x, z: _wp.z, d };
-        }
-      }
-    }
-    for (let i = used; i < POOL; i++) pool[i].visible = false;
-
-    if (nearest) {
-      compass.classList.add("is-on");
-      const dx = nearest.x - px;
-      const dz = nearest.z - pz;
-      // atan2(dx, dz) − yaw. +π because yaw 0 faces −Z and CSS 0 is up (ahead).
-      const ang = Math.atan2(dx, dz) - pyaw;
-      needle.style.transform = `rotate(${((ang + Math.PI) * 180) / Math.PI}deg)`;
-      lab.textContent = nearest.d < 4 ? "BURN" : `${Math.round(nearest.d)}m`;
-    } else {
-      compass.classList.remove("is-on");
-    }
-
+  function tick(_dt, _cast, _player, fpsOn) {
+    for (let i = 0; i < POOL; i++) pool[i].visible = false;
+    compass.classList.remove("is-on");
     cross.classList.toggle("is-on", !!fpsOn);
   }
 

@@ -11,8 +11,11 @@ export const MAP_SIZE = 128;
 /** Texel counts as filmed once thickness crosses this (design step 0.02). */
 const FILM = 6;
 const ZINC = new THREE.Color(0xf3efe4);
+/** Bronze from UV dose — never erythema red. */
+const TAN = new THREE.Color(0xb07a48);
 
 const SKIP_KIND = new Set(["gull"]);
+const ROBOT_KIND = new Set(["t101", "cop"]);
 
 function meshOf(npc) {
   if (!npc) return null;
@@ -380,10 +383,18 @@ function regionThicknesses(map) {
   return sum;
 }
 
-function tintSkinMat(m, bare, t) {
+function tanAmount(npc, mesh) {
+  const kind = kindOf(npc);
+  if (ROBOT_KIND.has(kind)) return 0;
+  const dose = Number.isFinite(mesh?.userData?.dose) ? mesh.userData.dose : 0;
+  const x = dose < 0 ? 0 : dose > 1 ? 1 : dose;
+  return x * 0.55;
+}
+
+function tintSkinMat(m, bare, t, tanAmt) {
   if (m.userData.bareRoughness == null) m.userData.bareRoughness = m.roughness;
   if (m.userData.bareMetalness == null) m.userData.bareMetalness = m.metalness;
-  m.color.copy(bare).lerp(ZINC, t * 0.72);
+  m.color.copy(bare).lerp(TAN, tanAmt).lerp(ZINC, t * 0.72);
   m.roughness = m.userData.bareRoughness * (1 - t) + 0.26 * t;
   m.metalness = m.userData.bareMetalness + t * 0.08;
 }
@@ -413,11 +424,18 @@ export function applyCoverageToMats(npc) {
     }
   }
   const tex = map?.tex || mesh.userData.coverageTex;
+  const tanAmt = tanAmount(npc, mesh);
   for (const m of mats) {
     if (!m) continue;
     if (tex) m.userData.coverageMap = tex;
     const region = m.userData.skinRegion;
     const t = regional && region ? bands[region] ?? 0 : tAll;
-    tintSkinMat(m, bare, t);
+    tintSkinMat(m, bare, t, tanAmt);
   }
+}
+
+/** Dose-driven bronze then zinc. Robots (t101/cop) keep chassis color. */
+export function applyTan(npc) {
+  if (ROBOT_KIND.has(kindOf(npc))) return;
+  applyCoverageToMats(npc);
 }

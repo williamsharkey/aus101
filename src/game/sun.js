@@ -4,6 +4,7 @@
  */
 import {
   applyCoverageToMats,
+  applyTan,
   coveragePercent,
   ensureCoverageMap,
   isPaintable,
@@ -71,7 +72,7 @@ export function coatCoverage(npc, amount) {
 
 /**
  * 90% start with a random SPF film (0.58–0.98); the rest stay mostly bare.
- * Skip gull / t101 / cop. Dose is the burn clock (0 ok … 1 burned).
+ * Skip gull / t101 / cop. Dose drives tan (0 pale … 1 bronze), not redness.
  */
 export function seedSpf(npc) {
   if (!isPaintable(npc)) return;
@@ -91,11 +92,10 @@ export function seedSpf(npc) {
     const film = 0.58 + (h / SPF_RATE) * 0.4;
     coatCoverage(npc, film);
     ud.dose = 0.02 + (1 - h) * 0.16;
-    ud.burn = false;
   } else {
     ud.dose = 0.12 + (h - SPF_RATE) * 2.2;
-    ud.burn = ud.dose > BURN_AT;
   }
+  applyTan(npc);
 }
 
 /**
@@ -115,13 +115,18 @@ export function tickSun(cast, dt, painted) {
     const ud = mesh.userData || (mesh.userData = {});
     if (ud.paintTarget === false) continue;
     seedSpf(npc);
+    const kind = npc.kind || ud.kind || "";
+    if (kind === "t101" || kind === "cop") {
+      ud.dose = 0;
+      continue;
+    }
     const cov = coveragePercent(npc);
     ud.coverage = cov;
     if (!step || cov >= FREEZE_AT) continue;
     const painting = paintedMesh === mesh;
     const sun = painting ? 0.22 : 1;
     ud.dose = (Number.isFinite(ud.dose) ? ud.dose : 0) + Math.max(0.15, 1 - cov) * step * DOSE_RATE * sun;
-    if (ud.dose > BURN_AT) ud.burn = true;
+    applyTan(npc);
   }
 }
 
