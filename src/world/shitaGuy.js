@@ -73,11 +73,12 @@ function sandClamp(x, z) {
   };
 }
 
-function makeScreen() {
+function nearestCanvas(w, h) {
   const c = document.createElement("canvas");
-  c.width = 96;
-  c.height = 48;
+  c.width = w;
+  c.height = h;
   const x = c.getContext("2d");
+  x.imageSmoothingEnabled = false;
   const tex = new THREE.CanvasTexture(c);
   tex.colorSpace = THREE.SRGBColorSpace;
   tex.magFilter = THREE.NearestFilter;
@@ -86,97 +87,184 @@ function makeScreen() {
   return { canvas: c, ctx: x, tex };
 }
 
-function paintScreen(scr, title, cut) {
-  const x = scr.ctx;
-  x.fillStyle = "#001128";
-  x.fillRect(0, 0, 96, 48);
+/** Keen-EGA Shitasynth 3 panel: deep blue, cyan/magenta/yellow bezel. */
+function paintUi(x, w, h, title) {
+  x.fillStyle = "#1e1e8c";
+  x.fillRect(0, 0, w, h);
+  x.fillStyle = "#000";
+  for (let y = 0; y < h; y += 8) x.fillRect(0, y, w, 1);
   x.fillStyle = "#00ffff";
-  x.font = "bold 9px monospace";
-  x.fillText("SHITA 3", 6, 12);
-  x.fillStyle = "#ffff00";
-  x.font = "8px monospace";
-  x.fillText(String(title || "ROT").slice(0, 14).toUpperCase(), 6, 26);
+  x.fillRect(0, 0, w, 3);
+  x.fillRect(0, h - 3, w, 3);
   x.fillStyle = "#ff00ff";
-  x.fillRect(6, 34, Math.max(4, Math.min(84, (Number(cut) / 12000) * 84)), 8);
+  x.fillRect(0, 0, 3, h);
+  x.fillRect(w - 3, 0, 3, h);
+  x.fillStyle = "#ffff00";
+  x.font = "bold 11px monospace";
+  x.fillText("SHITASYNTH 3", 8, 16);
+  x.fillStyle = "#00ffff";
+  x.font = "9px monospace";
+  x.fillText("ABSOLUTE ROT", 8, 28);
+  const names = ["CARD", "XP", "CLAR", "808", "FART", "MWAVE", "DIAL", "VHS"];
+  for (let i = 0; i < 8; i++) {
+    const col = i % 2;
+    const row = (i / 2) | 0;
+    const px = 8 + col * 58;
+    const py = 36 + row * 16;
+    x.fillStyle = i === 7 ? "#ff0000" : "#00ffff";
+    x.fillRect(px, py, 54, 13);
+    x.fillStyle = "#000";
+    x.font = "8px monospace";
+    x.fillText(names[i], px + 4, py + 10);
+  }
+  x.fillStyle = "#3c3c9c";
+  x.fillRect(8, 104, w - 16, 18);
+  x.fillStyle = "#ffff00";
+  x.fillRect(10, 108, Math.max(8, Math.min(w - 28, ((title || "").length / 14) * (w - 28))), 10);
+}
+
+function makeJacketTex() {
+  const { canvas, ctx, tex } = nearestCanvas(256, 256);
+  paintUi(ctx, 256, 256, "wetCardboard");
+  ctx.fillStyle = "#00ff00";
+  ctx.fillRect(12, 230, 10, 10);
+  ctx.fillStyle = "#ffff00";
+  ctx.font = "10px monospace";
+  ctx.fillText("WTF KNOB", 28, 240);
+  tex.needsUpdate = true;
+  tex.wrapS = THREE.RepeatWrapping;
+  tex.wrapT = THREE.RepeatWrapping;
+  return tex;
+}
+
+function makeScreen() {
+  return nearestCanvas(128, 64);
+}
+
+function paintScreen(scr, title, cut, step) {
+  const x = scr.ctx;
+  const w = scr.canvas.width;
+  const h = scr.canvas.height;
+  x.fillStyle = "#001100";
+  x.fillRect(0, 0, w, h);
+  x.strokeStyle = "#88bbff";
+  x.lineWidth = 2;
+  x.beginPath();
+  for (let i = 0; i < w; i++) {
+    const y = h * 0.5 + Math.sin(i * 0.22 + (cut || 0) * 0.001) * (10 + (i % 17) * 0.4);
+    if (i === 0) x.moveTo(i, y);
+    else x.lineTo(i, y);
+  }
+  x.stroke();
+  x.fillStyle = "#00ffff";
+  x.font = "bold 10px monospace";
+  x.fillText("SHITA 3", 4, 12);
+  x.fillStyle = "#ffff00";
+  x.font = "9px monospace";
+  x.fillText(String(title || "ROT").slice(0, 14).toUpperCase(), 4, 24);
+  x.fillStyle = "#ff00ff";
+  x.fillRect(4, 30, Math.max(4, Math.min(w - 8, (Number(cut) / 12000) * (w - 8))), 6);
+  if (step != null) {
+    for (let i = 0; i < 16; i++) {
+      x.fillStyle = i === (step & 15) ? "#ffff00" : i % 4 === 0 ? "#ff00ff" : "#003322";
+      x.fillRect(4 + i * 7.5, 42, 6, 14);
+    }
+  }
   scr.tex.needsUpdate = true;
 }
 
-/** Chunky cassette/synth slab: box, knobs, tiny CRT, cyan bezel. */
+/** Miniature of the HTML cart: Keen bezel, preset pads, knobs, 16-step seq. */
 function makeSynth() {
   const g = new THREE.Group();
   g.name = "shita-slab";
-  const shell = std(0x14182a, { roughness: 0.38, metalness: 0.28 });
-  const bezel = std(0x00c8d4, { roughness: 0.35, metalness: 0.45 });
-  const chrome = std(0xb0b8c4, { roughness: 0.28, metalness: 0.7 });
-  const mag = std(0xff00aa, { roughness: 0.4, metalness: 0.2, emissive: 0x4a0030, emissiveIntensity: 0.4 });
+  const panel = std(0x1e1e8c, { roughness: 0.55, metalness: 0.08 });
+  const cyan = std(0x00ffff, { roughness: 0.35, metalness: 0.2, emissive: 0x003333, emissiveIntensity: 0.25 });
+  const mag = std(0xff00ff, { roughness: 0.4, metalness: 0.15, emissive: 0x4a0030, emissiveIntensity: 0.45 });
+  const yel = std(0xffff00, { roughness: 0.4, metalness: 0.15, emissive: 0x332200, emissiveIntensity: 0.35 });
+  const chrome = std(0xe8e000, { roughness: 0.28, metalness: 0.55 });
 
-  const body = shadow(new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.058, 0.18), shell));
+  const body = shadow(new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.05, 0.24), panel));
   g.add(body);
-  const cheekL = shadow(new THREE.Mesh(new THREE.BoxGeometry(0.018, 0.07, 0.188), bezel));
-  cheekL.position.x = -0.155;
-  const cheekR = cheekL.clone();
-  cheekR.position.x = 0.155;
-  g.add(cheekL, cheekR);
+  const bezel = shadow(new THREE.Mesh(new THREE.BoxGeometry(0.392, 0.016, 0.252), cyan));
+  bezel.position.y = 0.028;
+  g.add(bezel);
 
   const scr = makeScreen();
-  paintScreen(scr, "wetCardboard", 620);
+  paintScreen(scr, "wetCardboard", 620, 0);
   const screen = new THREE.Mesh(
-    new THREE.PlaneGeometry(0.11, 0.055),
+    new THREE.PlaneGeometry(0.16, 0.07),
     new THREE.MeshBasicMaterial({ map: scr.tex })
   );
-  screen.position.set(-0.07, 0.032, 0.02);
+  screen.position.set(-0.08, 0.028, 0.04);
   screen.rotation.x = -Math.PI / 2;
   g.add(screen);
 
-  const knobGeo = new THREE.CylinderGeometry(0.012, 0.014, 0.016, 8);
+  const pads = [];
+  const padCols = [0x00ffff, 0x00ffff, 0x00ffff, 0x00ffff, 0xff00ff, 0xffff00, 0xff0000, 0xff00ff];
+  for (let i = 0; i < 8; i++) {
+    const m = std(padCols[i], { roughness: 0.4, emissive: padCols[i], emissiveIntensity: 0.15 });
+    const pad = new THREE.Mesh(new THREE.BoxGeometry(0.032, 0.008, 0.022), m);
+    pad.position.set(0.04 + (i % 4) * 0.038, 0.03, 0.07 - ((i / 4) | 0) * 0.03);
+    g.add(pad);
+    pads.push({ mesh: pad, mat: m });
+  }
+
   const knobs = [];
+  const knobGeo = new THREE.CylinderGeometry(0.01, 0.012, 0.014, 8);
   for (let i = 0; i < 6; i++) {
     const k = new THREE.Mesh(knobGeo, chrome);
-    k.position.set(0.02 + (i % 3) * 0.04, 0.036, (i < 3 ? 0.04 : -0.02));
-    k.rotation.y = i * 0.7;
+    k.position.set(-0.14 + (i % 3) * 0.04, 0.032, -0.04 - ((i / 3) | 0) * 0.035);
     g.add(k);
     knobs.push(k);
   }
 
-  const led = new THREE.Mesh(new THREE.SphereGeometry(0.007, 8, 6), mag);
-  led.position.set(0.14, 0.034, 0.07);
-  g.add(led);
-
-  const keyGeo = new THREE.BoxGeometry(0.018, 0.006, 0.034);
-  const cream = std(0xe8e0d0, { roughness: 0.5 });
-  for (let i = 0; i < 8; i++) {
-    const key = new THREE.Mesh(keyGeo, i % 3 === 1 ? std(0x111118) : cream);
-    key.position.set(-0.13 + i * 0.022, 0.032, -0.055);
-    g.add(key);
+  const steps = [];
+  for (let i = 0; i < 16; i++) {
+    const sm = std(0x001100, { emissive: 0xffff00, emissiveIntensity: 0 });
+    const st = new THREE.Mesh(new THREE.BoxGeometry(0.016, 0.006, 0.02), sm);
+    st.position.set(-0.15 + i * 0.0195, 0.028, -0.1);
+    g.add(st);
+    steps.push({ mesh: st, mat: sm });
   }
 
+  const led = new THREE.Mesh(new THREE.BoxGeometry(0.012, 0.012, 0.012), mag);
+  led.position.set(0.16, 0.034, 0.1);
+  g.add(led);
+  const pwr = new THREE.Mesh(new THREE.BoxGeometry(0.012, 0.012, 0.012), yel);
+  pwr.position.set(0.16, 0.034, 0.08);
+  g.add(pwr);
+
   g.userData.knobs = knobs;
+  g.userData.pads = pads;
+  g.userData.steps = steps;
   g.userData.led = led;
   g.userData.ledMat = mag;
   g.userData.screen = scr;
   g.userData.preset = "wetCardboard";
+  g.userData.step = 0;
   return g;
 }
 
 function dressJp(mesh) {
   const b = mesh.userData.body;
   const s = b.scale;
-  const nylon = std(0x12141a, { roughness: 0.62, metalness: 0.12 });
-  const piping = std(0x00c8d4, { roughness: 0.4, metalness: 0.2 });
-  const cargo = std(0x1a1c22, { roughness: 0.78 });
-  const shoe = std(0xe8e4dc, { roughness: 0.55 });
-  const sole = std(0x1a1a1c, { roughness: 0.7 });
+  const wrap = new THREE.MeshStandardMaterial({
+    map: makeJacketTex(),
+    roughness: 0.62,
+    metalness: 0.08,
+  });
+  const piping = std(0x00ffff, { roughness: 0.4, metalness: 0.18, emissive: 0x003838, emissiveIntensity: 0.2 });
+  const cargo = std(0x1e1e8c, { roughness: 0.78 });
+  const shoe = std(0xffff00, { roughness: 0.45 });
+  const sole = std(0xff00ff, { roughness: 0.7 });
   const hairM = b.hairM;
 
-  const jacket = shadow(new THREE.Mesh(new THREE.BoxGeometry(0.4 * s, 0.42 * s, 0.26 * s), nylon));
+  const jacket = shadow(new THREE.Mesh(new THREE.BoxGeometry(0.42 * s, 0.44 * s, 0.28 * s), wrap));
   jacket.position.set(0, b.hipY + 0.28 * s, 0);
   mesh.add(jacket);
   const zip = new THREE.Mesh(new THREE.BoxGeometry(0.012 * s, 0.36 * s, 0.01 * s), piping);
-  zip.position.set(0, b.hipY + 0.3 * s, 0.13 * s);
+  zip.position.set(0, b.hipY + 0.3 * s, 0.145 * s);
   mesh.add(zip);
-  const graphic = new THREE.Mesh(new THREE.BoxGeometry(0.12 * s, 0.1 * s, 0.012 * s), std(0xff00aa, { roughness: 0.45, emissive: 0x2a0018, emissiveIntensity: 0.25 }));
-  graphic.position.set(0, b.shoulderY - 0.22 * s, 0.132 * s);
-  mesh.add(graphic);
 
   for (const side of [-1, 1]) {
     const pocket = shadow(new THREE.Mesh(new THREE.BoxGeometry(0.09 * s, 0.1 * s, 0.05 * s), cargo));
@@ -310,10 +398,18 @@ export function spawnShitaGuy(scene) {
     }
     const led = slab.userData.ledMat;
     if (led) led.emissiveIntensity = 0.35 + Math.abs(Math.sin(t * 9)) * 0.9;
-    if (slab.userData.preset !== presetName) {
-      slab.userData.preset = presetName;
-      paintScreen(slab.userData.screen, presetName, p.cut);
+    const step = (t * 8) & 15;
+    slab.userData.step = step;
+    const steps = slab.userData.steps || [];
+    for (let i = 0; i < steps.length; i++) {
+      steps[i].mat.emissiveIntensity = i === step ? 1.2 : i % 4 === 0 ? 0.15 : 0.02;
     }
+    const pads = slab.userData.pads || [];
+    const pi = Math.max(0, PRESET_NAMES.indexOf(presetName));
+    for (let i = 0; i < pads.length; i++) {
+      pads[i].mat.emissiveIntensity = i === pi ? 0.85 : 0.12;
+    }
+    paintScreen(slab.userData.screen, presetName, p.cut, step);
   }
 
   function holdSlab() {
@@ -429,21 +525,19 @@ export function spawnShitaGuy(scene) {
     const e = ensureEngine();
     if (!e) return;
     const r = Math.random();
-    if (r < 0.44) {
+    if (r < 0.38) {
       e.note(110 * Math.pow(2, ((Math.random() * 24) | 0) / 12), 0.12 + Math.random() * 0.4, 0.65 + Math.random() * 0.3);
-    } else if (r < 0.66) {
+    } else if (r < 0.72) {
       presetName = pick(PRESET_NAMES);
       e.applyPreset(presetName);
       e.note(220, 0.28, 0.8);
-    } else if (r < 0.88) {
+    } else if (r < 0.9) {
       e.nudgeFilter();
-      paintScreen(slab.userData.screen, presetName, e.params.cut);
-    } else if (r < 0.94) {
+    } else if (r < 0.95) {
       e.drone();
     } else {
       e.wtf();
       presetName = "WTF";
-      paintScreen(slab.userData.screen, "WTF", e.params.cut);
     }
   }
 
