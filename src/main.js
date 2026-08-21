@@ -125,6 +125,7 @@ const fights = spawnFights(scene);
 const psa = spawnPsaKiosks(scene);
 const voice = new VoiceBank();
 voice.loadManifest().catch(() => {});
+level.setCrowdPlay?.((id, o) => voice.play(id, o));
 const artist = createArtist(scene, pickArtistPose(), {
   play: (id, o) => voice.play(id, o),
   cast,

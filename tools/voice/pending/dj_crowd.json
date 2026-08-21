@@ -1,0 +1,12 @@
+{
+  "lines": [
+    {"id": "dj_howl_01", "text": "awoooooooo", "voice": "en_us_010", "category": "dj", "tags": ["ken", "howl"], "ageBand": "adult"},
+    {"id": "dj_howl_02", "text": "wooof woof awooo", "voice": "en_us_006", "category": "dj", "tags": ["ken", "howl"], "ageBand": "adult"},
+    {"id": "dj_bark_01", "text": "bark bark bark", "voice": "en_male_funny", "category": "dj", "tags": ["ken", "howl"], "ageBand": "adult"},
+    {"id": "dj_bark_02", "text": "ruff ruff awoo", "voice": "en_us_010", "category": "dj", "tags": ["ken", "howl"], "ageBand": "adult"},
+    {"id": "dj_save_01", "text": "this is so beautiful, i want to do my part", "voice": "en_us_002", "category": "dj", "tags": ["babe", "save"], "ageBand": "adult"},
+    {"id": "dj_save_02", "text": "i want to save the earth", "voice": "en_female_emotional", "category": "dj", "tags": ["babe", "save"], "ageBand": "adult"},
+    {"id": "dj_save_03", "text": "this is so beautiful i am crying", "voice": "en_us_002", "category": "dj", "tags": ["babe", "save"], "ageBand": "adult"},
+    {"id": "dj_save_04", "text": "we have to do our part for the planet", "voice": "en_female_emotional", "category": "dj", "tags": ["babe", "save"], "ageBand": "adult"}
+  ]
+}

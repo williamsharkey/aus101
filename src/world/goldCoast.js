@@ -33,6 +33,8 @@ import { acquireCtx } from "../audio/tapeDeck.js";
 import { ken, babe, poseSit } from "../chars/npcs.js";
 import { VOID_STAIRS, VOID_EXITS } from "./voidCave.js";
 
+let crowdPlay = null;
+
 const HATCH_FALLBACK = { x: 7, y: -10.4, z: -29 };
 /** Proximity radius around the piano hatch (world XZ). */
 export const PIANO_HATCH_R = 1.45;
@@ -651,7 +653,7 @@ export function buildGoldCoast(scene, colliders) {
 
   // DJ booth + stupid big screen + dancers
   const dj = buildDjBooth(scene, add);
-  const dancers = spawnDancers(scene);
+  const dancers = spawnDancers(scene, () => dj.isSave());
 
   return {
     ocean,
@@ -665,6 +667,9 @@ export function buildGoldCoast(scene, colliders) {
     piano: pianoPos,
     hatch: hatchInfo,
     vape,
+    setCrowdPlay(fn) {
+      crowdPlay = fn;
+    },
     isWood(x, z) {
       return Math.abs(z - GC.boardwalkZ) < 4.8 && Math.abs(x) < GC.width * 0.4;
     },
@@ -1298,6 +1303,7 @@ function buildDjBooth(scene, add) {
   add(-26.9, -21.4, 5.1, 9.4);
 
   return {
+    isSave: () => djTv.isSave(),
     tick(t) {
       if (!djKen.userData.combatDown && djKen.visible !== false && !djKen.userData.flee) {
         djKen.position.y = 0.3 + Math.abs(Math.sin(t * 4)) * 0.035;
@@ -1309,7 +1315,10 @@ function buildDjBooth(scene, add) {
   };
 }
 
-function spawnDancers(scene) {
+const HOWL = ["dj_howl_01", "dj_howl_02", "dj_bark_01", "dj_bark_02"];
+const TEAR = ["dj_save_01", "dj_save_02", "dj_save_03", "dj_save_04"];
+
+function spawnDancers(scene, isSave) {
   const out = [];
   // Fanned out in front of the rig, clear of the booth collider, the goth at
   // (−22, 9.5) and the palm at (−26, 8).
@@ -1340,16 +1349,36 @@ function spawnDancers(scene) {
     const b = d.userData.body;
     const ph = i * 0.9;
     const yaw0 = d.rotation.y;
+    let nextVo = 2 + i * 0.7;
     out.push({
       tick(t) {
         if (d.userData.combatDown || d.visible === false || d.userData.flee) return;
+        const save = isSave?.();
         const hop = Math.abs(Math.sin(t * 5 + ph));
-        d.position.y = hop * 0.16;
-        d.rotation.y = yaw0 + Math.sin(t * 2 + ph) * 0.35;
-        d.rotation.z = Math.sin(t * 5 + ph) * 0.1;
+        d.position.y = hop * (save ? 0.06 : 0.16);
+        d.rotation.y = yaw0 + Math.sin(t * 2 + ph) * (save ? 0.12 : 0.35);
+        d.rotation.z = Math.sin(t * 5 + ph) * (save ? 0.04 : 0.1);
         if (!b) return;
-        b.armL.rotation.set(-0.35 + hop * 0.55, -0.08, -0.35 - hop * 0.85);
-        b.armR.rotation.set(-0.35 + (1 - hop) * 0.55, 0.08, 0.35 + hop * 0.85);
+        if (save) {
+          if (d.userData.kind === "babe") {
+            b.head.rotation.x = 0.22;
+            b.armL.rotation.set(-1.1, 0.1, -0.2);
+            b.armR.rotation.set(-0.9, -0.15, 0.35);
+          } else {
+            b.head.rotation.x = -0.55;
+            b.armL.rotation.set(-1.6, 0, -0.2);
+            b.armR.rotation.set(-1.55, 0, 0.2);
+          }
+          if (t > nextVo) {
+            nextVo = t + 3.2 + Math.random() * 2.4;
+            const id = d.userData.kind === "babe" ? TEAR[(Math.random() * TEAR.length) | 0] : HOWL[(Math.random() * HOWL.length) | 0];
+            crowdPlay?.(id, { gain: 0.85, pos: d.position });
+          }
+        } else {
+          b.head.rotation.x = 0;
+          b.armL.rotation.set(-0.35 + hop * 0.55, -0.08, -0.35 - hop * 0.85);
+          b.armR.rotation.set(-0.35 + (1 - hop) * 0.55, 0.08, 0.35 + hop * 0.85);
+        }
         b.legL.rotation.x = hop * 0.34;
         b.legR.rotation.x = (1 - hop) * 0.26;
       },

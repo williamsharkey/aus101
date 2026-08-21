@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "generatedAt": "2026-08-21T04:12:25Z",
-  "count": 429,
+  "generatedAt": "2026-08-21T04:21:51Z",
+  "count": 437,
   "placeholder": false,
   "engine": "tiktok-weilnet-proxy",
   "note": "Baked via tiktok-tts.weilnet.workers.dev \u2014 no TikTok sessionid. Unofficial; may break.",
@@ -7406,6 +7406,142 @@
       ],
       "cooldownMs": null,
       "text": "peg peach. whatever you thought this cart was for, think again.",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "dj_howl_01",
+      "file": "dj_howl_01.mp3",
+      "voice": "en_us_010",
+      "category": "dj",
+      "priority": null,
+      "ageBand": "adult",
+      "tags": [
+        "ken",
+        "howl",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": null,
+      "text": "awoooooooo",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "dj_howl_02",
+      "file": "dj_howl_02.mp3",
+      "voice": "en_us_006",
+      "category": "dj",
+      "priority": null,
+      "ageBand": "adult",
+      "tags": [
+        "ken",
+        "howl",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": null,
+      "text": "wooof woof awooo",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "dj_bark_01",
+      "file": "dj_bark_01.mp3",
+      "voice": "en_male_funny",
+      "category": "dj",
+      "priority": null,
+      "ageBand": "adult",
+      "tags": [
+        "ken",
+        "howl",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": null,
+      "text": "bark bark bark",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "dj_bark_02",
+      "file": "dj_bark_02.mp3",
+      "voice": "en_us_010",
+      "category": "dj",
+      "priority": null,
+      "ageBand": "adult",
+      "tags": [
+        "ken",
+        "howl",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": null,
+      "text": "ruff ruff awoo",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "dj_save_01",
+      "file": "dj_save_01.mp3",
+      "voice": "en_us_002",
+      "category": "dj",
+      "priority": null,
+      "ageBand": "adult",
+      "tags": [
+        "babe",
+        "save",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": null,
+      "text": "this is so beautiful, i want to do my part",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "dj_save_02",
+      "file": "dj_save_02.mp3",
+      "voice": "en_female_emotional",
+      "category": "dj",
+      "priority": null,
+      "ageBand": "adult",
+      "tags": [
+        "babe",
+        "save",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": null,
+      "text": "i want to save the earth",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "dj_save_03",
+      "file": "dj_save_03.mp3",
+      "voice": "en_us_002",
+      "category": "dj",
+      "priority": null,
+      "ageBand": "adult",
+      "tags": [
+        "babe",
+        "save",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": null,
+      "text": "this is so beautiful i am crying",
+      "placeholder": false,
+      "engine": "tiktok-weilnet-proxy"
+    },
+    {
+      "id": "dj_save_04",
+      "file": "dj_save_04.mp3",
+      "voice": "en_female_emotional",
+      "category": "dj",
+      "priority": null,
+      "ageBand": "adult",
+      "tags": [
+        "babe",
+        "save",
+        "tiktok_proxy"
+      ],
+      "cooldownMs": null,
+      "text": "we have to do our part for the planet",
       "placeholder": false,
       "engine": "tiktok-weilnet-proxy"
     }

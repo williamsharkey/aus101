@@ -4,13 +4,19 @@
  */
 import * as THREE from "three";
 
-const DJ_CLIPS = ["assets/media/dj/dj1.mp4", "assets/media/dj/dj2.mp4"];
-const VIDEO_CHANCE = 0.1;
+const DJ_CLIPS = [
+  { url: "assets/media/dj/dj1.mp4", kind: "music" },
+  { url: "assets/media/dj/dj2.mp4", kind: "music" },
+  { url: "assets/media/dj/dj3.mp4", kind: "music" },
+  { url: "assets/media/dj/save1.mp4", kind: "save" },
+  { url: "assets/media/dj/save2.mp4", kind: "save" },
+];
+const VIDEO_CHANCE = 0.12;
 const SWITCH_S = 9;
 
-function makeVideo(url) {
+function makeVideo(spec) {
   const v = document.createElement("video");
-  v.src = url;
+  v.src = spec.url;
   v.loop = true;
   v.muted = true;
   v.playsInline = true;
@@ -23,7 +29,7 @@ function makeVideo(url) {
   tex.minFilter = THREE.LinearFilter;
   tex.magFilter = THREE.LinearFilter;
   tex.generateMipmaps = false;
-  return { v, tex, url };
+  return { v, tex, url: spec.url, kind: spec.kind };
 }
 
 export function createDjScreen() {
@@ -119,7 +125,7 @@ export function createDjScreen() {
       showViz();
       return;
     }
-    mode = "video";
+    mode = clip.kind === "save" ? "save" : "video";
     clipI = i % clips.length;
     mat.map = clip.tex;
     mat.needsUpdate = true;
@@ -135,11 +141,13 @@ export function createDjScreen() {
 
   return {
     mat,
+    isSave: () => mode === "save",
     tick(t) {
       if (t >= nextSwitch) {
         nextSwitch = t + SWITCH_S + Math.random() * 6;
-        if (mode === "viz" && Math.random() < VIDEO_CHANCE) showClip((clipI + 1) % Math.max(1, clips.length));
-        else if (mode === "video") showViz();
+        if (mode === "viz" && Math.random() < VIDEO_CHANCE) {
+          showClip((clipI + 1 + ((Math.random() * clips.length) | 0)) % Math.max(1, clips.length));
+        } else if (mode !== "viz") showViz();
       }
       if (mode === "viz" && t - lastPaint > 0.05) {
         lastPaint = t;
