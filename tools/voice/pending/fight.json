@@ -3,7 +3,7 @@
     {
       "id": "fight_barb_01",
       "text": "YOU BELONG WITH THE INCELS YOU SCARDY CAT",
-      "voice": "en_au_002",
+      "voice": "en_us_stormtrooper",
       "category": "fight",
       "priority": "walkby",
       "ageBand": "adult",
@@ -17,7 +17,7 @@
     {
       "id": "fight_barb_02",
       "text": "YOU ARE SUCH A BETA CUCK BOY YOUR GONNA SIT IN A CHAIR IN THE CORNER WHILE I BEAT YA GIRLS KITTY UP",
-      "voice": "en_us_006",
+      "voice": "en_us_rocket",
       "category": "fight",
       "priority": "walkby",
       "ageBand": "adult",
@@ -31,7 +31,7 @@
     {
       "id": "fight_barb_03",
       "text": "OH NO YA DIDNT",
-      "voice": "en_au_002",
+      "voice": "en_us_stormtrooper",
       "category": "fight",
       "priority": "walkby",
       "ageBand": "adult",
@@ -45,7 +45,7 @@
     {
       "id": "fight_barb_04",
       "text": "OH NOW IM GONNA GIVE IT TO YA",
-      "voice": "en_us_006",
+      "voice": "en_us_rocket",
       "category": "fight",
       "priority": "walkby",
       "ageBand": "adult",
@@ -59,7 +59,7 @@
     {
       "id": "fight_barb_05",
       "text": "OI YA WEAK AS PISS",
-      "voice": "en_au_002",
+      "voice": "en_us_stormtrooper",
       "category": "fight",
       "priority": "walkby",
       "ageBand": "adult",
@@ -73,7 +73,7 @@
     {
       "id": "fight_barb_06",
       "text": "THATS NOT EVEN A PUNCH MATE",
-      "voice": "en_us_006",
+      "voice": "en_us_rocket",
       "category": "fight",
       "priority": "walkby",
       "ageBand": "adult",
@@ -87,7 +87,7 @@
     {
       "id": "fight_barb_07",
       "text": "GOLD COASTS GONNA REMEMBER THIS HIDING",
-      "voice": "en_au_002",
+      "voice": "en_us_stormtrooper",
       "category": "fight",
       "priority": "walkby",
       "ageBand": "adult",
@@ -101,7 +101,7 @@
     {
       "id": "fight_barb_08",
       "text": "COME HAVE A GO YA MUG",
-      "voice": "en_us_006",
+      "voice": "en_us_rocket",
       "category": "fight",
       "priority": "walkby",
       "ageBand": "adult",
@@ -115,7 +115,7 @@
     {
       "id": "fight_barb_09",
       "text": "YA BUILT LIKE A WET WEET-BIX",
-      "voice": "en_au_002",
+      "voice": "en_us_stormtrooper",
       "category": "fight",
       "priority": "walkby",
       "ageBand": "adult",
@@ -129,7 +129,7 @@
     {
       "id": "fight_barb_10",
       "text": "COP THIS YA FLAT WHITE",
-      "voice": "en_us_006",
+      "voice": "en_us_rocket",
       "category": "fight",
       "priority": "walkby",
       "ageBand": "adult",
@@ -143,7 +143,7 @@
     {
       "id": "fight_barb_11",
       "text": "ILL DECK YA INTO BROADBEACH",
-      "voice": "en_au_002",
+      "voice": "en_us_stormtrooper",
       "category": "fight",
       "priority": "walkby",
       "ageBand": "adult",
@@ -157,7 +157,7 @@
     {
       "id": "fight_barb_12",
       "text": "YA PUNCH LIKE WET SAND",
-      "voice": "en_us_006",
+      "voice": "en_us_rocket",
       "category": "fight",
       "priority": "walkby",
       "ageBand": "adult",
@@ -171,7 +171,7 @@
     {
       "id": "fight_barb_13",
       "text": "SIT DOWN YA GOOSE",
-      "voice": "en_au_002",
+      "voice": "en_us_stormtrooper",
       "category": "fight",
       "priority": "walkby",
       "ageBand": "adult",
@@ -185,7 +185,7 @@
     {
       "id": "fight_barb_14",
       "text": "HAVE A SQUIZ AT THIS LEFT",
-      "voice": "en_us_006",
+      "voice": "en_us_rocket",
       "category": "fight",
       "priority": "walkby",
       "ageBand": "adult",
@@ -199,7 +199,7 @@
     {
       "id": "fight_barb_15",
       "text": "SOFT AS A SUNBURNT SANGER",
-      "voice": "en_au_002",
+      "voice": "en_us_stormtrooper",
       "category": "fight",
       "priority": "walkby",
       "ageBand": "adult",
@@ -213,7 +213,7 @@
     {
       "id": "fight_barb_16",
       "text": "ILL BELT YA INTO THE SURF",
-      "voice": "en_us_006",
+      "voice": "en_us_rocket",
       "category": "fight",
       "priority": "walkby",
       "ageBand": "adult",
@@ -227,7 +227,7 @@
     {
       "id": "fight_yell_01",
       "text": "AAAH",
-      "voice": "en_au_002",
+      "voice": "en_us_stormtrooper",
       "category": "fight",
       "priority": "walkby",
       "ageBand": "adult",
@@ -241,7 +241,7 @@
     {
       "id": "fight_yell_02",
       "text": "OOOH BUDDY",
-      "voice": "en_us_006",
+      "voice": "en_us_rocket",
       "category": "fight",
       "priority": "walkby",
       "ageBand": "adult",
@@ -255,7 +255,7 @@
     {
       "id": "fight_yell_03",
       "text": "OI",
-      "voice": "en_au_002",
+      "voice": "en_us_stormtrooper",
       "category": "fight",
       "priority": "walkby",
       "ageBand": "adult",
@@ -269,7 +269,7 @@
     {
       "id": "fight_yell_04",
       "text": "HAVE THAT",
-      "voice": "en_us_006",
+      "voice": "en_us_rocket",
       "category": "fight",
       "priority": "walkby",
       "ageBand": "adult",
@@ -283,7 +283,7 @@
     {
       "id": "fight_dodge_01",
       "text": "nah ya didn't",
-      "voice": "en_au_002",
+      "voice": "en_us_stormtrooper",
       "category": "fight",
       "priority": "walkby",
       "ageBand": "adult",
