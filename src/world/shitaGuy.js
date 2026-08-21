@@ -469,7 +469,7 @@ export function spawnShitaGuy(scene) {
   function playLine(play, id, gain) {
     if (typeof play !== "function" || !id) return;
     try {
-      play(id, { gain: gain ?? 0.9, pos: mesh.position });
+      play(id, { gain: (gain ?? 0.9) * 0.6, pos: mesh.position });
     } catch {
       /* vo optional */
     }
@@ -580,7 +580,7 @@ export function spawnShitaGuy(scene) {
       if (e) {
         const d = distXZ(playerPos, mesh.position);
         const spat = d <= MIX_NEAR ? 0.62 : d >= MIX_FAR ? 0 : 0.62 * (1 - (d - MIX_NEAR) / (MIX_FAR - MIX_NEAR));
-        e.setMix(spat, 0.2);
+        e.setMix(spat * 0.6, 0.2);
         e.setPosition(mesh.position.x, 1.1, mesh.position.z);
         e.tick();
         if (t >= nextAct) {
