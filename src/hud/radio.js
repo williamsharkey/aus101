@@ -245,7 +245,7 @@ export function createRadioHud({ carpenter, tracker, voice, isTalking } = {}) {
       color: "rgba(255,215,106,0.88)",
       textShadow: "0 1px 3px #000",
       pointerEvents: "none",
-      maxWidth: "92px",
+      maxWidth: "140px",
       overflow: "hidden",
       whiteSpace: "nowrap",
     },
@@ -446,6 +446,7 @@ export function createRadioHud({ carpenter, tracker, voice, isTalking } = {}) {
   const onClusterDown = (e) => {
     if (e.pointerType === "mouse" && e.button !== 0) return;
     if (e.target === slider) return;
+    if (e.target.closest?.("button")) return;
     drag = { id: e.pointerId, y: e.clientY, vol, moved: false };
     try {
       cluster.setPointerCapture(e.pointerId);
@@ -470,8 +471,8 @@ export function createRadioHud({ carpenter, tracker, voice, isTalking } = {}) {
   };
 
   function bindTap(btn, fn) {
-    btn.addEventListener("pointerup", (e) => {
-      if (drag?.moved) return;
+    btn.addEventListener("pointerdown", (e) => {
+      if (e.pointerType === "mouse" && e.button !== 0) return;
       e.preventDefault();
       e.stopPropagation();
       fn();

@@ -5,8 +5,8 @@
 import { midiBus } from "./midiBus.js";
 
 const PAL = 7093789.2;
-const MASTER = 0.52;
-const CH_GAIN = 0.2;
+const MASTER = 0.72;
+const CH_GAIN = 0.26;
 const STATIC_S = 0.07;
 const BUFFER = 2048;
 const MAGICS = ["M.K.", "M!K!", "FLT4", "4CHN"];

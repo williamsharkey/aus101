@@ -37,7 +37,9 @@ export function createMusicDirector({ carpenter, tracker, shades, locals = [] } 
       return;
     }
     let winner = tracker?.running ? tracker : carpenter;
-    if (key !== "carpenter" && key !== "mute") {
+    if (key === "radio") winner = tracker || winner;
+    else if (key === "carpenter") winner = carpenter || winner;
+    else if (key !== "mute") {
       const hit = locals.find((l) => l.id === key);
       winner = hit?.bed || winner;
     }
@@ -61,7 +63,7 @@ export function createMusicDirector({ carpenter, tracker, shades, locals = [] } 
           best = l;
         }
       }
-      apply(best ? best.id : "carpenter");
+      apply(best ? best.id : tracker?.running ? "radio" : "carpenter");
     },
   };
 }

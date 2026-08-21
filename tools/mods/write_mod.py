@@ -107,7 +107,7 @@ def tom(n: int = 3600, f0: float = 96.0, seed: int = 4) -> bytes:
     return one_shot(out)
 
 
-def looped_wave(kind: str, n: int = 128, duty: float = 0.25, vol: float = 108.0) -> tuple[bytes, int, int]:
+def looped_wave(kind: str, n: int = 256, duty: float = 0.25, vol: float = 108.0) -> tuple[bytes, int, int]:
     """Return (data, loop_start_bytes, loop_len_bytes). 2-byte pad + one cycle."""
     body = []
     for i in range(n):
@@ -303,9 +303,9 @@ def fill_toms(pat: list[list[bytes]], ch: int = 3, start: int = 56) -> None:
 
 
 def kit(seed: int, bass_kind: str, bass_duty: float, lead_duty: float, arp_duty: float) -> list[tuple[str, bytes, int, tuple[int, int] | None]]:
-    bass, bs, bl = looped_wave(bass_kind, 128, bass_duty, 112)
-    lead, ls, ll = looped_wave("pulse", 128, lead_duty, 100)
-    arp, as_, al = looped_wave("sq", 128, arp_duty, 92)
+    bass, bs, bl = looped_wave(bass_kind, 256, bass_duty, 112)
+    lead, ls, ll = looped_wave("pulse", 256, lead_duty, 100)
+    arp, as_, al = looped_wave("sq", 256, arp_duty, 92)
     return [
         ("kick", kick(4200, seed), 64, None),
         ("snare", snare(3400, seed + 1), 64, None),
@@ -319,227 +319,88 @@ def kit(seed: int, bass_kind: str, bass_duty: float, lead_duty: float, arp_duty:
 
 
 def song_zinc() -> tuple[str, list, list, list[int]]:
-    samples = kit(11, "pulse", 0.22, 0.18, 0.50)
-    bass_a = (["A-1", "A-1", "C-2", "A-1", "E-2", "D-2", "C-2", "G-1"] * 4)
-    bass_b = (["A-1", "C-2", "A-1", "F-1", "E-1", "E-1", "G-1", "A-1"] * 4)
-    bass_c = (["F-1", "F-1", "A-1", "F-1", "C-2", "A-1", "G-1", "E-1"] * 4)
-    lead_a = ["A-3", "C-4", "B-3", "A-3", "G-3", "A-3", "E-3", "G-3", "A-3", "C-4", "D-4", "C-4", "B-3", "A-3", "G-3", "E-3"]
-    lead_b = ["E-4", "D-4", "C-4", "A-3", "G-3", "A-3", "C-4", "D-4", "E-4", "G-4", "E-4", "D-4", "C-4", "A-3", "G-3", "A-3"]
-    arp_a = ["A-3"] * 16
-    arp_b = ["F-3", "F-3", "A-3", "A-3", "G-3", "G-3", "E-3", "E-3"] * 2
-
+    """132 BPM A-minor boardwalk stomp — punchy pulse bass, short hook."""
+    samples = kit(11, "pulse", 0.18, 0.14, 0.42)
     p = [empty_pat() for _ in range(8)]
-    drums_rock(p[0])
-    eighths(p[0], 1, bass_a, 4, 0x34)
     set_speed(p[0], 6, 132)
-
-    drums_rock(p[1])
-    eighths(p[1], 1, bass_a, 4, 0x34)
-    quarters(p[1], 2, arp_a, 6, arp=0x37)
-
-    drums_rock(p[2])
-    eighths(p[2], 1, bass_a, 4, 0x32)
-    quarters(p[2], 2, arp_a, 6, arp=0x37)
-    quarters(p[2], 0, lead_a, 5, 0x2A)
-
-    drums_rock(p[3])
-    eighths(p[3], 1, bass_b, 4, 0x32)
-    quarters(p[3], 2, ["C-4"] * 16, 6, arp=0x37)
-    quarters(p[3], 0, lead_b, 5, 0x2C)
-
-    drums_rock(p[4], hat_vol=0x10)
-    fill_toms(p[4], 3, 56)
-    eighths(p[4], 1, bass_c[:24] + ["---"] * 8, 4, 0x28)
-    quarters(p[4], 0, ["E-3", "---", "G-3", "---", "A-3", "---", "C-4", "---"] + ["---"] * 8, 5, 0x22)
-
-    drums_rock(p[5], kick_vol=0x42, snare_vol=0x36)
-    eighths(p[5], 1, bass_a, 4, 0x36)
-    quarters(p[5], 2, arp_a, 6, arp=0x37)
-    quarters(p[5], 0, lead_b, 5, 0x2E)
-
-    drums_rock(p[6])
-    eighths(p[6], 1, bass_c, 4, 0x30)
-    quarters(p[6], 2, arp_b, 6, arp=0x47)
-    quarters(p[6], 0, ["C-4", "A-3", "G-3", "A-3", "C-4", "D-4", "E-4", "D-4", "C-4", "A-3", "G-3", "E-3", "F-3", "G-3", "A-3", "C-4"], 5, 0x28)
-
-    drums_rock(p[7], hat_vol=0x0C)
-    eighths(p[7], 1, bass_a, 4, 0x2A)
-    quarters(p[7], 2, arp_a, 6, arp=0x37)
-    quarters(p[7], 0, ["A-3", "---", "G-3", "---", "E-3", "---", "A-3", "---"] + ["---"] * 8, 5, 0x20)
-    put(p[7], 63, 0, None, 0, 0xC, 0x00)
-
-    order = [0, 1, 2, 2, 3, 5, 4, 5, 6, 5, 2, 7]
-    return "ZINC PATROL", samples, p, order
+    bass = (["A-1", "A-1", "A-1", "C-2", "A-1", "E-2", "D-2", "C-2"] * 4)
+    hook = ["A-3", "C-4", "E-4", "C-4", "A-3", "G-3", "A-3", "E-3", "A-3", "C-4", "D-4", "E-4", "G-4", "E-4", "D-4", "C-4"]
+    for i, pat in enumerate(p):
+        drums_rock(pat, kick_vol=0x40, snare_vol=0x34, hat_vol=0x14)
+        eighths(pat, 1, bass if i < 4 else (["A-1", "C-2", "E-2", "A-1", "G-1", "G-1", "E-1", "G-1"] * 4), 4, 0x38)
+        if i >= 1:
+            quarters(pat, 2, ["A-3"] * 8 + ["C-4"] * 8, 6, arp=0x37)
+        if i >= 2:
+            quarters(pat, 0, hook if i % 2 == 0 else list(reversed(hook)), 5, 0x2E)
+        if i == 7:
+            fill_toms(pat, 3, 56)
+    return "ZINC PATROL", samples, p, [0, 1, 2, 3, 2, 3, 4, 5, 6, 5, 2, 7]
 
 
 def song_shore() -> tuple[str, list, list, list[int]]:
-    samples = kit(21, "tri", 0.5, 0.28, 0.45)
-    bass_a = (["D-1", "D-1", "F-1", "D-1", "A-1", "D-1", "F-1", "G-1"] * 4)
-    bass_b = (["C-1", "C-1", "E-1", "C-1", "G-1", "C-1", "E-1", "F-1"] * 4)
-    bass_c = (["A#1", "A#1", "D-1", "A#1", "F-1", "A#1", "D-1", "F-1"] * 4)
-    lead_a = ["F-3", "A-3", "G-3", "A-3", "C-4", "A-3", "G-3", "F-3", "E-3", "F-3", "G-3", "A-3", "C-4", "D-4", "A-3", "G-3"]
-    lead_b = ["A-3", "C-4", "D-4", "C-4", "A-3", "G-3", "F-3", "E-3", "D-3", "F-3", "A-3", "C-4", "A-3", "G-3", "F-3", "D-3"]
+    """100 BPM D-major Galway lilt — triangle bass, offbeat hats, slower hook."""
+    samples = kit(21, "tri", 0.5, 0.32, 0.48)
     p = [empty_pat() for _ in range(8)]
-
-    drums_rock(p[0], hat_vol=0x12)
-    eighths(p[0], 1, bass_a, 4, 0x32)
-    set_speed(p[0], 6, 128)
-
-    drums_rock(p[1], hat_vol=0x12)
-    eighths(p[1], 1, bass_a, 4, 0x32)
-    quarters(p[1], 2, ["D-3"] * 16, 6, arp=0x37)
-
-    drums_rock(p[2])
-    eighths(p[2], 1, bass_a, 4, 0x30)
-    quarters(p[2], 2, ["D-3"] * 16, 6, arp=0x37)
-    quarters(p[2], 0, lead_a, 5, 0x26)
-
-    drums_rock(p[3])
-    eighths(p[3], 1, bass_b, 4, 0x30)
-    quarters(p[3], 2, ["C-3"] * 16, 6, arp=0x47)
-    quarters(p[3], 0, lead_b, 5, 0x28)
-
-    drums_drive(p[4])
-    eighths(p[4], 1, bass_c, 4, 0x2E)
-    quarters(p[4], 2, ["A#3"] * 8 + ["F-3"] * 8, 6, arp=0x37)
-    quarters(p[4], 0, ["D-3", "F-3", "A-3", "---", "G-3", "---", "F-3", "---", "D-3", "---", "C-3", "---", "A-2", "---", "D-3", "---"], 5, 0x24)
-
-    drums_rock(p[5], snare_vol=0x34)
-    eighths(p[5], 1, bass_a, 4, 0x34)
-    quarters(p[5], 2, ["D-3"] * 8 + ["F-3"] * 8, 6, arp=0x37)
-    quarters(p[5], 0, lead_a, 5, 0x2A)
-
-    drums_rock(p[6])
-    eighths(p[6], 1, bass_b, 4, 0x30)
-    quarters(p[6], 2, ["E-3"] * 16, 6, arp=0x37)
-    quarters(p[6], 0, ["G-3", "A-3", "C-4", "A-3", "G-3", "F-3", "E-3", "D-3", "E-3", "F-3", "G-3", "A-3", "C-4", "A-3", "G-3", "E-3"], 5, 0x26)
-
-    drums_rock(p[7], hat_vol=0x0A)
-    fill_toms(p[7], 3, 60)
-    eighths(p[7], 1, bass_a, 4, 0x28)
-    quarters(p[7], 2, ["D-3"] * 16, 6, arp=0x37)
-    quarters(p[7], 0, ["F-3", "---", "D-3", "---", "A-2", "---", "D-3", "---"] + ["---"] * 8, 5, 0x20)
-
-    order = [0, 1, 2, 2, 3, 5, 4, 6, 5, 2, 3, 7]
-    return "GOLD COAST", samples, p, order
+    set_speed(p[0], 6, 100)
+    bass = (["D-1", "---", "A-1", "---", "D-1", "F-1", "A-1", "G-1"] * 4)
+    hook = ["A-3", "F-3", "D-3", "F-3", "A-3", "C-4", "A-3", "G-3", "F-3", "D-3", "F-3", "A-3", "G-3", "F-3", "E-3", "D-3"]
+    for i, pat in enumerate(p):
+        drums_drive(pat)
+        eighths(pat, 1, bass if i < 5 else (["G-1", "---", "D-1", "---", "G-1", "A-1", "C-2", "A-1"] * 4), 4, 0x34)
+        if i >= 1:
+            quarters(pat, 2, ["D-3"] * 8 + ["F-3"] * 8, 6, arp=0x47)
+        if i >= 2:
+            quarters(pat, 0, hook if i != 6 else list(reversed(hook)), 5, 0x2A)
+        if i == 7:
+            fill_toms(pat, 3, 56)
+    return "GOLD COAST", samples, p, [0, 1, 2, 2, 3, 4, 5, 3, 2, 6, 5, 7]
 
 
 def song_night() -> tuple[str, list, list, list[int]]:
-    samples = kit(33, "saw", 0.5, 0.12, 0.25)
-    bass_a = ["F#1", "---", "F#1", "C#2", "D-2", "---", "E-2", "---"] * 4
-    bass_b = ["A-1", "---", "A-1", "E-2", "F#2", "---", "E-2", "C#2"] * 4
-    bass_c = ["D-1", "---", "D-1", "A-1", "C-2", "---", "B-1", "A-1"] * 4
-    lead_a = ["C#4", "B-3", "A-3", "G#3", "F#3", "A-3", "G#3", "E-3", "F#3", "C#4", "B-3", "A-3", "G#3", "F#3", "E-3", "C#3"]
-    lead_b = ["F#3", "A-3", "C#4", "E-4", "C#4", "B-3", "A-3", "G#3", "A-3", "F#3", "E-3", "F#3", "A-3", "B-3", "C#4", "B-3"]
+    """92 BPM F#m night drive — half-time kick, saw bass, sparse lead."""
+    samples = kit(33, "saw", 0.5, 0.10, 0.22)
     p = [empty_pat() for _ in range(8)]
-
-    drums_drive(p[0])
-    eighths(p[0], 1, bass_a, 4, 0x36)
-    set_speed(p[0], 6, 125)
-
-    drums_drive(p[1])
-    eighths(p[1], 1, bass_a, 4, 0x36)
-    quarters(p[1], 2, ["F#3"] * 16, 6, arp=0x37)
-
-    drums_drive(p[2])
-    eighths(p[2], 1, bass_a, 4, 0x34)
-    quarters(p[2], 2, ["F#3"] * 16, 6, arp=0x37)
-    quarters(p[2], 0, lead_a, 5, 0x24)
-
-    drums_drive(p[3])
-    eighths(p[3], 1, bass_b, 4, 0x34)
-    quarters(p[3], 2, ["A-3"] * 16, 6, arp=0x37)
-    quarters(p[3], 0, lead_b, 5, 0x26)
-
-    drums_drive(p[4])
-    fill_toms(p[4], 3, 56)
-    eighths(p[4], 1, bass_c, 4, 0x30)
-    quarters(p[4], 2, ["D-3"] * 8 + ["---"] * 8, 6, arp=0x47)
-    quarters(p[4], 0, ["A-3", "---", "G#3", "---", "F#3", "---", "E-3", "---"] + ["---"] * 8, 5, 0x20)
-
-    drums_drive(p[5])
-    eighths(p[5], 1, bass_a, 4, 0x38)
-    quarters(p[5], 2, ["F#3"] * 8 + ["A-3"] * 8, 6, arp=0x37)
-    quarters(p[5], 0, lead_b, 5, 0x28)
-    put(p[5], 0, 3, "C-2", 1, 0xC, 0x40)
-
-    drums_drive(p[6])
-    eighths(p[6], 1, bass_b, 4, 0x32)
-    quarters(p[6], 2, ["C#4"] * 16, 6, arp=0x37)
-    quarters(p[6], 0, ["E-4", "C#4", "B-3", "A-3", "G#3", "A-3", "B-3", "C#4", "E-4", "F#4", "E-4", "C#4", "B-3", "A-3", "G#3", "F#3"], 5, 0x26)
-
-    drums_drive(p[7])
-    eighths(p[7], 1, bass_a, 4, 0x2A)
-    quarters(p[7], 2, ["F#3"] * 16, 6, arp=0x37)
-    quarters(p[7], 0, ["C#4", "---", "A-3", "---", "F#3", "---", "C#3", "---"] + ["---"] * 8, 5, 0x1C)
-
-    order = [0, 1, 2, 2, 3, 5, 4, 6, 5, 3, 2, 7]
-    return "NIGHT DRIVE", samples, p, order
+    set_speed(p[0], 6, 92)
+    bass = (["F#1", "---", "---", "---", "C#2", "---", "E-2", "---"] * 4)
+    hook = ["C#4", "---", "B-3", "---", "A-3", "---", "G#3", "---", "F#3", "---", "A-3", "---", "G#3", "---", "E-3", "---"]
+    for i, pat in enumerate(p):
+        # half-time: kick on 1, snare on 3
+        for r in range(64):
+            if r % 16 == 0:
+                put(pat, r, 3, "C-2", 1, 0xC, 0x3C)
+            elif r % 16 == 8:
+                put(pat, r, 3, "C-2", 2, 0xC, 0x2A)
+            elif r % 8 == 4:
+                put(pat, r, 3, "C-3", 3, 0xC, 0x10)
+        eighths(pat, 1, bass if i < 4 else (["A-1", "---", "---", "---", "E-2", "---", "F#2", "---"] * 4), 4, 0x3A)
+        if i >= 1:
+            quarters(pat, 2, ["F#3"] * 16, 6, arp=0x37)
+        if i >= 2:
+            quarters(pat, 0, hook if i % 2 == 0 else ["F#3", "---", "A-3", "---", "C#4", "---", "E-4", "---", "C#4", "---", "B-3", "---", "A-3", "---", "G#3", "---"], 5, 0x24)
+        if i == 7:
+            fill_toms(pat, 3, 56)
+    return "NIGHT DRIVE", samples, p, [0, 1, 2, 3, 2, 4, 5, 3, 6, 5, 2, 7]
 
 
 def song_gulls() -> tuple[str, list, list, list[int]]:
-    samples = kit(47, "sq", 0.5, 0.25, 0.50)
-    bass_a = (["C-2", "C-2", "G-1", "C-2", "A-1", "A-1", "F-1", "G-1"] * 4)
-    bass_b = (["E-1", "E-1", "B-1", "E-2", "A-1", "A-1", "C-2", "B-1"] * 4)
-    bass_c = (["F-1", "F-1", "C-2", "F-1", "G-1", "G-1", "D-2", "G-1"] * 4)
-    lead_a = (
-        ["C-4", "E-4", "G-4", "E-4", "C-4", "D-4", "E-4", "G-4"]
-        + ["A-4", "G-4", "E-4", "D-4", "C-4", "E-4", "G-4", "A-4"]
-        + ["G-4", "E-4", "C-4", "E-4", "D-4", "C-4", "B-3", "C-4"]
-        + ["E-4", "G-4", "E-4", "D-4", "C-4", "A-3", "G-3", "C-4"]
-    )
-    lead_b = (
-        ["E-4", "G-4", "A-4", "G-4", "E-4", "D-4", "C-4", "D-4"]
-        + ["E-4", "C-4", "G-3", "C-4", "D-4", "E-4", "G-4", "E-4"]
-        + ["A-4", "B-4", "A-4", "G-4", "E-4", "G-4", "A-4", "C-4"]
-        + ["B-3", "C-4", "D-4", "E-4", "G-4", "E-4", "D-4", "C-4"]
-    )
-    # 16th run, 32 notes = half pattern; tile.
-    lead_a = (lead_a * 2)[:64]
-    lead_b = (lead_b * 2)[:64]
+    """160 BPM C-major chip run — square lead sixteenths, busy hats."""
+    samples = kit(47, "sq", 0.5, 0.28, 0.50)
     p = [empty_pat() for _ in range(8)]
+    set_speed(p[0], 5, 160)
+    bass = (["C-2", "G-1", "C-2", "E-2", "F-1", "C-2", "G-1", "B-1"] * 4)
+    run = (["C-4", "E-4", "G-4", "E-4", "C-4", "D-4", "E-4", "G-4"] * 8)[:64]
+    run_b = (["E-4", "G-4", "A-4", "G-4", "E-4", "D-4", "C-4", "B-3"] * 8)[:64]
+    for i, pat in enumerate(p):
+        drums_chip(pat)
+        eighths(pat, 1, bass if i < 5 else (["A-1", "E-1", "A-1", "C-2", "D-2", "A-1", "G-1", "E-1"] * 4), 4, 0x36)
+        if i >= 1:
+            quarters(pat, 2, ["C-4"] * 8 + ["G-3"] * 8, 6, arp=0x47)
+        if i >= 2:
+            sixteenths(pat, 0, run if i % 2 == 0 else run_b, 5, 0x22)
+        if i == 7:
+            fill_toms(pat, 3, 56)
+    return "CHIP GULLS", samples, p, [0, 1, 2, 3, 2, 3, 4, 5, 6, 5, 2, 7]
 
-    drums_chip(p[0])
-    eighths(p[0], 1, bass_a, 4, 0x34)
-    set_speed(p[0], 6, 140)
-
-    drums_chip(p[1])
-    eighths(p[1], 1, bass_a, 4, 0x34)
-    quarters(p[1], 2, ["C-4"] * 16, 6, arp=0x47)
-
-    drums_chip(p[2])
-    eighths(p[2], 1, bass_a, 4, 0x32)
-    quarters(p[2], 2, ["C-4"] * 16, 6, arp=0x47)
-    sixteenths(p[2], 0, lead_a, 5, 0x22)
-
-    drums_chip(p[3])
-    eighths(p[3], 1, bass_b, 4, 0x32)
-    quarters(p[3], 2, ["E-4"] * 16, 6, arp=0x37)
-    sixteenths(p[3], 0, lead_b, 5, 0x24)
-
-    drums_chip(p[4])
-    fill_toms(p[4], 3, 56)
-    eighths(p[4], 1, bass_c, 4, 0x30)
-    quarters(p[4], 2, ["F-3"] * 8 + ["G-3"] * 8, 6, arp=0x47)
-    sixteenths(p[4], 0, (["A-3", "C-4", "F-4", "C-4"] * 8 + ["B-3", "D-4", "G-4", "D-4"] * 8)[:56] + ["---"] * 8, 5, 0x20)
-
-    drums_chip(p[5])
-    eighths(p[5], 1, bass_a, 4, 0x36)
-    quarters(p[5], 2, ["C-4"] * 8 + ["G-3"] * 8, 6, arp=0x47)
-    sixteenths(p[5], 0, lead_a, 5, 0x26)
-
-    drums_chip(p[6])
-    eighths(p[6], 1, bass_b, 4, 0x32)
-    quarters(p[6], 2, ["A-3"] * 16, 6, arp=0x37)
-    sixteenths(p[6], 0, lead_b, 5, 0x24)
-
-    drums_chip(p[7])
-    eighths(p[7], 1, bass_a, 4, 0x2C)
-    quarters(p[7], 2, ["C-4"] * 16, 6, arp=0x47)
-    sixteenths(p[7], 0, (["C-4", "---", "E-4", "---", "G-4", "---", "C-4", "---"] * 4)[:64], 5, 0x1E)
-
-    order = [0, 1, 2, 2, 3, 5, 4, 6, 5, 2, 3, 7]
-    return "CHIP GULLS", samples, p, order
 
 
 SONGS = {
