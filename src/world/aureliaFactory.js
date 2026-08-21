@@ -9,6 +9,8 @@ import { buildT101, poseT101 } from "../chars/t101.js";
 export const FACTORY_BOX = { x0: 31.4, x1: 39.8, z0: 17.6, z1: 25.8 };
 export const FACTORY_DOOR = { x: 31.25, z: 21.6 };
 export const FACTORY_DOCK = { x: 39.2, z: 21.6 };
+/** Sand west of the door — idle T-101s wait here, not inside the plant. */
+export const FACTORY_YARD = { x: 29.05, z: 21.6 };
 
 const T = 0.22;
 

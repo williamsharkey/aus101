@@ -22,8 +22,21 @@ function makePuff() {
   return m;
 }
 
+const SHOP_BOX = { minX: 6.15, maxX: 9.85, minZ: 13.52, maxZ: 16.22 };
+
+function segHitsBox(ax, az, bx, bz, box) {
+  const n = 8;
+  for (let i = 1; i < n; i++) {
+    const u = i / n;
+    const x = ax + (bx - ax) * u;
+    const z = az + (bz - az) * u;
+    if (x > box.minX && x < box.maxX && z > box.minZ && z < box.maxZ) return true;
+  }
+  return false;
+}
+
 export function createVapeSim({ shop, cast, play, scene }) {
-  const counter = shop?.counter || { x: 8, z: 16 };
+  const FRONT = shop?.front || shop?.counter || { x: 8, z: 16.95 };
   const vapers = [];
   const puffs = [];
   for (let i = 0; i < 24; i++) {
@@ -70,10 +83,29 @@ export function createVapeSim({ shop, cast, play, scene }) {
   }
 
   function walkToward(mesh, tx, tz, dt, spd = 1.35) {
-    const dx = tx - mesh.position.x;
-    const dz = tz - mesh.position.z;
+    let gx = tx;
+    let gz = tz;
+    const px = mesh.position.x;
+    const pz = mesh.position.z;
+    if (segHitsBox(px, pz, tx, tz, SHOP_BOX)) {
+      const sideX = px < 8 ? 5.45 : 10.55;
+      if (pz < FRONT.z - 0.2) {
+        if (Math.abs(px - sideX) > 0.4) {
+          gx = sideX;
+          gz = pz;
+        } else {
+          gx = sideX;
+          gz = FRONT.z;
+        }
+      } else {
+        gx = FRONT.x;
+        gz = FRONT.z;
+      }
+    }
+    const dx = gx - px;
+    const dz = gz - pz;
     const d = Math.hypot(dx, dz) || 1;
-    if (d < 0.45) return true;
+    if (d < 0.45 && gx === tx && gz === tz) return true;
     mesh.position.x += (dx / d) * spd * dt;
     mesh.position.z += (dz / d) * spd * dt;
     mesh.rotation.y = Math.atan2(dx, dz);
@@ -119,7 +151,7 @@ export function createVapeSim({ shop, cast, play, scene }) {
             v.t = 0;
           }
         } else if (v.state === "toShop") {
-          if (walkToward(m, counter.x, counter.z, h, 1.4)) {
+          if (walkToward(m, FRONT.x, FRONT.z, h, 1.4)) {
             v.state = "buy";
             v.t = 0;
             v.flavor = pick(FLAVORS);

@@ -16,7 +16,7 @@ import { buildT101, poseT101 } from "../chars/t101.js";
 import { seagull } from "../chars/npcs.js";
 import { JACK } from "./arrest.js";
 import { blocked } from "../input/player.js";
-import { FACTORY_DOOR, FACTORY_DOCK } from "../world/aureliaFactory.js";
+import { FACTORY_DOOR, FACTORY_DOCK, FACTORY_YARD } from "../world/aureliaFactory.js";
 
 const FLEE = 6.2;
 const COP_SPEED = 7.4;
@@ -856,16 +856,36 @@ export function createPanic({
     return !blocked(colliders?.COL, p.x, p.z, r);
   }
 
+  function nearestWalkable(x, z, r) {
+    if (!blocked(colliders?.COL, x, z, r)) return { x, z };
+    const [ci, cj] = toCell(x, z);
+    for (let rad = 1; rad <= 6; rad++) {
+      for (let di = -rad; di <= rad; di++) {
+        for (let dj = -rad; dj <= rad; dj++) {
+          if (Math.abs(di) !== rad && Math.abs(dj) !== rad) continue;
+          if (!walkable(ci + di, cj + dj, r)) continue;
+          return fromCell(ci + di, cj + dj);
+        }
+      }
+    }
+    return { x, z };
+  }
+
   function astar(sx, sz, gx, gz, rad) {
     const r = rad || 0.38;
-    const [si, sj] = toCell(sx, sz);
-    const [gi, gj] = toCell(gx, gz);
-    if (si === gi && sj === gj) return [{ x: gx, z: gz }];
+    const start = nearestWalkable(sx, sz, r);
+    const goal = nearestWalkable(gx, gz, r);
+    const [si, sj] = toCell(start.x, start.z);
+    const [gi, gj] = toCell(goal.x, goal.z);
+    if (si === gi && sj === gj) return [{ x: goal.x, z: goal.z }];
     const startK = cellKey(si, sj);
     const open = [[Math.hypot(si - gi, sj - gj), si, sj]];
     const came = new Map();
     const gScore = new Map([[startK, 0]]);
     let n = 0;
+    let bestI = si;
+    let bestJ = sj;
+    let bestH = Math.hypot(si - gi, sj - gj);
     const nbr = [
       [1, 0],
       [-1, 0],
@@ -896,8 +916,14 @@ export function createPanic({
           cj = prev[1];
         }
         path.reverse();
-        path.push({ x: gx, z: gz });
+        path.push({ x: goal.x, z: goal.z });
         return path;
+      }
+      const hHere = Math.hypot(i - gi, j - gj);
+      if (hHere < bestH) {
+        bestH = hHere;
+        bestI = i;
+        bestJ = j;
       }
       const g0 = gScore.get(cellKey(i, j)) || 0;
       for (let k = 0; k < nbr.length; k++) {
@@ -913,7 +939,19 @@ export function createPanic({
         open.push([tg + Math.hypot(ni - gi, nj - gj), ni, nj]);
       }
     }
-    return [{ x: gx, z: gz }];
+    const path = [];
+    let ci = bestI;
+    let cj = bestJ;
+    while (true) {
+      path.push(fromCell(ci, cj));
+      const prev = came.get(cellKey(ci, cj));
+      if (!prev) break;
+      ci = prev[0];
+      cj = prev[1];
+    }
+    path.reverse();
+    if (!path.length) path.push({ x: start.x, z: start.z });
+    return path;
   }
 
   function nextStep(c, gx, gz, t) {
@@ -1129,8 +1167,8 @@ export function createPanic({
       c.duty = "home";
       if (c.kind === "t101") {
         const k = extra++;
-        c.tx = FACTORY_DOCK.x + (k % 4) * 0.9 - 1.3;
-        c.tz = FACTORY_DOCK.z + ((k / 4) | 0) * 0.75 - 0.9;
+        c.tx = FACTORY_YARD.x - (k % 3) * 0.85;
+        c.tz = FACTORY_YARD.z + (((k / 3) | 0) - 1) * 1.05;
       } else {
         const spot = BEACH_SPOTS[extra % BEACH_SPOTS.length];
         extra += 1;
@@ -1366,6 +1404,10 @@ export function createPanic({
     else c.vx *= 0.15;
     if (!blocked(colliders?.COL, c.x, nz, rad)) c.z = nz;
     else c.vz *= 0.15;
+    if (Math.abs(c.vx) < 0.04 && Math.abs(c.vz) < 0.04 && d > 0.8) {
+      c.path = null;
+      c.pathAt = 0;
+    }
     c.x = Math.max(BOUNDS.minX, Math.min(BOUNDS.maxX, c.x));
     c.z = Math.max(BOUNDS.minZ, Math.min(BOUNDS.maxZ, c.z));
     c.reach += (reachTo - c.reach) * Math.min(1, h * 4);
@@ -1396,7 +1438,7 @@ export function createPanic({
     if (pourAcc > 7.4 && living().length < LIVE_CAP && wantPour) {
       pourAcc = 0;
       const t = Math.min(1, killCount / 40);
-      const rec = addUnit("t101", FACTORY_DOOR.x + 0.4, FACTORY_DOOR.z, waveIndex, {
+      const rec = addUnit("t101", FACTORY_DOOR.x - 0.95, FACTORY_DOOR.z + (Math.random() - 0.5) * 1.1, waveIndex, {
         scale: 1.2 + 0.8 * t,
         elite: true,
         ranged: Math.random() < 0.4,

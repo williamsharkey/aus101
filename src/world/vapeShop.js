@@ -97,12 +97,19 @@ export function spawnVapeShop(scene, add) {
 
   g.position.set(VAPE_SHOP.x, 0, VAPE_SHOP.z);
   scene.add(g);
-  add(6.2, 9.8, VAPE_SHOP.z - 1.4, VAPE_SHOP.z + 1.4);
+  // Walls only — front (+Z) stays open so customers queue at the counter lip.
+  const wx = VAPE_SHOP.x;
+  const wz = VAPE_SHOP.z;
+  add(wx - 1.9, wx + 1.9, wz - 1.28, wz - 1.02); // back
+  add(wx - 1.92, wx - 1.68, wz - 1.22, wz + 1.15); // left
+  add(wx + 1.68, wx + 1.92, wz - 1.22, wz + 1.15); // right
+  add(wx - 1.55, wx + 1.55, wz + 0.22, wz + 0.92); // counter
 
   return {
     group: g,
     clerk,
     counter: { x: VAPE_SHOP.x, z: VAPE_SHOP.z + 0.9 },
+    front: { x: VAPE_SHOP.x, z: VAPE_SHOP.z + 1.95 },
     shop: { x: VAPE_SHOP.x, z: VAPE_SHOP.z },
   };
 }
